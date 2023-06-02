@@ -1,0 +1,316 @@
+{
+  parserClass="com.warmthdawn.zenscript.parser.ZenScriptParser"
+  parserUtilClass="com.warmthdawn.zenscript.parser.ZenScriptParserUtil"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="ZenScript"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.warmthdawn.zenscript.psi"
+  psiImplPackage="com.warmthdawn.zenscript.psi.impl"
+
+  elementTypeHolderClass="com.warmthdawn.zenscript.psi.ZenScriptTypes"
+  elementTypeClass="com.warmthdawn.zenscript.psi.ZenScriptElementType"
+  tokenTypeClass="com.warmthdawn.zenscript.psi.ZenScriptTokenType"
+  
+  tokens=[
+    K_VAR                 ='var'
+    K_VAL                 ='val'
+    K_GLOBAL              ='global'
+    K_STATIC              ='static'
+    K_IMPORT              ='import'
+    K_FUNCTION            ='function'
+    K_AS                  ='as'
+    K_TO                  ='to'
+    K_IN                  ='in'
+    K_HAS                 ='has'
+    K_INSTANCEOF          ='instanceof'
+    K_THIS                ='this'
+    K_SUPER               ='super'
+
+    K_ANY                 ='any'
+    K_BYTE                ='byte'
+    K_SHORT               ='short'
+    K_INT                 ='int'
+    K_LONG                ='long'
+    K_FLOAT               ='float'
+    K_DOUBLE              ='double'
+    K_BOOL                ='bool'
+    K_VOID                ='void'
+    K_STRING              ='string'
+
+    K_TRUE                ='true'
+    K_FALSE               ='false'
+    K_NULL                ='null'
+
+    K_IF                  ='if'
+    K_ELSE                ='else'
+    K_FOR                 ='for'
+    K_DO                  ='do'
+    K_WHILE               ='while'
+    K_BREAK               ='break'
+    K_CONTINUE            ='continue'
+    K_RETURN              ='return'
+    K_ZEN_CLASS           ='zenClass'
+    K_ZEN_CONSTRUCTOR     ='zenConstructor'
+    K_EXPAND              ='$expand'
+
+    // Separators
+    PAREN_OPEN            ='('
+    PAREN_CLOSE           =')'
+    BRACK_OPEN            ='['
+    BRACK_CLOSE           =']'
+    BRACE_OPEN            ='{'
+    BRACE_CLOSE           ='}'
+    COMMA                 =','
+    DOT                   ='.'
+    SEMICOLON             =';'
+
+    // Operators
+    OP_ADD                ='+'
+    OP_SUB                ='-'
+    OP_MUL                ='*'
+    OP_DIV                ='/'
+    OP_MOD                ='%'
+    OP_CAT                ='~'
+    OP_NOT                ='!'
+    OP_LESS               ='<'
+    OP_GREATER            ='>'
+    OP_XOR                ='^'
+    OP_COLON              =':'
+    OP_QUEST              ='?'
+    OP_BACKTICK           ='`'
+    OP_DOLLAR             ='$'
+    OP_AND                ='&'
+    OP_OR                 ='|'
+    OP_ASSIGN             ='='
+
+    OP_AND_AND            ='&&'
+    OP_OR_OR              ='||'
+    OP_EQUAL              ='=='
+    OP_NOT_EQUAL          ='!='
+    OP_LESS_EQUAL         ='<='
+    OP_GREATER_EQUAL      ='>='
+    OP_ADD_ASSIGN         ='+='
+    OP_SUB_ASSIGN         ='-='
+    OP_MUL_ASSIGN         ='*='
+    OP_DIV_ASSIGN         ='/='
+    OP_MOD_ASSIGN         ='%='
+    OP_XOR_ASSIGN         ='^='
+    OP_AND_ASSIGN         ='&='
+    OP_OR_ASSIGN          ='|='
+    OP_CAT_ASSIGN         ='~='
+    OP_DOT_DOT            ='..'
+
+    EOF                   ='<<EOF>>'
+    COMMENT               ='COMMENT'
+
+  ]
+
+
+  extends("(unary|mul|add|compare|and|xor| or| andAnd|orOr|conditional|assignment)Expression")=expression
+}
+
+file ::= importList scriptBody EOF
+
+importList ::= (importDeclaration)*
+
+qualifiedName ::=
+    qualifier identifier;
+
+qualifier ::=
+    (identifier '.')*;
+
+alias ::=
+    identifier;
+
+identifier ::=
+    ID | 'to';
+
+importDeclaration ::=
+    'import' qualifiedName ('as' alias)? ';';
+
+scriptBody ::= (functionDeclaration | expandFunctionDeclaration | classDeclaration | statement)*
+
+functionDeclaration ::= ('static')? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+
+expandFunctionDeclaration ::= '$expand' typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+
+parameter ::=
+    identifier ('as' typeLiteral)? ('=' defaultValue)?
+
+defaultValue ::=
+    expression;
+
+functionBody ::=
+    '{' statement* '}'
+
+classDeclaration ::=
+    'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+
+constructorDeclaration ::=
+    'zenConstructor' '(' (parameter (',' parameter)*)? ')' constructorBody
+
+constructorBody ::=
+    '{' statement* '}'
+
+variableDeclaration ::=
+    ('var' | 'val' | 'static' | 'global') identifier ('as' typeLiteral)? ('=' initializer)? ';'
+
+initializer ::=
+    expression
+
+statement ::=
+    blockStatement
+    | returnStatement
+    | breakStatement
+    | continueStatement
+    | ifStatement
+    | foreachStatement
+    | whileStatement
+    | variableDeclaration
+    | expressionStatement
+
+blockStatement ::=
+    '{' statement* '}'
+
+returnStatement ::=
+    'return' expression? ';'
+
+breakStatement ::=
+    'break' ';'
+
+continueStatement ::=
+    'continue' ';'
+
+ifStatement ::=
+    'if' expression thenBody ('else' elseBody)?
+
+thenBody ::=
+    statement;
+
+elseBody ::=
+    statement;
+
+foreachStatement ::=
+    'for' simpleVariable (',' simpleVariable)* 'in' expression foreachBody;
+
+simpleVariable ::=
+    identifier;
+
+foreachBody ::=
+    '{' statement* '}';
+
+whileStatement ::=
+    'while' '(' expression ')' statement;
+
+expressionStatement ::=
+    expression ';';
+
+expression ::= assignmentExpression;
+
+//expression ::=
+//      unaryExpression
+//    | mulExpression
+//    | addExpression
+//    | compareExpression
+//    | andExpression
+//    | xorExpression
+//    | orExpression
+//    | andAndExpression
+//    | orOrExpression
+//    | conditionalExpression
+//    | assignmentExpression
+//
+//
+//unaryExpression ::= ('!' | '-') expression { rightAssociative = true }
+//mulExpression ::= expression ('*' | '/' | '%') expression
+//addExpression ::= expression ('+' | '-' | '~') expression
+//compareExpression ::= expression ('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') expression  { rightAssociative = true }
+//andExpression ::= expression '&' expression
+//xorExpression ::= expression '^'expression
+//orExpression ::= expression '|' expression
+//andAndExpression ::= expression '&&' expression
+//orOrExpression ::= expression '||' expression
+//conditionalExpression ::= expression '?' expression ':' expression  { rightAssociative = true }
+//assignmentExpression ::= expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression  { rightAssociative = true }
+
+
+
+assignmentExpression ::= conditionalExpression (('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') assignmentExpression)?;
+
+conditionalExpression ::= orOrExpression ('?' orOrExpression ':' conditionalExpression)?;
+
+orOrExpression ::= andAndExpression ('||' andAndExpression)*;
+
+andAndExpression ::= orExpression ('&&' orExpression)*;
+
+orExpression ::= xorExpression ('|' xorExpression)*;
+
+xorExpression ::= andExpression ('^' andExpression)*;
+
+andExpression ::= compareExpression ('&' compareExpression)*;
+
+compareExpression ::= addExpression (('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') compareExpression)?;
+
+addExpression ::= mulExpression (('+' | '-' | '~') mulExpression)*;
+
+mulExpression ::= unaryExpression (('*' | '/' | '%') unaryExpression)*;
+
+unaryExpression ::= ('!' | '-')? postfixExpression | postfixExpression;
+
+postfixExpression ::= primaryExpression
+    (('.' identifier)
+    | (('..' | 'to') expression)
+    | ('[' identifier ']')
+    | ('(' arguments ')')
+    | ('as' typeLiteral)
+    | ('instanceof' expression)
+    )*;
+
+primaryExpression ::=
+      INT_LITERAL
+    | LONG_LITERAL
+    | FLOAT_LITERAL
+    | DOUBLE_LITERAL
+    | STRING_LITERAL
+    | TRUE_LITERAL
+    | K_FALSE
+    | K_NULL
+    | identifier
+    | 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    | bracketHandler
+    | '[' (expression (',' expression)*)? ','? ']'
+    | '{' (mapEntry (',' mapEntry)*)? ','? '}'
+    | '(' expression ')'
+
+bracketHandler ::= '<' {(!'>')*} '>'
+
+arguments ::=
+    (expression (',' expression)*)?;
+
+mapEntry ::=
+    expression ':' expression;
+
+
+
+typeLiteral ::=
+  qualifiedName arraySuffix
+  | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' typeLiteral arraySuffix
+  | '[' typeLiteral ']' arraySuffix
+  | primitiveType arraySuffix
+
+arraySuffix ::= ('[' ']')*
+
+primitiveType ::=
+  ANY
+  | BYTE
+  | SHORT
+  | INT
+  | LONG
+  | FLOAT
+  | DOUBLE
+  | BOOL
+  | VOID
+  | STRING
+
