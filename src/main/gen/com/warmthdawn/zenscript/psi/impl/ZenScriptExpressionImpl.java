@@ -11,7 +11,7 @@ import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptExpressionImpl extends ASTWrapperPsiElement implements ZenScriptExpression {
+public abstract class ZenScriptExpressionImpl extends ASTWrapperPsiElement implements ZenScriptExpression {
 
   public ZenScriptExpressionImpl(@NotNull ASTNode node) {
     super(node);
@@ -25,24 +25,6 @@ public class ZenScriptExpressionImpl extends ASTWrapperPsiElement implements Zen
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ZenScriptVisitor) accept((ZenScriptVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptAndAndExpression getAndAndExpression() {
-    return findChildByClass(ZenScriptAndAndExpression.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptOrExpression getOrExpression() {
-    return findChildByClass(ZenScriptOrExpression.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptPostfixExpression getPostfixExpression() {
-    return findChildByClass(ZenScriptPostfixExpression.class);
   }
 
 }

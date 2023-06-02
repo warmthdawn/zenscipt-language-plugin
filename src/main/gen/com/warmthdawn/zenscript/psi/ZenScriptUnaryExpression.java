@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptUnaryExpression extends ZenScriptExpression {
 
-  @NotNull
+  @Nullable
   ZenScriptExpression getExpression();
 
 }

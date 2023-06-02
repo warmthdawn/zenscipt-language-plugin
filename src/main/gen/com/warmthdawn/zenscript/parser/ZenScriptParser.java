@@ -36,33 +36,11 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
-    create_token_set_(ADD_EXPRESSION, AND_EXPRESSION, ASSIGNMENT_EXPRESSION, COMPARE_EXPRESSION,
-      CONDITIONAL_EXPRESSION, EXPRESSION, MUL_EXPRESSION, OR_OR_EXPRESSION,
-      UNARY_EXPRESSION, XOR_EXPRESSION),
+    create_token_set_(ADD_EXPRESSION, AND_AND_EXPRESSION, AND_EXPRESSION, ASSIGNMENT_EXPRESSION,
+      COMPARE_EXPRESSION, CONDITIONAL_EXPRESSION, EXPRESSION, MUL_EXPRESSION,
+      OR_EXPRESSION, OR_OR_EXPRESSION, POSTFIX_EXPRESSION, UNARY_EXPRESSION,
+      XOR_EXPRESSION),
   };
-
-  /* ********************************************************** */
-  // expression ('+' | '-' | '~') expression
-  public static boolean addExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "addExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, ADD_EXPRESSION, "<add expression>");
-    r = expression(b, l + 1);
-    r = r && addExpression_1(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // '+' | '-' | '~'
-  private static boolean addExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "addExpression_1")) return false;
-    boolean r;
-    r = consumeToken(b, OP_ADD);
-    if (!r) r = consumeToken(b, OP_SUB);
-    if (!r) r = consumeToken(b, OP_CAT);
-    return r;
-  }
 
   /* ********************************************************** */
   // identifier
@@ -72,32 +50,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ALIAS, "<alias>");
     r = identifier(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression '&&' expression
-  public static boolean andAndExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "andAndExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, AND_AND_EXPRESSION, "<and and expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_AND_AND);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression '&' expression
-  public static boolean andExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "andExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, AND_EXPRESSION, "<and expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_AND);
-    r = r && expression(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -117,7 +69,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "arguments_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     r = r && arguments_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -140,7 +92,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -166,36 +118,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, BRACK_OPEN, BRACK_CLOSE);
     exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression
-  public static boolean assignmentExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "assignmentExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, ASSIGNMENT_EXPRESSION, "<assignment expression>");
-    r = expression(b, l + 1);
-    r = r && assignmentExpression_1(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^='
-  private static boolean assignmentExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "assignmentExpression_1")) return false;
-    boolean r;
-    r = consumeToken(b, OP_ASSIGN);
-    if (!r) r = consumeToken(b, OP_ADD_ASSIGN);
-    if (!r) r = consumeToken(b, OP_SUB_ASSIGN);
-    if (!r) r = consumeToken(b, OP_MUL_ASSIGN);
-    if (!r) r = consumeToken(b, OP_DIV_ASSIGN);
-    if (!r) r = consumeToken(b, OP_MOD_ASSIGN);
-    if (!r) r = consumeToken(b, OP_CAT_ASSIGN);
-    if (!r) r = consumeToken(b, OP_AND_ASSIGN);
-    if (!r) r = consumeToken(b, OP_OR_ASSIGN);
-    if (!r) r = consumeToken(b, OP_XOR_ASSIGN);
     return r;
   }
 
@@ -309,49 +231,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // expression ('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') expression
-  public static boolean compareExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "compareExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, COMPARE_EXPRESSION, "<compare expression>");
-    r = expression(b, l + 1);
-    r = r && compareExpression_1(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has'
-  private static boolean compareExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "compareExpression_1")) return false;
-    boolean r;
-    r = consumeToken(b, OP_EQUAL);
-    if (!r) r = consumeToken(b, OP_NOT_EQUAL);
-    if (!r) r = consumeToken(b, OP_LESS);
-    if (!r) r = consumeToken(b, OP_LESS_EQUAL);
-    if (!r) r = consumeToken(b, OP_GREATER);
-    if (!r) r = consumeToken(b, OP_GREATER_EQUAL);
-    if (!r) r = consumeToken(b, K_IN);
-    if (!r) r = consumeToken(b, K_HAS);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression '?' expression ':' expression
-  public static boolean conditionalExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "conditionalExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, CONDITIONAL_EXPRESSION, "<conditional expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_QUEST);
-    r = r && expression(b, l + 1);
-    r = r && consumeToken(b, OP_COLON);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
   // '{' statement* '}'
   public static boolean constructorBody(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "constructorBody")) return false;
@@ -449,7 +328,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "defaultValue")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, DEFAULT_VALUE, "<default value>");
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -544,45 +423,12 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // unaryExpression
-  //     | mulExpression
-  //     | addExpression
-  //     | compareExpression
-  //     | andExpression
-  //     | xorExpression
-  //     | orExpression
-  //     | andAndExpression
-  //     | orOrExpression
-  //     | conditionalExpression
-  //     | assignmentExpression
-  //     | postfixExpression
-  public static boolean expression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "expression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, EXPRESSION, "<expression>");
-    r = unaryExpression(b, l + 1);
-    if (!r) r = mulExpression(b, l + 1);
-    if (!r) r = addExpression(b, l + 1);
-    if (!r) r = compareExpression(b, l + 1);
-    if (!r) r = andExpression(b, l + 1);
-    if (!r) r = xorExpression(b, l + 1);
-    if (!r) r = orExpression(b, l + 1);
-    if (!r) r = andAndExpression(b, l + 1);
-    if (!r) r = orOrExpression(b, l + 1);
-    if (!r) r = conditionalExpression(b, l + 1);
-    if (!r) r = assignmentExpression(b, l + 1);
-    if (!r) r = postfixExpression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
   // expression ';'
   public static boolean expressionStatement(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "expressionStatement")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, EXPRESSION_STATEMENT, "<expression statement>");
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     r = r && consumeToken(b, SEMICOLON);
     exit_section_(b, l, m, r, false, null);
     return r;
@@ -637,7 +483,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     r = r && simpleVariable(b, l + 1);
     r = r && foreachStatement_2(b, l + 1);
     r = r && consumeToken(b, K_IN);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     r = r && foreachBody(b, l + 1);
     exit_section_(b, m, FOREACH_STATEMENT, r);
     return r;
@@ -795,7 +641,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, K_IF);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     r = r && thenBody(b, l + 1);
     r = r && ifStatement_3(b, l + 1);
     exit_section_(b, m, IF_STATEMENT, r);
@@ -883,7 +729,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "initializer")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, INITIALIZER, "<initializer>");
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -894,58 +740,9 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "mapEntry")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, MAP_ENTRY, "<map entry>");
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     r = r && consumeToken(b, OP_COLON);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression ('*' | '/' | '%') expression
-  public static boolean mulExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "mulExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, MUL_EXPRESSION, "<mul expression>");
-    r = expression(b, l + 1);
-    r = r && mulExpression_1(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // '*' | '/' | '%'
-  private static boolean mulExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "mulExpression_1")) return false;
-    boolean r;
-    r = consumeToken(b, OP_MUL);
-    if (!r) r = consumeToken(b, OP_DIV);
-    if (!r) r = consumeToken(b, OP_MOD);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression '|' expression
-  public static boolean orExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "orExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, OR_EXPRESSION, "<or expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_OR);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // expression '||' expression
-  public static boolean orOrExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "orOrExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, OR_OR_EXPRESSION, "<or or expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_OR_OR);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -996,139 +793,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, OP_ASSIGN);
     r = r && defaultValue(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // primaryExpression
-  //     (('.' identifier)
-  //     | (('..' | 'to') expression)
-  //     | ('[' identifier ']')
-  //     | ('(' arguments ')')
-  //     | ('as' typeLiteral)
-  //     | ('instanceof' expression)
-  //     )*
-  public static boolean postfixExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, POSTFIX_EXPRESSION, "<postfix expression>");
-    r = primaryExpression(b, l + 1);
-    r = r && postfixExpression_1(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // (('.' identifier)
-  //     | (('..' | 'to') expression)
-  //     | ('[' identifier ']')
-  //     | ('(' arguments ')')
-  //     | ('as' typeLiteral)
-  //     | ('instanceof' expression)
-  //     )*
-  private static boolean postfixExpression_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1")) return false;
-    while (true) {
-      int c = current_position_(b);
-      if (!postfixExpression_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "postfixExpression_1", c)) break;
-    }
-    return true;
-  }
-
-  // ('.' identifier)
-  //     | (('..' | 'to') expression)
-  //     | ('[' identifier ']')
-  //     | ('(' arguments ')')
-  //     | ('as' typeLiteral)
-  //     | ('instanceof' expression)
-  private static boolean postfixExpression_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = postfixExpression_1_0_0(b, l + 1);
-    if (!r) r = postfixExpression_1_0_1(b, l + 1);
-    if (!r) r = postfixExpression_1_0_2(b, l + 1);
-    if (!r) r = postfixExpression_1_0_3(b, l + 1);
-    if (!r) r = postfixExpression_1_0_4(b, l + 1);
-    if (!r) r = postfixExpression_1_0_5(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // '.' identifier
-  private static boolean postfixExpression_1_0_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, DOT);
-    r = r && identifier(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ('..' | 'to') expression
-  private static boolean postfixExpression_1_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = postfixExpression_1_0_1_0(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // '..' | 'to'
-  private static boolean postfixExpression_1_0_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_1_0")) return false;
-    boolean r;
-    r = consumeToken(b, OP_DOT_DOT);
-    if (!r) r = consumeToken(b, K_TO);
-    return r;
-  }
-
-  // '[' identifier ']'
-  private static boolean postfixExpression_1_0_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_2")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, BRACK_OPEN);
-    r = r && identifier(b, l + 1);
-    r = r && consumeToken(b, BRACK_CLOSE);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // '(' arguments ')'
-  private static boolean postfixExpression_1_0_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_3")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, PAREN_OPEN);
-    r = r && arguments(b, l + 1);
-    r = r && consumeToken(b, PAREN_CLOSE);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // 'as' typeLiteral
-  private static boolean postfixExpression_1_0_4(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_4")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, K_AS);
-    r = r && typeLiteral(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // 'instanceof' expression
-  private static boolean postfixExpression_1_0_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "postfixExpression_1_0_5")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, K_INSTANCEOF);
-    r = r && expression(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1267,7 +931,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "primaryExpression_11_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = expression(b, l + 1);
+    r = expression(b, l + 1, -1);
     r = r && primaryExpression_11_1_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1290,7 +954,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, COMMA);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1368,7 +1032,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, PAREN_OPEN);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     r = r && consumeToken(b, PAREN_CLOSE);
     exit_section_(b, m, null, r);
     return r;
@@ -1458,7 +1122,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   // expression?
   private static boolean returnStatement_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "returnStatement_1")) return false;
-    expression(b, l + 1);
+    expression(b, l + 1, -1);
     return true;
   }
 
@@ -1644,28 +1308,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ('!' | '-') expression
-  public static boolean unaryExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "unaryExpression")) return false;
-    if (!nextTokenIs(b, "<unary expression>", OP_NOT, OP_SUB)) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, UNARY_EXPRESSION, "<unary expression>");
-    r = unaryExpression_0(b, l + 1);
-    r = r && expression(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
-  }
-
-  // '!' | '-'
-  private static boolean unaryExpression_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "unaryExpression_0")) return false;
-    boolean r;
-    r = consumeToken(b, OP_NOT);
-    if (!r) r = consumeToken(b, OP_SUB);
-    return r;
-  }
-
-  /* ********************************************************** */
   // ('var' | 'val' | 'static' | 'global') identifier ('as' typeLiteral)? ('=' initializer)? ';'
   public static boolean variableDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "variableDeclaration")) return false;
@@ -1735,7 +1377,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokens(b, 0, K_WHILE, PAREN_OPEN);
-    r = r && expression(b, l + 1);
+    r = r && expression(b, l + 1, -1);
     r = r && consumeToken(b, PAREN_CLOSE);
     r = r && statement(b, l + 1);
     exit_section_(b, m, WHILE_STATEMENT, r);
@@ -1743,15 +1385,300 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // expression '^'expression
-  public static boolean xorExpression(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "xorExpression")) return false;
+  // Expression root: expression
+  // Operator priority table:
+  // 0: PREFIX(unaryExpression)
+  // 1: BINARY(mulExpression)
+  // 2: BINARY(addExpression)
+  // 3: BINARY(compareExpression)
+  // 4: BINARY(andExpression)
+  // 5: BINARY(xorExpression)
+  // 6: BINARY(orExpression)
+  // 7: BINARY(andAndExpression)
+  // 8: BINARY(orOrExpression)
+  // 9: BINARY(conditionalExpression)
+  // 10: BINARY(assignmentExpression)
+  // 11: ATOM(postfixExpression)
+  public static boolean expression(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "expression")) return false;
+    addVariant(b, "<expression>");
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, "<expression>");
+    r = unaryExpression(b, l + 1);
+    if (!r) r = postfixExpression(b, l + 1);
+    p = r;
+    r = r && expression_0(b, l + 1, g);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  public static boolean expression_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "expression_0")) return false;
+    boolean r = true;
+    while (true) {
+      Marker m = enter_section_(b, l, _LEFT_, null);
+      if (g < 1 && mulExpression_0(b, l + 1)) {
+        r = expression(b, l, 1);
+        exit_section_(b, l, m, MUL_EXPRESSION, r, true, null);
+      }
+      else if (g < 2 && addExpression_0(b, l + 1)) {
+        r = expression(b, l, 2);
+        exit_section_(b, l, m, ADD_EXPRESSION, r, true, null);
+      }
+      else if (g < 3 && compareExpression_0(b, l + 1)) {
+        r = expression(b, l, 2);
+        exit_section_(b, l, m, COMPARE_EXPRESSION, r, true, null);
+      }
+      else if (g < 4 && consumeTokenSmart(b, OP_AND)) {
+        r = expression(b, l, 4);
+        exit_section_(b, l, m, AND_EXPRESSION, r, true, null);
+      }
+      else if (g < 5 && consumeTokenSmart(b, OP_XOR)) {
+        r = expression(b, l, 5);
+        exit_section_(b, l, m, XOR_EXPRESSION, r, true, null);
+      }
+      else if (g < 6 && consumeTokenSmart(b, OP_OR)) {
+        r = expression(b, l, 6);
+        exit_section_(b, l, m, OR_EXPRESSION, r, true, null);
+      }
+      else if (g < 7 && consumeTokenSmart(b, OP_AND_AND)) {
+        r = expression(b, l, 7);
+        exit_section_(b, l, m, AND_AND_EXPRESSION, r, true, null);
+      }
+      else if (g < 8 && consumeTokenSmart(b, OP_OR_OR)) {
+        r = expression(b, l, 8);
+        exit_section_(b, l, m, OR_OR_EXPRESSION, r, true, null);
+      }
+      else if (g < 9 && consumeTokenSmart(b, OP_QUEST)) {
+        r = report_error_(b, expression(b, l, 8));
+        r = conditionalExpression_1(b, l + 1) && r;
+        exit_section_(b, l, m, CONDITIONAL_EXPRESSION, r, true, null);
+      }
+      else if (g < 10 && assignmentExpression_0(b, l + 1)) {
+        r = expression(b, l, 9);
+        exit_section_(b, l, m, ASSIGNMENT_EXPRESSION, r, true, null);
+      }
+      else {
+        exit_section_(b, l, m, null, false, false, null);
+        break;
+      }
+    }
+    return r;
+  }
+
+  public static boolean unaryExpression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "unaryExpression")) return false;
+    if (!nextTokenIsSmart(b, OP_NOT, OP_SUB)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, null);
+    r = unaryExpression_0(b, l + 1);
+    p = r;
+    r = p && expression(b, l, 0);
+    exit_section_(b, l, m, UNARY_EXPRESSION, r, p, null);
+    return r || p;
+  }
+
+  // '!' | '-'
+  private static boolean unaryExpression_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "unaryExpression_0")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, XOR_EXPRESSION, "<xor expression>");
-    r = expression(b, l + 1);
-    r = r && consumeToken(b, OP_XOR);
-    r = r && expression(b, l + 1);
+    r = consumeTokenSmart(b, OP_NOT);
+    if (!r) r = consumeTokenSmart(b, OP_SUB);
+    return r;
+  }
+
+  // '*' | '/' | '%'
+  private static boolean mulExpression_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "mulExpression_0")) return false;
+    boolean r;
+    r = consumeTokenSmart(b, OP_MUL);
+    if (!r) r = consumeTokenSmart(b, OP_DIV);
+    if (!r) r = consumeTokenSmart(b, OP_MOD);
+    return r;
+  }
+
+  // '+' | '-' | '~'
+  private static boolean addExpression_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "addExpression_0")) return false;
+    boolean r;
+    r = consumeTokenSmart(b, OP_ADD);
+    if (!r) r = consumeTokenSmart(b, OP_SUB);
+    if (!r) r = consumeTokenSmart(b, OP_CAT);
+    return r;
+  }
+
+  // '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has'
+  private static boolean compareExpression_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "compareExpression_0")) return false;
+    boolean r;
+    r = consumeTokenSmart(b, OP_EQUAL);
+    if (!r) r = consumeTokenSmart(b, OP_NOT_EQUAL);
+    if (!r) r = consumeTokenSmart(b, OP_LESS);
+    if (!r) r = consumeTokenSmart(b, OP_LESS_EQUAL);
+    if (!r) r = consumeTokenSmart(b, OP_GREATER);
+    if (!r) r = consumeTokenSmart(b, OP_GREATER_EQUAL);
+    if (!r) r = consumeTokenSmart(b, K_IN);
+    if (!r) r = consumeTokenSmart(b, K_HAS);
+    return r;
+  }
+
+  // ':' expression
+  private static boolean conditionalExpression_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "conditionalExpression_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OP_COLON);
+    r = r && expression(b, l + 1, -1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^='
+  private static boolean assignmentExpression_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignmentExpression_0")) return false;
+    boolean r;
+    r = consumeTokenSmart(b, OP_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_ADD_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_SUB_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_MUL_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_DIV_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_MOD_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_CAT_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_AND_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_OR_ASSIGN);
+    if (!r) r = consumeTokenSmart(b, OP_XOR_ASSIGN);
+    return r;
+  }
+
+  // primaryExpression
+  //     (('.' identifier)
+  //     | (('..' | 'to') expression)
+  //     | ('[' identifier ']')
+  //     | ('(' arguments ')')
+  //     | ('as' typeLiteral)
+  //     | ('instanceof' expression)
+  //     )*
+  public static boolean postfixExpression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, POSTFIX_EXPRESSION, "<postfix expression>");
+    r = primaryExpression(b, l + 1);
+    r = r && postfixExpression_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // (('.' identifier)
+  //     | (('..' | 'to') expression)
+  //     | ('[' identifier ']')
+  //     | ('(' arguments ')')
+  //     | ('as' typeLiteral)
+  //     | ('instanceof' expression)
+  //     )*
+  private static boolean postfixExpression_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!postfixExpression_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "postfixExpression_1", c)) break;
+    }
+    return true;
+  }
+
+  // ('.' identifier)
+  //     | (('..' | 'to') expression)
+  //     | ('[' identifier ']')
+  //     | ('(' arguments ')')
+  //     | ('as' typeLiteral)
+  //     | ('instanceof' expression)
+  private static boolean postfixExpression_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = postfixExpression_1_0_0(b, l + 1);
+    if (!r) r = postfixExpression_1_0_1(b, l + 1);
+    if (!r) r = postfixExpression_1_0_2(b, l + 1);
+    if (!r) r = postfixExpression_1_0_3(b, l + 1);
+    if (!r) r = postfixExpression_1_0_4(b, l + 1);
+    if (!r) r = postfixExpression_1_0_5(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // '.' identifier
+  private static boolean postfixExpression_1_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, DOT);
+    r = r && identifier(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // ('..' | 'to') expression
+  private static boolean postfixExpression_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = postfixExpression_1_0_1_0(b, l + 1);
+    r = r && expression(b, l + 1, -1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // '..' | 'to'
+  private static boolean postfixExpression_1_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_1_0")) return false;
+    boolean r;
+    r = consumeTokenSmart(b, OP_DOT_DOT);
+    if (!r) r = consumeTokenSmart(b, K_TO);
+    return r;
+  }
+
+  // '[' identifier ']'
+  private static boolean postfixExpression_1_0_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_2")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, BRACK_OPEN);
+    r = r && identifier(b, l + 1);
+    r = r && consumeToken(b, BRACK_CLOSE);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // '(' arguments ')'
+  private static boolean postfixExpression_1_0_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_3")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, PAREN_OPEN);
+    r = r && arguments(b, l + 1);
+    r = r && consumeToken(b, PAREN_CLOSE);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // 'as' typeLiteral
+  private static boolean postfixExpression_1_0_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_4")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, K_AS);
+    r = r && typeLiteral(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // 'instanceof' expression
+  private static boolean postfixExpression_1_0_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "postfixExpression_1_0_5")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, K_INSTANCEOF);
+    r = r && expression(b, l + 1, -1);
+    exit_section_(b, m, null, r);
     return r;
   }
 

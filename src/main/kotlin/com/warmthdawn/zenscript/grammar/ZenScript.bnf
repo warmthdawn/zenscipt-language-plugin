@@ -108,7 +108,7 @@
   ]
 
 
-  extends("(unary|mul|add|compare|and|xor| or| andAnd|orOr|conditional|assignment)Expression")=expression
+  extends("(unary|mul|add|compare|and|xor|or|andAnd|orOr|conditional|assignment|postfix)Expression")=expression
 }
 
 file ::= importList scriptBody EOF
@@ -206,8 +206,6 @@ whileStatement ::=
 
 expressionStatement ::=
     expression ';';
-
-//expression ::= assignmentExpression;
 
 expression ::=
       unaryExpression

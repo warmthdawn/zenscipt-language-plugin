@@ -218,9 +218,6 @@ public interface ZenScriptTypes {
       else if (type == EXPAND_FUNCTION_DECLARATION) {
         return new ZenScriptExpandFunctionDeclarationImpl(node);
       }
-      else if (type == EXPRESSION) {
-        return new ZenScriptExpressionImpl(node);
-      }
       else if (type == EXPRESSION_STATEMENT) {
         return new ZenScriptExpressionStatementImpl(node);
       }

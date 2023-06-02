@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptPostfixExpression extends PsiElement {
+public interface ZenScriptPostfixExpression extends ZenScriptExpression {
 
   @NotNull
   List<ZenScriptArguments> getArgumentsList();

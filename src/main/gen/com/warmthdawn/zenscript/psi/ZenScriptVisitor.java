@@ -16,7 +16,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitAndAndExpression(@NotNull ZenScriptAndAndExpression o) {
-    visitPsiElement(o);
+    visitExpression(o);
   }
 
   public void visitAndExpression(@NotNull ZenScriptAndExpression o) {
@@ -136,7 +136,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitOrExpression(@NotNull ZenScriptOrExpression o) {
-    visitPsiElement(o);
+    visitExpression(o);
   }
 
   public void visitOrOrExpression(@NotNull ZenScriptOrOrExpression o) {
@@ -148,7 +148,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitPostfixExpression(@NotNull ZenScriptPostfixExpression o) {
-    visitPsiElement(o);
+    visitExpression(o);
   }
 
   public void visitPrimaryExpression(@NotNull ZenScriptPrimaryExpression o) {

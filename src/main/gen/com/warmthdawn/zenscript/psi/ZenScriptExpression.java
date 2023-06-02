@@ -7,13 +7,4 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptExpression extends PsiElement {
 
-  @Nullable
-  ZenScriptAndAndExpression getAndAndExpression();
-
-  @Nullable
-  ZenScriptOrExpression getOrExpression();
-
-  @Nullable
-  ZenScriptPostfixExpression getPostfixExpression();
-
 }

@@ -28,9 +28,9 @@ public class ZenScriptUnaryExpressionImpl extends ZenScriptExpressionImpl implem
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptExpression getExpression() {
-    return findNotNullChildByClass(ZenScriptExpression.class);
+    return findChildByClass(ZenScriptExpression.class);
   }
 
 }
