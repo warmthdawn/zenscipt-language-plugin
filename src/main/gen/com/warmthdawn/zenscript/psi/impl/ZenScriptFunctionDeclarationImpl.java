@@ -34,9 +34,9 @@ public class ZenScriptFunctionDeclarationImpl extends ASTWrapperPsiElement imple
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override

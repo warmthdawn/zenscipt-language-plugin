@@ -10,7 +10,7 @@ public interface ZenScriptFunctionDeclaration extends PsiElement {
   @Nullable
   ZenScriptFunctionBody getFunctionBody();
 
-  @NotNull
+  @Nullable
   ZenScriptIdentifier getIdentifier();
 
   @Nullable

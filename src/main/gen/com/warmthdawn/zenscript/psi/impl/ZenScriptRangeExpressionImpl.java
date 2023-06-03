@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptRangeExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptRangeExpression {
+public class ZenScriptRangeExpressionImpl extends ZenScriptBinaryExpressionImpl implements ZenScriptRangeExpression {
 
   public ZenScriptRangeExpressionImpl(@NotNull ASTNode node) {
     super(node);
@@ -25,12 +25,6 @@ public class ZenScriptRangeExpressionImpl extends ZenScriptExpressionImpl implem
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ZenScriptVisitor) accept((ZenScriptVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
   }
 
 }

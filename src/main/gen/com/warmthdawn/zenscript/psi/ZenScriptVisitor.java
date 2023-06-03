@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitAddExpression(@NotNull ZenScriptAddExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitAndAndExpression(@NotNull ZenScriptAndAndExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitAndExpression(@NotNull ZenScriptAndExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitArguments(@NotNull ZenScriptArguments o) {
@@ -36,6 +36,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitAssignmentExpression(@NotNull ZenScriptAssignmentExpression o) {
+    visitBinaryExpression(o);
+  }
+
+  public void visitBinaryExpression(@NotNull ZenScriptBinaryExpression o) {
     visitExpression(o);
   }
 
@@ -64,7 +68,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitCompareExpression(@NotNull ZenScriptCompareExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitConditionalExpression(@NotNull ZenScriptConditionalExpression o) {
@@ -164,15 +168,15 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitMulExpression(@NotNull ZenScriptMulExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitOrExpression(@NotNull ZenScriptOrExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitOrOrExpression(@NotNull ZenScriptOrOrExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitParameter(@NotNull ZenScriptParameter o) {
@@ -212,7 +216,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitRangeExpression(@NotNull ZenScriptRangeExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitReferenceExpression(@NotNull ZenScriptReferenceExpression o) {
@@ -252,7 +256,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitXorExpression(@NotNull ZenScriptXorExpression o) {
-    visitExpression(o);
+    visitBinaryExpression(o);
   }
 
   public void visitPsiElement(@NotNull PsiElement o) {

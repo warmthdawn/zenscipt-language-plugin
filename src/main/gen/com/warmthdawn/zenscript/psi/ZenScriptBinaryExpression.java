@@ -5,6 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptAndExpression extends ZenScriptBinaryExpression {
+public interface ZenScriptBinaryExpression extends ZenScriptExpression {
+
+  @NotNull
+  List<ZenScriptExpression> getExpressionList();
 
 }

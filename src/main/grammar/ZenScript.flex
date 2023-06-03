@@ -159,6 +159,7 @@ Identifier = {Letter} {LetterOrDigit}*
   {Digits} '.' {Digits} ([eE] {Digits})? [dD]?   { return DOUBLE_LITERAL; }
 
   {WhiteSpace}            { return WHITE_SPACE; }
+  {LineTerminator}        { return NEW_LINE; }
 }
 
 

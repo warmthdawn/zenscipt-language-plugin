@@ -10,15 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptFunctionLiteralImpl extends ZenScriptLiteralExpressionImpl implements ZenScriptFunctionLiteral {
+public class ZenScriptBinaryExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptBinaryExpression {
 
-  public ZenScriptFunctionLiteralImpl(@NotNull ASTNode node) {
+  public ZenScriptBinaryExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitFunctionLiteral(this);
+    visitor.visitBinaryExpression(this);
   }
 
   @Override
@@ -28,21 +28,9 @@ public class ZenScriptFunctionLiteralImpl extends ZenScriptLiteralExpressionImpl
   }
 
   @Override
-  @Nullable
-  public ZenScriptFunctionBody getFunctionBody() {
-    return findChildByClass(ZenScriptFunctionBody.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptParameters getParameters() {
-    return findChildByClass(ZenScriptParameters.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptType getType() {
-    return findChildByClass(ZenScriptType.class);
+  @NotNull
+  public List<ZenScriptExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
   }
 
 }

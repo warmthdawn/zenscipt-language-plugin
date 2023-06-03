@@ -10,7 +10,7 @@ public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression {
   @Nullable
   ZenScriptFunctionBody getFunctionBody();
 
-  @NotNull
+  @Nullable
   ZenScriptParameters getParameters();
 
   @Nullable
