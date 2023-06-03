@@ -74,7 +74,7 @@ class ZenScriptHighlighter : SyntaxHighlighterBase() {
         attr1[ZenScriptTypes.SEMICOLON] = ZenScriptHighlightColors.SEMICOLON
 
 
-        attr1[ZenScriptTypes.BRACKET_HANDLER] = ZenScriptHighlightColors.BRACKET_HANDLER
+        attr1[ZenScriptTypes.BRACKET_HANDLER_LITERAL] = ZenScriptHighlightColors.BRACKET_HANDLER
 
         attr1[ZenScriptTypes.LINE_COMMENT] = ZenScriptHighlightColors.LINE_COMMENT
         attr1[ZenScriptTypes.BLOCK_COMMENT] = ZenScriptHighlightColors.BLOCK_COMMENT

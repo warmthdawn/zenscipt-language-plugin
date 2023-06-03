@@ -9,17 +9,16 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
-import com.intellij.psi.tree.IElementType;
 
-public class ZenScriptUnaryExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptUnaryExpression {
+public class ZenScriptLocalAccessExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptLocalAccessExpression {
 
-  public ZenScriptUnaryExpressionImpl(@NotNull ASTNode node) {
+  public ZenScriptLocalAccessExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitUnaryExpression(this);
+    visitor.visitLocalAccessExpression(this);
   }
 
   @Override
@@ -30,14 +29,14 @@ public class ZenScriptUnaryExpressionImpl extends ZenScriptExpressionImpl implem
 
   @Override
   @Nullable
-  public ZenScriptExpression getExpression() {
-    return findChildByClass(ZenScriptExpression.class);
+  public ZenScriptIdentifier getIdentifier() {
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override
-  @NotNull
-  public IElementType getOperator() {
-    return ZenScriptImplUtil.getOperator(this);
+  @Nullable
+  public ZenScriptPrimitiveType getPrimitiveType() {
+    return findChildByClass(ZenScriptPrimitiveType.class);
   }
 
 }

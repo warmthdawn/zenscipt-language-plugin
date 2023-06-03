@@ -4,6 +4,7 @@ package com.warmthdawn.zenscript.psi;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.tree.TokenSet;
 import com.warmthdawn.zenscript.psi.impl.*;
 
 public interface ZenScriptTypes {
@@ -43,6 +44,7 @@ public interface ZenScriptTypes {
   IElementType INSTANCE_OF_EXPRESSION = new ZenScriptElementType("INSTANCE_OF_EXPRESSION");
   IElementType LIST_TYPE = new ZenScriptElementType("LIST_TYPE");
   IElementType LITERAL_EXPRESSION = new ZenScriptElementType("LITERAL_EXPRESSION");
+  IElementType LOCAL_ACCESS_EXPRESSION = new ZenScriptElementType("LOCAL_ACCESS_EXPRESSION");
   IElementType MAP_ENTRY = new ZenScriptElementType("MAP_ENTRY");
   IElementType MAP_LITERAL = new ZenScriptElementType("MAP_LITERAL");
   IElementType MAP_TYPE = new ZenScriptElementType("MAP_TYPE");
@@ -60,7 +62,6 @@ public interface ZenScriptTypes {
   IElementType QUALIFIED_NAME = new ZenScriptElementType("QUALIFIED_NAME");
   IElementType QUALIFIER = new ZenScriptElementType("QUALIFIER");
   IElementType RANGE_EXPRESSION = new ZenScriptElementType("RANGE_EXPRESSION");
-  IElementType REFERENCE_EXPRESSION = new ZenScriptElementType("REFERENCE_EXPRESSION");
   IElementType RETURN_STATEMENT = new ZenScriptElementType("RETURN_STATEMENT");
   IElementType SCRIPT_BODY = new ZenScriptElementType("SCRIPT_BODY");
   IElementType STATEMENT = new ZenScriptElementType("STATEMENT");
@@ -160,6 +161,29 @@ public interface ZenScriptTypes {
   IElementType PREPROCESSOR = new ZenScriptTokenType("PREPROCESSOR");
   IElementType SEMICOLON = new ZenScriptTokenType(";");
   IElementType STRING_LITERAL = new ZenScriptTokenType("STRING_LITERAL");
+
+  interface TokenSets {
+    TokenSet ADD_OP_TOKENS = TokenSet.create(OP_ADD, OP_CAT, OP_SUB);
+    TokenSet ASSIGNMENT_OP_TOKENS = TokenSet.create(
+        OP_ADD_ASSIGN, OP_AND_ASSIGN, OP_ASSIGN, OP_CAT_ASSIGN, 
+        OP_DIV_ASSIGN, OP_MOD_ASSIGN, OP_MUL_ASSIGN, OP_OR_ASSIGN, 
+        OP_SUB_ASSIGN, OP_XOR_ASSIGN
+    );
+    TokenSet COMPARE_OP_TOKENS = TokenSet.create(
+        K_HAS, K_IN, OP_EQUAL, OP_GREATER, 
+        OP_GREATER_EQUAL, OP_LESS, OP_LESS_EQUAL, OP_NOT_EQUAL
+    );
+    TokenSet MUL_OP_TOKENS = TokenSet.create(OP_DIV, OP_MOD, OP_MUL);
+    TokenSet PRIMITIVE_LITERAL_TOKENS = TokenSet.create(
+        DOUBLE_LITERAL, FLOAT_LITERAL, INT_LITERAL, K_FALSE, 
+        K_NULL, K_TRUE, LONG_LITERAL, STRING_LITERAL
+    );
+    TokenSet PRIMITIVE_TYPE_TOKENS = TokenSet.create(
+        K_ANY, K_BOOL, K_BYTE, K_DOUBLE, 
+        K_FLOAT, K_INT, K_LONG, K_SHORT, 
+        K_STRING, K_VOID
+    );
+  }
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
@@ -263,6 +287,9 @@ public interface ZenScriptTypes {
       else if (type == LIST_TYPE) {
         return new ZenScriptListTypeImpl(node);
       }
+      else if (type == LOCAL_ACCESS_EXPRESSION) {
+        return new ZenScriptLocalAccessExpressionImpl(node);
+      }
       else if (type == MAP_ENTRY) {
         return new ZenScriptMapEntryImpl(node);
       }
@@ -310,9 +337,6 @@ public interface ZenScriptTypes {
       }
       else if (type == RANGE_EXPRESSION) {
         return new ZenScriptRangeExpressionImpl(node);
-      }
-      else if (type == REFERENCE_EXPRESSION) {
-        return new ZenScriptReferenceExpressionImpl(node);
       }
       else if (type == RETURN_STATEMENT) {
         return new ZenScriptReturnStatementImpl(node);

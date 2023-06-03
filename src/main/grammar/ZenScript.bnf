@@ -1,12 +1,13 @@
 {
   parserClass="com.warmthdawn.zenscript.parser.ZenScriptParser"
-
+  parserUtilClass="com.warmthdawn.zenscript.parser.ZenScriptParserUtil"
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
 
   psiClassPrefix="ZenScript"
   psiImplClassSuffix="Impl"
   psiPackage="com.warmthdawn.zenscript.psi"
   psiImplPackage="com.warmthdawn.zenscript.psi.impl"
+  psiImplUtilClass="com.warmthdawn.zenscript.psi.ZenScriptImplUtil"
 
   elementTypeHolderClass="com.warmthdawn.zenscript.psi.ZenScriptTypes"
   elementTypeClass="com.warmthdawn.zenscript.psi.ZenScriptElementType"
@@ -118,6 +119,10 @@
   extends("[a-z][a-zA-Z]*Expression")=expression
   extends("[a-z][a-zA-Z]*Literal")=literalExpression
   extends("[a-z][a-zA-Z]*Type")=type
+
+  generate=[
+    token-sets="yes"
+  ]
 }
 
 
@@ -202,7 +207,7 @@ whileStatement ::=
     'while' '(' expression ')' statement { pin=1 }
 
 expressionStatement ::=
-    assignmentExpression ';' { pin=1 }
+    expression ';' { pin=1 }
 
 
 expression ::=
@@ -229,12 +234,17 @@ private compareOP ::= '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has'
 private assignmentOp ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^='
 
 
+
 fake binaryExpression ::= expression
     (rangeOp | mulOp |  addOp | compareOP | assignmentOp | '&' | '^' | '|' |  '&&' |  '||')
-    expression { pin=2; }
+    expression { pin=2;  methods=[
+        left="expression[0]"
+        right="expression[1]"
+        getOperator
+    ]}
 
 rangeExpression ::= expression rangeOp expression
-unaryExpression ::= unaryOp expression { rightAssociative = true; pin=1; }
+unaryExpression ::= unaryOp expression { rightAssociative = true; pin=1; methods=[getOperator]; }
 mulExpression ::= expression mulOp expression
 addExpression ::= expression addOp expression
 compareExpression ::= expression compareOP expression  { rightAssociative = true }
@@ -243,7 +253,12 @@ xorExpression ::= expression '^' expression
 orExpression ::= expression '|' expression
 andAndExpression ::= expression '&&' expression
 orOrExpression ::= expression '||' expression
-conditionalExpression ::= expression conditionalTail  { rightAssociative = true }
+conditionalExpression ::= expression conditionalTail
+    { rightAssociative = true;  methods=[
+        condition="expression[0]"
+        truePart="expression[1]"
+        falsePart="expression[2]"
+    ]}
 assignmentExpression ::= expression assignmentOp expression  { rightAssociative = true }
 parenExpression ::= '(' expression ')' { pin=1 }
 
@@ -258,7 +273,7 @@ left typeCastExpression ::= 'as' type { pin=1 }
 left instanceOfExpression ::= 'instanceof' type { pin=1 }
 
 
-private primaryExpression ::= literalExpression | referenceExpression | parenExpression { pin=1 }
+private primaryExpression ::= literalExpression | localAccessExpression | parenExpression { pin=1 }
 postfixExpression ::=  primaryExpression (
       memberAccessExpression
     | arrayIndexExpression
@@ -269,7 +284,7 @@ postfixExpression ::=  primaryExpression (
 
 
 
-referenceExpression ::= identifier | primitiveType
+localAccessExpression ::= identifier | primitiveType
 
 
 literalExpression ::= arrayLiteral | mapLiteral | functionLiteral | bracketHandlerLiteral | primitiveLiteral

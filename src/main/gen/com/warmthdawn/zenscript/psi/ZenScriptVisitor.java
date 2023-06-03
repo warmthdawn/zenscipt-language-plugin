@@ -151,6 +151,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitLocalAccessExpression(@NotNull ZenScriptLocalAccessExpression o) {
+    visitExpression(o);
+  }
+
   public void visitMapEntry(@NotNull ZenScriptMapEntry o) {
     visitPsiElement(o);
   }
@@ -217,10 +221,6 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitRangeExpression(@NotNull ZenScriptRangeExpression o) {
     visitBinaryExpression(o);
-  }
-
-  public void visitReferenceExpression(@NotNull ZenScriptReferenceExpression o) {
-    visitExpression(o);
   }
 
   public void visitReturnStatement(@NotNull ZenScriptReturnStatement o) {

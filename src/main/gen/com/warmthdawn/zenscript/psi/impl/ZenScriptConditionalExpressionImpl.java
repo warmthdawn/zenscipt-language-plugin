@@ -33,4 +33,25 @@ public class ZenScriptConditionalExpressionImpl extends ZenScriptExpressionImpl 
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
   }
 
+  @Override
+  @NotNull
+  public ZenScriptExpression getCondition() {
+    List<ZenScriptExpression> p1 = getExpressionList();
+    return p1.get(0);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptExpression getTruePart() {
+    List<ZenScriptExpression> p1 = getExpressionList();
+    return p1.size() < 2 ? null : p1.get(1);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptExpression getFalsePart() {
+    List<ZenScriptExpression> p1 = getExpressionList();
+    return p1.size() < 3 ? null : p1.get(2);
+  }
+
 }

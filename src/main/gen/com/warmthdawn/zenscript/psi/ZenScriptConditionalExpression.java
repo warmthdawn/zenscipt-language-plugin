@@ -10,4 +10,13 @@ public interface ZenScriptConditionalExpression extends ZenScriptExpression {
   @NotNull
   List<ZenScriptExpression> getExpressionList();
 
+  @NotNull
+  ZenScriptExpression getCondition();
+
+  @Nullable
+  ZenScriptExpression getTruePart();
+
+  @Nullable
+  ZenScriptExpression getFalsePart();
+
 }
