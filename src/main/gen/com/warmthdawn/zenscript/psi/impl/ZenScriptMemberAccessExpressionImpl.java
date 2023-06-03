@@ -8,17 +8,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptIdentifierImpl extends ASTWrapperPsiElement implements ZenScriptIdentifier {
+public class ZenScriptMemberAccessExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptMemberAccessExpression {
 
-  public ZenScriptIdentifierImpl(@NotNull ASTNode node) {
+  public ZenScriptMemberAccessExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitIdentifier(this);
+    visitor.visitMemberAccessExpression(this);
   }
 
   @Override
@@ -28,9 +28,15 @@ public class ZenScriptIdentifierImpl extends ASTWrapperPsiElement implements Zen
   }
 
   @Override
-  @Nullable
-  public PsiElement getId() {
-    return findChildByType(ID);
+  @NotNull
+  public ZenScriptExpression getExpression() {
+    return findNotNullChildByClass(ZenScriptExpression.class);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptIdentifier getIdentifier() {
+    return findNotNullChildByClass(ZenScriptIdentifier.class);
   }
 
 }

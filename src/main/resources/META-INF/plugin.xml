@@ -25,13 +25,16 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <fileType
-                name="Simple File"
+                name="ZenScript File"
                 implementationClass="com.warmthdawn.zenscript.ZSLanguageFileType"
                 fieldName="INSTANCE"
                 language="ZenScript"
-                extensions="simple"/>
+                extensions="zs"/>
         <lang.parserDefinition
                 language="ZenScript"
                 implementationClass="com.warmthdawn.zenscript.language.ZenScriptParserDefinition"/>
+        <lang.syntaxHighlighterFactory
+                language="ZenScript"
+                implementationClass="com.warmthdawn.zenscript.language.ZenScriptSyntaxHighlighterFactory"/>
     </extensions>
 </idea-plugin>

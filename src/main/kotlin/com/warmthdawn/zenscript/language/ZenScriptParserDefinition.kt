@@ -31,7 +31,7 @@ class ZenScriptParserDefinition : ParserDefinition {
     }
 
     override fun getCommentTokens(): TokenSet {
-        return ZenScriptTokenSet.COMMENTS
+        return ZenScriptTokenSet.HIDDEN_TOKENS
     }
 
     override fun getStringLiteralElements(): TokenSet {

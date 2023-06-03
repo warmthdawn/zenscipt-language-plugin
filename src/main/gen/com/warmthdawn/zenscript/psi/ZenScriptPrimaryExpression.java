@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptPrimaryExpression extends PsiElement {
+public interface ZenScriptPrimaryExpression extends ZenScriptExpression {
 
   @Nullable
   ZenScriptBracketHandler getBracketHandler();
@@ -27,5 +27,11 @@ public interface ZenScriptPrimaryExpression extends PsiElement {
 
   @Nullable
   ZenScriptTypeLiteral getTypeLiteral();
+
+  @Nullable
+  PsiElement getIntLiteral();
+
+  @Nullable
+  PsiElement getStringLiteral();
 
 }

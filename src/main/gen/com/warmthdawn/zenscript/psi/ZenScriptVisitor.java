@@ -27,6 +27,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitArrayIndexExpression(@NotNull ZenScriptArrayIndexExpression o) {
+    visitExpression(o);
+  }
+
   public void visitArraySuffix(@NotNull ZenScriptArraySuffix o) {
     visitPsiElement(o);
   }
@@ -45,6 +49,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitBreakStatement(@NotNull ZenScriptBreakStatement o) {
     visitPsiElement(o);
+  }
+
+  public void visitCallExpression(@NotNull ZenScriptCallExpression o) {
+    visitExpression(o);
   }
 
   public void visitClassDeclaration(@NotNull ZenScriptClassDeclaration o) {
@@ -127,8 +135,16 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitInstanceOfExpression(@NotNull ZenScriptInstanceOfExpression o) {
+    visitExpression(o);
+  }
+
   public void visitMapEntry(@NotNull ZenScriptMapEntry o) {
     visitPsiElement(o);
+  }
+
+  public void visitMemberAccessExpression(@NotNull ZenScriptMemberAccessExpression o) {
+    visitExpression(o);
   }
 
   public void visitMulExpression(@NotNull ZenScriptMulExpression o) {
@@ -147,12 +163,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitPostfixExpression(@NotNull ZenScriptPostfixExpression o) {
-    visitExpression(o);
-  }
-
   public void visitPrimaryExpression(@NotNull ZenScriptPrimaryExpression o) {
-    visitPsiElement(o);
+    visitExpression(o);
   }
 
   public void visitPrimitiveType(@NotNull ZenScriptPrimitiveType o) {
@@ -165,6 +177,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitQualifier(@NotNull ZenScriptQualifier o) {
     visitPsiElement(o);
+  }
+
+  public void visitRangeExpression(@NotNull ZenScriptRangeExpression o) {
+    visitExpression(o);
   }
 
   public void visitReturnStatement(@NotNull ZenScriptReturnStatement o) {
@@ -185,6 +201,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitThenBody(@NotNull ZenScriptThenBody o) {
     visitPsiElement(o);
+  }
+
+  public void visitTypeCastExpression(@NotNull ZenScriptTypeCastExpression o) {
+    visitExpression(o);
   }
 
   public void visitTypeLiteral(@NotNull ZenScriptTypeLiteral o) {

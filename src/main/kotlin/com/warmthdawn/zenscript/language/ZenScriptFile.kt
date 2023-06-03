@@ -9,7 +9,7 @@ import com.warmthdawn.zenscript.ZSLanguageFileType
 class ZenScriptFile(viewProvider: FileViewProvider) :
     PsiFileBase(viewProvider, ZSLanguage) {
     override fun toString(): String {
-        return "Simple File"
+        return "ZenScript File"
     }
     override fun getFileType(): FileType  = ZSLanguageFileType
 }

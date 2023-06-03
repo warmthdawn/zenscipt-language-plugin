@@ -1,6 +1,5 @@
 {
   parserClass="com.warmthdawn.zenscript.parser.ZenScriptParser"
-  parserUtilClass="com.warmthdawn.zenscript.parser.ZenScriptParserUtil"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
 
@@ -102,16 +101,23 @@
     OP_CAT_ASSIGN         ='~='
     OP_DOT_DOT            ='..'
 
-    EOF                   ='<<EOF>>'
-    COMMENT               ='COMMENT'
+    LINE_COMMENT          ='LINE_COMMENT'
+    BLOCK_COMMENT         ='BLOCK_COMMENT'
+    DOC_COMMENT           ='DOC_COMMENT'
+    PREPROCESSOR          ='PREPROCESSOR'
 
+    ID                    ='regexp:[a-zA-Z_][a-zA-Z0-9_]*'
+    STRING_LITERAL        ="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\\"|\\\'|\\)*\")"
+    INT_LITERAL           ='regexp:(0|([1-9][0-9]*))'
+    WHITE_SPACE           ='regexp:[ \r\t\f\n]+'
   ]
 
 
-  extends("(unary|mul|add|compare|and|xor|or|andAnd|orOr|conditional|assignment|postfix)Expression")=expression
+  extends("[a-z][a-zA-Z]*Expression")=expression
+
 }
 
-file ::= importList scriptBody EOF
+file ::= importList scriptBody
 
 importList ::= (importDeclaration)*
 
@@ -208,7 +214,9 @@ expressionStatement ::=
     expression ';';
 
 expression ::=
-      unaryExpression
+      postfixGroup
+    | rangeExpression
+    | unaryExpression
     | mulExpression
     | addExpression
     | compareExpression
@@ -219,9 +227,8 @@ expression ::=
     | orOrExpression
     | conditionalExpression
     | assignmentExpression
-    | postfixExpression
 
-
+rangeExpression ::= expression ('to' | '..') expression
 unaryExpression ::= ('!' | '-') expression { rightAssociative = true }
 mulExpression ::= expression ('*' | '/' | '%') expression
 addExpression ::= expression ('+' | '-' | '~') expression
@@ -234,17 +241,13 @@ orOrExpression ::= expression '||' expression
 conditionalExpression ::= expression '?' expression ':' expression  { rightAssociative = true }
 assignmentExpression ::= expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression  { rightAssociative = true }
 
+private postfixGroup ::= memberAccessExpression | arrayIndexExpression | callExpression| typeCastExpression | instanceOfExpression| primaryExpression
+memberAccessExpression ::= expression '.' identifier
+arrayIndexExpression ::= expression '[' identifier ']'
+callExpression ::= expression '(' arguments ')'
+typeCastExpression ::= expression 'as' typeLiteral
+instanceOfExpression ::= expression 'instanceof' expression
 
-
-
-postfixExpression ::= primaryExpression
-    (('.' identifier)
-    | (('..' | 'to') expression)
-    | ('[' identifier ']')
-    | ('(' arguments ')')
-    | ('as' typeLiteral)
-    | ('instanceof' expression)
-    )*;
 
 primaryExpression ::=
       INT_LITERAL
@@ -252,9 +255,9 @@ primaryExpression ::=
     | FLOAT_LITERAL
     | DOUBLE_LITERAL
     | STRING_LITERAL
-    | TRUE_LITERAL
-    | K_FALSE
-    | K_NULL
+    | 'true'
+    | 'false'
+    | 'null'
     | identifier
     | 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     | bracketHandler
@@ -264,11 +267,9 @@ primaryExpression ::=
 
 bracketHandler ::= '<' {(!'>')*} '>'
 
-arguments ::=
-    (expression (',' expression)*)?;
+arguments ::= (expression (',' expression)*)?;
 
-mapEntry ::=
-    expression ':' expression;
+mapEntry ::= expression ':' expression;
 
 
 
@@ -281,7 +282,7 @@ typeLiteral ::=
 arraySuffix ::= ('[' ']')*
 
 primitiveType ::=
-  ANY
+    ANY
   | BYTE
   | SHORT
   | INT

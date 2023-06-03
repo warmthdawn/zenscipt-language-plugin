@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptPrimaryExpressionImpl extends ASTWrapperPsiElement implements ZenScriptPrimaryExpression {
+public class ZenScriptPrimaryExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptPrimaryExpression {
 
   public ZenScriptPrimaryExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitPrimaryExpression(this);
   }
@@ -67,6 +67,18 @@ public class ZenScriptPrimaryExpressionImpl extends ASTWrapperPsiElement impleme
   @Nullable
   public ZenScriptTypeLiteral getTypeLiteral() {
     return findChildByClass(ZenScriptTypeLiteral.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIntLiteral() {
+    return findChildByType(INT_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getStringLiteral() {
+    return findChildByType(STRING_LITERAL);
   }
 
 }

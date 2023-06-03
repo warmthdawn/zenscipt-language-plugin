@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptIdentifier extends PsiElement {
+public interface ZenScriptMemberAccessExpression extends ZenScriptExpression {
 
-  @Nullable
-  PsiElement getId();
+  @NotNull
+  ZenScriptExpression getExpression();
+
+  @NotNull
+  ZenScriptIdentifier getIdentifier();
 
 }

@@ -1,65 +1,39 @@
-// Copyright 2000-2022 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package com.warmthdawn.zenscript.grammar;
+package com.warmthdawn.zenscript.parser;
 
-import com.intellij.psi.tree.IElementType;
 import com.intellij.lexer.FlexLexer;
-import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
+import com.intellij.psi.tree.IElementType;
+
 import static com.intellij.psi.TokenType.BAD_CHARACTER;
 import static com.intellij.psi.TokenType.WHITE_SPACE;
+import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 
 %%
 
 %{
-  public ZenScriptLexer() {
+  public _ZenScriptLexer() {
     this((java.io.Reader)null);
   }
 %}
 
-
-%class ZenScriptLexer
-%implements FlexLexer
-%unicode
 %public
+%class _ZenScriptLexer
+%implements FlexLexer
 %function advance
 %type IElementType
+%unicode
 
-LineTerminator = \r|\n|\r\n
-InputCharacter = [^\r\n]
-WhiteSpace     = {LineTerminator} | [ \t\f]
+EOL=\R
+WHITE_SPACE=\s+
 
-/* comments */
-Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
-
-TraditionalComment   = "/*" [^*] ~"*/" | "/*" "*"+ "/"
-// Comment can be the last line of the file, without line terminator.
-EndOfLineComment     = "//" {InputCharacter}* {LineTerminator}?
-DocumentationComment = "/**" {CommentContent} "*"+ "/"
-CommentContent       = ( [^*] | \*+ [^/*] )*
-
-
-STR =      "\""
-STR2 =      "'"
-String = {STR} ( [^\"\\\n\r] | "\\" ("\\" | {STR} | {ESCAPES} | [0-8xuU] ) )* {STR}?
-String2 = {STR2} ( [^\"\\\n\r] | "\\" ("\\" | {STR2} | {ESCAPES} | [0-8xuU] ) )* {STR2}?
-ESCAPES = [abfnrtv]
-
-Digit = [0-9]
-Digits = {Digit}+
-
-
-HexDigits = {HexDigit}+
-HexDigit = [0-9a-fA-F]
-
-LetterOrDigit = {Letter} | [0-9]
-
-Letter = [a-zA-Z_]
-
-
-Identifier = {Letter} {LetterOrDigit}*
+ID=[a-zA-Z_][a-zA-Z0-9_]*
+STRING_LITERAL=('([^'\\]|\\.)*'|\"([^\"\\]|\\\"|\\'|\\)*\")
+INT_LITERAL=(0|([1-9][0-9]*))
+WHITE_SPACE=[ \r\t\f\n]+
 
 %%
-
 <YYINITIAL> {
+  {WHITE_SPACE}         { return WHITE_SPACE; }
+
   "var"                 { return K_VAR; }
   "val"                 { return K_VAL; }
   "global"              { return K_GLOBAL; }
@@ -139,23 +113,29 @@ Identifier = {Letter} {LetterOrDigit}*
   "|="                  { return OP_OR_ASSIGN; }
   "~="                  { return OP_CAT_ASSIGN; }
   ".."                  { return OP_DOT_DOT; }
+  "LINE_COMMENT"        { return LINE_COMMENT; }
+  "BLOCK_COMMENT"       { return BLOCK_COMMENT; }
+  "DOC_COMMENT"         { return DOC_COMMENT; }
+  "PREPROCESSOR"        { return PREPROCESSOR; }
+  "LONG_LITERAL"        { return LONG_LITERAL; }
+  "FLOAT_LITERAL"       { return FLOAT_LITERAL; }
+  "DOUBLE_LITERAL"      { return DOUBLE_LITERAL; }
+  "ANY"                 { return ANY; }
+  "BYTE"                { return BYTE; }
+  "SHORT"               { return SHORT; }
+  "INT"                 { return INT; }
+  "LONG"                { return LONG; }
+  "FLOAT"               { return FLOAT; }
+  "DOUBLE"              { return DOUBLE; }
+  "BOOL"                { return BOOL; }
+  "VOID"                { return VOID; }
+  "STRING"              { return STRING; }
 
-  <<EOF>>               { return EOF; }
-  {Identifier}          { return ID; }
-  {Comment}             { return COMMENT;}
-  {String}              { return STRING_LITERAL;}
-  {String2}              { return STRING_LITERAL;}
+  {ID}                  { return ID; }
+  {STRING_LITERAL}      { return STRING_LITERAL; }
+  {INT_LITERAL}         { return INT_LITERAL; }
+  {WHITE_SPACE}         { return WHITE_SPACE; }
 
-  ('0' | [1-9] [0-9]*)                           { return INT_LITERAL; }
-  '0' [xX] {HexDigits}                            { return INT_LITERAL; }
-  ('0' | [1-9] {Digits}) [lL]?                   { return LONG_LITERAL; }
-  '0' [xX] {HexDigits} [lL]?                      { return LONG_LITERAL; }
-  {Digits} '.' {Digits} ([eE] {Digits})? [fF]    { return FLOAT_LITERAL; }
-  {Digits} '.' {Digits} ([eE] {Digits})? [dD]?   { return DOUBLE_LITERAL; }
-
-  {WhiteSpace}            { return WHITE_SPACE; }
 }
 
-
 [^] { return BAD_CHARACTER; }
-
