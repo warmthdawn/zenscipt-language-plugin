@@ -225,7 +225,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '<' (!'>')* '>'
+  // '<' (!'>' <<any>>)+ '>'
   public static boolean bracketHandlerLiteral(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "bracketHandlerLiteral")) return false;
     if (!nextTokenIs(b, OP_LESS)) return false;
@@ -239,20 +239,36 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // (!'>')*
+  // (!'>' <<any>>)+
   private static boolean bracketHandlerLiteral_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "bracketHandlerLiteral_1")) return false;
-    while (true) {
+    boolean r;
+    Marker m = enter_section_(b);
+    r = bracketHandlerLiteral_1_0(b, l + 1);
+    while (r) {
       int c = current_position_(b);
       if (!bracketHandlerLiteral_1_0(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "bracketHandlerLiteral_1", c)) break;
     }
-    return true;
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // !'>' <<any>>
+  private static boolean bracketHandlerLiteral_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "bracketHandlerLiteral_1_0")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = bracketHandlerLiteral_1_0_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && any(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   // !'>'
-  private static boolean bracketHandlerLiteral_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "bracketHandlerLiteral_1_0")) return false;
+  private static boolean bracketHandlerLiteral_1_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "bracketHandlerLiteral_1_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NOT_);
     r = !consumeToken(b, OP_GREATER);

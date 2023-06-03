@@ -123,6 +123,7 @@
   generate=[
     token-sets="yes"
   ]
+
 }
 
 
@@ -305,7 +306,7 @@ primitiveLiteral ::=
     | 'false'
     | 'null'
 
-bracketHandlerLiteral ::= '<' (!'>')* '>' { pin=1 }
+bracketHandlerLiteral ::= '<' (!'>' <<any>>)+ '>' { pin(".*")=1 }
 
 arguments ::= '(' argumentList? ')' { pin=1 }
 private argumentList ::= expression (',' expression)* { pin(".*")="','" }
