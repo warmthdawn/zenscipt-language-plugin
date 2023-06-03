@@ -53,6 +53,7 @@ public interface ZenScriptTypes {
   IElementType PARAMETER = new ZenScriptElementType("PARAMETER");
   IElementType PARAMETERS = new ZenScriptElementType("PARAMETERS");
   IElementType PAREN_EXPRESSION = new ZenScriptElementType("PAREN_EXPRESSION");
+  IElementType POSTFIX_EXPRESSION = new ZenScriptElementType("POSTFIX_EXPRESSION");
   IElementType PRIMITIVE_LITERAL = new ZenScriptElementType("PRIMITIVE_LITERAL");
   IElementType PRIMITIVE_TYPE = new ZenScriptElementType("PRIMITIVE_TYPE");
   IElementType QUALIFIED_CLASS_TYPE = new ZenScriptElementType("QUALIFIED_CLASS_TYPE");

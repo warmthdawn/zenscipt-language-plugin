@@ -214,8 +214,9 @@ expression ::=
     | mulExpression
     | unaryExpression
     | rangeExpression
-    | postfixGroup
-    | parenExpression
+    | postfixExpression
+//    | postfixGroup
+//    | parenExpression
 
 rangeExpression ::= expression ('to' | '..') expression
 unaryExpression ::= ('!' | '-') expression { rightAssociative = true; pin=1; }
@@ -227,21 +228,33 @@ xorExpression ::= expression '^'expression
 orExpression ::= expression '|' expression
 andAndExpression ::= expression '&&' expression
 orOrExpression ::= expression '||' expression
-conditionalExpression ::= expression '?' expression ':' expression  { rightAssociative = true }
+conditionalExpression ::= expression conditionalTail  { rightAssociative = true }
 assignmentExpression ::= expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression  { rightAssociative = true }
 parenExpression ::= '(' expression ')' { pin=1 }
 
-private postfixGroup ::=
-  memberAccessExpression | arrayIndexExpression | callExpression
-| typeCastExpression | instanceOfExpression | referenceExpression | literalExpression
+private conditionalTail ::= '?' expression ':' expression { pin=1 }
+//private postfixGroup ::=
+//  memberAccessExpression | arrayIndexExpression | callExpression
+//| typeCastExpression | instanceOfExpression | referenceExpression | literalExpression
 
 private memberName ::= identifier | 'string'
 
-memberAccessExpression ::= expression '.' memberName
-arrayIndexExpression ::= expression '[' expression ']'
-callExpression ::= expression arguments
-typeCastExpression ::= expression 'as' type
-instanceOfExpression ::= expression 'instanceof' type
+left memberAccessExpression ::= '.' memberName { pin=1 }
+left arrayIndexExpression ::= '[' expression ']' { pin=1 }
+left callExpression ::= arguments
+left typeCastExpression ::= 'as' type { pin=1 }
+left instanceOfExpression ::= 'instanceof' type { pin=1 }
+
+
+private primaryExpression ::= literalExpression | referenceExpression | parenExpression { pin=1 }
+postfixExpression ::=  primaryExpression (
+      memberAccessExpression
+    | arrayIndexExpression
+    | callExpression
+    | typeCastExpression
+    | instanceOfExpression
+)* { pin=1 }
+
 
 
 referenceExpression ::= identifier | primitiveType

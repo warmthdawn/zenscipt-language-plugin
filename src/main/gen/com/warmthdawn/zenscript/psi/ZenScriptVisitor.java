@@ -187,6 +187,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitPostfixExpression(@NotNull ZenScriptPostfixExpression o) {
+    visitExpression(o);
+  }
+
   public void visitPrimitiveLiteral(@NotNull ZenScriptPrimitiveLiteral o) {
     visitLiteralExpression(o);
   }

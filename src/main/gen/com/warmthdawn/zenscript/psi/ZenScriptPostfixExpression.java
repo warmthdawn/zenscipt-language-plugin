@@ -5,6 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptArraySuffix extends PsiElement {
+public interface ZenScriptPostfixExpression extends ZenScriptExpression {
 
 }

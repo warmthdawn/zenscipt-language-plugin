@@ -8,29 +8,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptSimpleVariableImpl extends ASTWrapperPsiElement implements ZenScriptSimpleVariable {
+public abstract class ZenScriptPostfixExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptPostfixExpression {
 
-  public ZenScriptSimpleVariableImpl(@NotNull ASTNode node) {
+  public ZenScriptPostfixExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitSimpleVariable(this);
+    visitor.visitPostfixExpression(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ZenScriptVisitor) accept((ZenScriptVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
   }
 
 }
