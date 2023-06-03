@@ -28,9 +28,9 @@ public class ZenScriptFunctionDeclarationImpl extends ASTWrapperPsiElement imple
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptFunctionBody getFunctionBody() {
-    return findNotNullChildByClass(ZenScriptFunctionBody.class);
+    return findChildByClass(ZenScriptFunctionBody.class);
   }
 
   @Override
@@ -40,15 +40,15 @@ public class ZenScriptFunctionDeclarationImpl extends ASTWrapperPsiElement imple
   }
 
   @Override
-  @NotNull
-  public List<ZenScriptParameter> getParameterList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptParameter.class);
+  @Nullable
+  public ZenScriptParameters getParameters() {
+    return findChildByClass(ZenScriptParameters.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptTypeLiteral getTypeLiteral() {
-    return findChildByClass(ZenScriptTypeLiteral.class);
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
 }

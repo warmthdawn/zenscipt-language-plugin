@@ -29,8 +29,14 @@ public class ZenScriptInstanceOfExpressionImpl extends ZenScriptExpressionImpl i
 
   @Override
   @NotNull
-  public List<ZenScriptExpression> getExpressionList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
+  public ZenScriptExpression getExpression() {
+    return findNotNullChildByClass(ZenScriptExpression.class);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
 }

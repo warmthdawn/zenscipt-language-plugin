@@ -19,7 +19,7 @@ intellij {
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf(
-        "java",
+        "org.jetbrains.kotlin",
     ))
 }
 

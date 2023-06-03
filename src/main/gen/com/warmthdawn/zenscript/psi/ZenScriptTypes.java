@@ -9,25 +9,24 @@ import com.warmthdawn.zenscript.psi.impl.*;
 public interface ZenScriptTypes {
 
   IElementType ADD_EXPRESSION = new ZenScriptElementType("ADD_EXPRESSION");
-  IElementType ALIAS = new ZenScriptElementType("ALIAS");
   IElementType AND_AND_EXPRESSION = new ZenScriptElementType("AND_AND_EXPRESSION");
   IElementType AND_EXPRESSION = new ZenScriptElementType("AND_EXPRESSION");
   IElementType ARGUMENTS = new ZenScriptElementType("ARGUMENTS");
   IElementType ARRAY_INDEX_EXPRESSION = new ZenScriptElementType("ARRAY_INDEX_EXPRESSION");
-  IElementType ARRAY_SUFFIX = new ZenScriptElementType("ARRAY_SUFFIX");
+  IElementType ARRAY_LITERAL = new ZenScriptElementType("ARRAY_LITERAL");
+  IElementType ARRAY_TYPE = new ZenScriptElementType("ARRAY_TYPE");
   IElementType ASSIGNMENT_EXPRESSION = new ZenScriptElementType("ASSIGNMENT_EXPRESSION");
   IElementType BLOCK_STATEMENT = new ZenScriptElementType("BLOCK_STATEMENT");
-  IElementType BRACKET_HANDLER = new ZenScriptElementType("BRACKET_HANDLER");
+  IElementType BRACKET_HANDLER_LITERAL = new ZenScriptElementType("BRACKET_HANDLER_LITERAL");
   IElementType BREAK_STATEMENT = new ZenScriptElementType("BREAK_STATEMENT");
   IElementType CALL_EXPRESSION = new ZenScriptElementType("CALL_EXPRESSION");
   IElementType CLASS_DECLARATION = new ZenScriptElementType("CLASS_DECLARATION");
+  IElementType CLASS_TYPE = new ZenScriptElementType("CLASS_TYPE");
   IElementType COMPARE_EXPRESSION = new ZenScriptElementType("COMPARE_EXPRESSION");
   IElementType CONDITIONAL_EXPRESSION = new ZenScriptElementType("CONDITIONAL_EXPRESSION");
   IElementType CONSTRUCTOR_BODY = new ZenScriptElementType("CONSTRUCTOR_BODY");
   IElementType CONSTRUCTOR_DECLARATION = new ZenScriptElementType("CONSTRUCTOR_DECLARATION");
   IElementType CONTINUE_STATEMENT = new ZenScriptElementType("CONTINUE_STATEMENT");
-  IElementType DEFAULT_VALUE = new ZenScriptElementType("DEFAULT_VALUE");
-  IElementType ELSE_BODY = new ZenScriptElementType("ELSE_BODY");
   IElementType EXPAND_FUNCTION_DECLARATION = new ZenScriptElementType("EXPAND_FUNCTION_DECLARATION");
   IElementType EXPRESSION = new ZenScriptElementType("EXPRESSION");
   IElementType EXPRESSION_STATEMENT = new ZenScriptElementType("EXPRESSION_STATEMENT");
@@ -35,52 +34,53 @@ public interface ZenScriptTypes {
   IElementType FOREACH_STATEMENT = new ZenScriptElementType("FOREACH_STATEMENT");
   IElementType FUNCTION_BODY = new ZenScriptElementType("FUNCTION_BODY");
   IElementType FUNCTION_DECLARATION = new ZenScriptElementType("FUNCTION_DECLARATION");
+  IElementType FUNCTION_LITERAL = new ZenScriptElementType("FUNCTION_LITERAL");
+  IElementType FUNCTION_TYPE = new ZenScriptElementType("FUNCTION_TYPE");
   IElementType IDENTIFIER = new ZenScriptElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new ZenScriptElementType("IF_STATEMENT");
   IElementType IMPORT_DECLARATION = new ZenScriptElementType("IMPORT_DECLARATION");
   IElementType IMPORT_LIST = new ZenScriptElementType("IMPORT_LIST");
-  IElementType INITIALIZER = new ZenScriptElementType("INITIALIZER");
   IElementType INSTANCE_OF_EXPRESSION = new ZenScriptElementType("INSTANCE_OF_EXPRESSION");
+  IElementType LIST_TYPE = new ZenScriptElementType("LIST_TYPE");
+  IElementType LITERAL_EXPRESSION = new ZenScriptElementType("LITERAL_EXPRESSION");
   IElementType MAP_ENTRY = new ZenScriptElementType("MAP_ENTRY");
+  IElementType MAP_LITERAL = new ZenScriptElementType("MAP_LITERAL");
+  IElementType MAP_TYPE = new ZenScriptElementType("MAP_TYPE");
   IElementType MEMBER_ACCESS_EXPRESSION = new ZenScriptElementType("MEMBER_ACCESS_EXPRESSION");
   IElementType MUL_EXPRESSION = new ZenScriptElementType("MUL_EXPRESSION");
   IElementType OR_EXPRESSION = new ZenScriptElementType("OR_EXPRESSION");
   IElementType OR_OR_EXPRESSION = new ZenScriptElementType("OR_OR_EXPRESSION");
   IElementType PARAMETER = new ZenScriptElementType("PARAMETER");
-  IElementType PRIMARY_EXPRESSION = new ZenScriptElementType("PRIMARY_EXPRESSION");
+  IElementType PARAMETERS = new ZenScriptElementType("PARAMETERS");
+  IElementType PAREN_EXPRESSION = new ZenScriptElementType("PAREN_EXPRESSION");
+  IElementType PRIMITIVE_LITERAL = new ZenScriptElementType("PRIMITIVE_LITERAL");
   IElementType PRIMITIVE_TYPE = new ZenScriptElementType("PRIMITIVE_TYPE");
+  IElementType QUALIFIED_CLASS_TYPE = new ZenScriptElementType("QUALIFIED_CLASS_TYPE");
   IElementType QUALIFIED_NAME = new ZenScriptElementType("QUALIFIED_NAME");
   IElementType QUALIFIER = new ZenScriptElementType("QUALIFIER");
   IElementType RANGE_EXPRESSION = new ZenScriptElementType("RANGE_EXPRESSION");
+  IElementType REFERENCE_EXPRESSION = new ZenScriptElementType("REFERENCE_EXPRESSION");
   IElementType RETURN_STATEMENT = new ZenScriptElementType("RETURN_STATEMENT");
   IElementType SCRIPT_BODY = new ZenScriptElementType("SCRIPT_BODY");
-  IElementType SIMPLE_VARIABLE = new ZenScriptElementType("SIMPLE_VARIABLE");
   IElementType STATEMENT = new ZenScriptElementType("STATEMENT");
-  IElementType THEN_BODY = new ZenScriptElementType("THEN_BODY");
+  IElementType TYPE = new ZenScriptElementType("TYPE");
   IElementType TYPE_CAST_EXPRESSION = new ZenScriptElementType("TYPE_CAST_EXPRESSION");
-  IElementType TYPE_LITERAL = new ZenScriptElementType("TYPE_LITERAL");
   IElementType UNARY_EXPRESSION = new ZenScriptElementType("UNARY_EXPRESSION");
   IElementType VARIABLE_DECLARATION = new ZenScriptElementType("VARIABLE_DECLARATION");
   IElementType WHILE_STATEMENT = new ZenScriptElementType("WHILE_STATEMENT");
   IElementType XOR_EXPRESSION = new ZenScriptElementType("XOR_EXPRESSION");
 
-  IElementType ANY = new ZenScriptTokenType("ANY");
   IElementType BLOCK_COMMENT = new ZenScriptTokenType("BLOCK_COMMENT");
-  IElementType BOOL = new ZenScriptTokenType("BOOL");
   IElementType BRACE_CLOSE = new ZenScriptTokenType("}");
   IElementType BRACE_OPEN = new ZenScriptTokenType("{");
   IElementType BRACK_CLOSE = new ZenScriptTokenType("]");
   IElementType BRACK_OPEN = new ZenScriptTokenType("[");
-  IElementType BYTE = new ZenScriptTokenType("BYTE");
   IElementType COMMA = new ZenScriptTokenType(",");
   IElementType DOC_COMMENT = new ZenScriptTokenType("DOC_COMMENT");
   IElementType DOT = new ZenScriptTokenType(".");
-  IElementType DOUBLE = new ZenScriptTokenType("DOUBLE");
   IElementType DOUBLE_LITERAL = new ZenScriptTokenType("DOUBLE_LITERAL");
-  IElementType FLOAT = new ZenScriptTokenType("FLOAT");
   IElementType FLOAT_LITERAL = new ZenScriptTokenType("FLOAT_LITERAL");
   IElementType ID = new ZenScriptTokenType("ID");
-  IElementType INT = new ZenScriptTokenType("INT");
   IElementType INT_LITERAL = new ZenScriptTokenType("INT_LITERAL");
   IElementType K_ANY = new ZenScriptTokenType("any");
   IElementType K_AS = new ZenScriptTokenType("as");
@@ -120,7 +120,6 @@ public interface ZenScriptTypes {
   IElementType K_ZEN_CLASS = new ZenScriptTokenType("zenClass");
   IElementType K_ZEN_CONSTRUCTOR = new ZenScriptTokenType("zenConstructor");
   IElementType LINE_COMMENT = new ZenScriptTokenType("LINE_COMMENT");
-  IElementType LONG = new ZenScriptTokenType("LONG");
   IElementType LONG_LITERAL = new ZenScriptTokenType("LONG_LITERAL");
   IElementType OP_ADD = new ZenScriptTokenType("+");
   IElementType OP_ADD_ASSIGN = new ZenScriptTokenType("+=");
@@ -159,19 +158,13 @@ public interface ZenScriptTypes {
   IElementType PAREN_OPEN = new ZenScriptTokenType("(");
   IElementType PREPROCESSOR = new ZenScriptTokenType("PREPROCESSOR");
   IElementType SEMICOLON = new ZenScriptTokenType(";");
-  IElementType SHORT = new ZenScriptTokenType("SHORT");
-  IElementType STRING = new ZenScriptTokenType("STRING");
   IElementType STRING_LITERAL = new ZenScriptTokenType("STRING_LITERAL");
-  IElementType VOID = new ZenScriptTokenType("VOID");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
       if (type == ADD_EXPRESSION) {
         return new ZenScriptAddExpressionImpl(node);
-      }
-      else if (type == ALIAS) {
-        return new ZenScriptAliasImpl(node);
       }
       else if (type == AND_AND_EXPRESSION) {
         return new ZenScriptAndAndExpressionImpl(node);
@@ -185,8 +178,11 @@ public interface ZenScriptTypes {
       else if (type == ARRAY_INDEX_EXPRESSION) {
         return new ZenScriptArrayIndexExpressionImpl(node);
       }
-      else if (type == ARRAY_SUFFIX) {
-        return new ZenScriptArraySuffixImpl(node);
+      else if (type == ARRAY_LITERAL) {
+        return new ZenScriptArrayLiteralImpl(node);
+      }
+      else if (type == ARRAY_TYPE) {
+        return new ZenScriptArrayTypeImpl(node);
       }
       else if (type == ASSIGNMENT_EXPRESSION) {
         return new ZenScriptAssignmentExpressionImpl(node);
@@ -194,8 +190,8 @@ public interface ZenScriptTypes {
       else if (type == BLOCK_STATEMENT) {
         return new ZenScriptBlockStatementImpl(node);
       }
-      else if (type == BRACKET_HANDLER) {
-        return new ZenScriptBracketHandlerImpl(node);
+      else if (type == BRACKET_HANDLER_LITERAL) {
+        return new ZenScriptBracketHandlerLiteralImpl(node);
       }
       else if (type == BREAK_STATEMENT) {
         return new ZenScriptBreakStatementImpl(node);
@@ -205,6 +201,9 @@ public interface ZenScriptTypes {
       }
       else if (type == CLASS_DECLARATION) {
         return new ZenScriptClassDeclarationImpl(node);
+      }
+      else if (type == CLASS_TYPE) {
+        return new ZenScriptClassTypeImpl(node);
       }
       else if (type == COMPARE_EXPRESSION) {
         return new ZenScriptCompareExpressionImpl(node);
@@ -220,12 +219,6 @@ public interface ZenScriptTypes {
       }
       else if (type == CONTINUE_STATEMENT) {
         return new ZenScriptContinueStatementImpl(node);
-      }
-      else if (type == DEFAULT_VALUE) {
-        return new ZenScriptDefaultValueImpl(node);
-      }
-      else if (type == ELSE_BODY) {
-        return new ZenScriptElseBodyImpl(node);
       }
       else if (type == EXPAND_FUNCTION_DECLARATION) {
         return new ZenScriptExpandFunctionDeclarationImpl(node);
@@ -245,6 +238,12 @@ public interface ZenScriptTypes {
       else if (type == FUNCTION_DECLARATION) {
         return new ZenScriptFunctionDeclarationImpl(node);
       }
+      else if (type == FUNCTION_LITERAL) {
+        return new ZenScriptFunctionLiteralImpl(node);
+      }
+      else if (type == FUNCTION_TYPE) {
+        return new ZenScriptFunctionTypeImpl(node);
+      }
       else if (type == IDENTIFIER) {
         return new ZenScriptIdentifierImpl(node);
       }
@@ -257,14 +256,20 @@ public interface ZenScriptTypes {
       else if (type == IMPORT_LIST) {
         return new ZenScriptImportListImpl(node);
       }
-      else if (type == INITIALIZER) {
-        return new ZenScriptInitializerImpl(node);
-      }
       else if (type == INSTANCE_OF_EXPRESSION) {
         return new ZenScriptInstanceOfExpressionImpl(node);
       }
+      else if (type == LIST_TYPE) {
+        return new ZenScriptListTypeImpl(node);
+      }
       else if (type == MAP_ENTRY) {
         return new ZenScriptMapEntryImpl(node);
+      }
+      else if (type == MAP_LITERAL) {
+        return new ZenScriptMapLiteralImpl(node);
+      }
+      else if (type == MAP_TYPE) {
+        return new ZenScriptMapTypeImpl(node);
       }
       else if (type == MEMBER_ACCESS_EXPRESSION) {
         return new ZenScriptMemberAccessExpressionImpl(node);
@@ -281,11 +286,20 @@ public interface ZenScriptTypes {
       else if (type == PARAMETER) {
         return new ZenScriptParameterImpl(node);
       }
-      else if (type == PRIMARY_EXPRESSION) {
-        return new ZenScriptPrimaryExpressionImpl(node);
+      else if (type == PARAMETERS) {
+        return new ZenScriptParametersImpl(node);
+      }
+      else if (type == PAREN_EXPRESSION) {
+        return new ZenScriptParenExpressionImpl(node);
+      }
+      else if (type == PRIMITIVE_LITERAL) {
+        return new ZenScriptPrimitiveLiteralImpl(node);
       }
       else if (type == PRIMITIVE_TYPE) {
         return new ZenScriptPrimitiveTypeImpl(node);
+      }
+      else if (type == QUALIFIED_CLASS_TYPE) {
+        return new ZenScriptQualifiedClassTypeImpl(node);
       }
       else if (type == QUALIFIED_NAME) {
         return new ZenScriptQualifiedNameImpl(node);
@@ -296,26 +310,20 @@ public interface ZenScriptTypes {
       else if (type == RANGE_EXPRESSION) {
         return new ZenScriptRangeExpressionImpl(node);
       }
+      else if (type == REFERENCE_EXPRESSION) {
+        return new ZenScriptReferenceExpressionImpl(node);
+      }
       else if (type == RETURN_STATEMENT) {
         return new ZenScriptReturnStatementImpl(node);
       }
       else if (type == SCRIPT_BODY) {
         return new ZenScriptScriptBodyImpl(node);
       }
-      else if (type == SIMPLE_VARIABLE) {
-        return new ZenScriptSimpleVariableImpl(node);
-      }
       else if (type == STATEMENT) {
         return new ZenScriptStatementImpl(node);
       }
-      else if (type == THEN_BODY) {
-        return new ZenScriptThenBodyImpl(node);
-      }
       else if (type == TYPE_CAST_EXPRESSION) {
         return new ZenScriptTypeCastExpressionImpl(node);
-      }
-      else if (type == TYPE_LITERAL) {
-        return new ZenScriptTypeLiteralImpl(node);
       }
       else if (type == UNARY_EXPRESSION) {
         return new ZenScriptUnaryExpressionImpl(node);

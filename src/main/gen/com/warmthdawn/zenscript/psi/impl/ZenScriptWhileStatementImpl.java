@@ -28,15 +28,15 @@ public class ZenScriptWhileStatementImpl extends ASTWrapperPsiElement implements
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptExpression getExpression() {
-    return findNotNullChildByClass(ZenScriptExpression.class);
+    return findChildByClass(ZenScriptExpression.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptStatement getStatement() {
-    return findNotNullChildByClass(ZenScriptStatement.class);
+    return findChildByClass(ZenScriptStatement.class);
   }
 
 }

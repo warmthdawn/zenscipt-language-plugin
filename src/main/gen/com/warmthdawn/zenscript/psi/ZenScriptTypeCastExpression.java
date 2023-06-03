@@ -10,7 +10,7 @@ public interface ZenScriptTypeCastExpression extends ZenScriptExpression {
   @NotNull
   ZenScriptExpression getExpression();
 
-  @NotNull
-  ZenScriptTypeLiteral getTypeLiteral();
+  @Nullable
+  ZenScriptType getType();
 
 }

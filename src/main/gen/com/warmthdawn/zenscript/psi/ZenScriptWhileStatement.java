@@ -7,10 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptWhileStatement extends PsiElement {
 
-  @NotNull
+  @Nullable
   ZenScriptExpression getExpression();
 
-  @NotNull
+  @Nullable
   ZenScriptStatement getStatement();
 
 }

@@ -28,27 +28,27 @@ public class ZenScriptExpandFunctionDeclarationImpl extends ASTWrapperPsiElement
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptFunctionBody getFunctionBody() {
-    return findNotNullChildByClass(ZenScriptFunctionBody.class);
+    return findChildByClass(ZenScriptFunctionBody.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+    return findChildByClass(ZenScriptIdentifier.class);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptParameters getParameters() {
+    return findChildByClass(ZenScriptParameters.class);
   }
 
   @Override
   @NotNull
-  public List<ZenScriptParameter> getParameterList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptParameter.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptTypeLiteral> getTypeLiteralList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptTypeLiteral.class);
+  public List<ZenScriptType> getTypeList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
   }
 
 }

@@ -34,9 +34,9 @@ public class ZenScriptMemberAccessExpressionImpl extends ZenScriptExpressionImpl
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
 }

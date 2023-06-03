@@ -28,15 +28,15 @@ public class ZenScriptQualifiedNameImpl extends ASTWrapperPsiElement implements 
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptQualifier getQualifier() {
-    return findNotNullChildByClass(ZenScriptQualifier.class);
+    return findChildByClass(ZenScriptQualifier.class);
   }
 
 }

@@ -7,16 +7,16 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptExpandFunctionDeclaration extends PsiElement {
 
-  @NotNull
+  @Nullable
   ZenScriptFunctionBody getFunctionBody();
 
-  @NotNull
+  @Nullable
   ZenScriptIdentifier getIdentifier();
 
-  @NotNull
-  List<ZenScriptParameter> getParameterList();
+  @Nullable
+  ZenScriptParameters getParameters();
 
   @NotNull
-  List<ZenScriptTypeLiteral> getTypeLiteralList();
+  List<ZenScriptType> getTypeList();
 
 }

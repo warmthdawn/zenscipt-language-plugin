@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptPrimitiveTypeImpl extends ASTWrapperPsiElement implements ZenScriptPrimitiveType {
+public class ZenScriptPrimitiveTypeImpl extends ZenScriptTypeImpl implements ZenScriptPrimitiveType {
 
   public ZenScriptPrimitiveTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitPrimitiveType(this);
   }

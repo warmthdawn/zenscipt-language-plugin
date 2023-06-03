@@ -114,60 +114,49 @@
 
 
   extends("[a-z][a-zA-Z]*Expression")=expression
-
+  extends("[a-z][a-zA-Z]*Literal")=literalExpression
+  extends("[a-z][a-zA-Z]*Type")=type
 }
 
 file ::= importList scriptBody
 
 importList ::= (importDeclaration)*
 
-qualifiedName ::=
-    qualifier identifier;
+identifier ::= ID | 'to'
 
-qualifier ::=
-    (identifier '.')*;
+qualifiedName ::= qualifier? identifier { pin=1 }
+qualifier ::= (identifier '.')+ { pin(".*")=2 }
 
-alias ::=
-    identifier;
 
-identifier ::=
-    ID | 'to';
-
-importDeclaration ::=
-    'import' qualifiedName ('as' alias)? ';';
+importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';' { pin(".*")=1 }
 
 scriptBody ::= (functionDeclaration | expandFunctionDeclaration | classDeclaration | statement)*
 
-functionDeclaration ::= ('static')? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+functionDeclaration ::=
+    ('static')? 'function' identifier parameters ('as' type)? functionBody
+    { pin=3 }
 
-expandFunctionDeclaration ::= '$expand' typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+expandFunctionDeclaration ::= '$expand' type '$' identifier parameters ('as' type)? functionBody { pin(".*")=1 }
 
-parameter ::=
-    identifier ('as' typeLiteral)? ('=' defaultValue)?
+parameters ::='(' parametersList? ')' { pin(".*")=1 }
+private parametersList ::= parameter (',' parameter)*  { pin(".*")="','" }
+parameter ::= identifier ('as' type)? ('=' expression)? { pin(".*")=1 }
 
-defaultValue ::=
-    expression;
-
-functionBody ::=
-    '{' statement* '}'
+functionBody ::= '{' statement* '}' { pin=1 }
 
 classDeclaration ::=
-    'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+    'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}' { pin=1 }
 
 constructorDeclaration ::=
-    'zenConstructor' '(' (parameter (',' parameter)*)? ')' constructorBody
+    'zenConstructor' parameters constructorBody { pin=1 }
 
-constructorBody ::=
-    '{' statement* '}'
+constructorBody ::= '{' statement* '}' { pin=1 }
 
 variableDeclaration ::=
-    ('var' | 'val' | 'static' | 'global') identifier ('as' typeLiteral)? ('=' initializer)? ';'
-
-initializer ::=
-    expression
+    ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' expression)? ';' { pin(".*")=1 }
 
 statement ::=
-    blockStatement
+      blockStatement
     | returnStatement
     | breakStatement
     | continueStatement
@@ -177,59 +166,59 @@ statement ::=
     | variableDeclaration
     | expressionStatement
 
-blockStatement ::=
-    '{' statement* '}'
+blockStatement ::= '{' statement* '}' { pin=1 }
 
-returnStatement ::=
-    'return' expression? ';'
+returnStatement ::= 'return' expression? ';' { pin=1 }
 
-breakStatement ::=
-    'break' ';'
+breakStatement ::= 'break' ';' { pin=1 }
 
-continueStatement ::=
-    'continue' ';'
+continueStatement ::= 'continue' ';' { pin=1 }
 
-ifStatement ::=
-    'if' expression thenBody ('else' elseBody)?
+ifStatement ::= 'if' expression thenBody ('else' elseBody)? { pin(".*")=1 }
 
-thenBody ::=
-    statement;
+private thenBody ::=
+    statement
 
-elseBody ::=
-    statement;
+private elseBody ::=
+    statement
 
 foreachStatement ::=
-    'for' simpleVariable (',' simpleVariable)* 'in' expression foreachBody;
+    'for' foreachEntry 'in' expression foreachBody { pin=1}
 
-simpleVariable ::=
-    identifier;
+private foreachEntry ::=  forEachEntryWithParen | foreachEntryNoParen
+private forEachEntryWithParen ::= '(' foreachEntryNoParen ')' { pin=1 }
+private foreachEntryNoParen ::= simpleVariable (',' simpleVariable)* { pin(".*")=1 }
+
+private simpleVariable ::=
+    identifier
 
 foreachBody ::=
-    '{' statement* '}';
+    '{' statement* '}' { pin=1 }
 
 whileStatement ::=
-    'while' '(' expression ')' statement;
+    'while' '(' expression ')' statement { pin=1 }
 
 expressionStatement ::=
-    expression ';';
+    expression ';' { pin=1 }
 
 expression ::=
-      postfixGroup
-    | rangeExpression
-    | unaryExpression
-    | mulExpression
-    | addExpression
-    | compareExpression
-    | andExpression
-    | xorExpression
-    | orExpression
-    | andAndExpression
-    | orOrExpression
+      assignmentExpression
     | conditionalExpression
-    | assignmentExpression
+    | orOrExpression
+    | andAndExpression
+    | orExpression
+    | xorExpression
+    | andExpression
+    | compareExpression
+    | addExpression
+    | mulExpression
+    | unaryExpression
+    | rangeExpression
+    | postfixGroup
+    | parenExpression
 
 rangeExpression ::= expression ('to' | '..') expression
-unaryExpression ::= ('!' | '-') expression { rightAssociative = true }
+unaryExpression ::= ('!' | '-') expression { rightAssociative = true; pin=1; }
 mulExpression ::= expression ('*' | '/' | '%') expression
 addExpression ::= expression ('+' | '-' | '~') expression
 compareExpression ::= expression ('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') expression  { rightAssociative = true }
@@ -240,16 +229,32 @@ andAndExpression ::= expression '&&' expression
 orOrExpression ::= expression '||' expression
 conditionalExpression ::= expression '?' expression ':' expression  { rightAssociative = true }
 assignmentExpression ::= expression ('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression  { rightAssociative = true }
+parenExpression ::= '(' expression ')' { pin=1 }
 
-private postfixGroup ::= memberAccessExpression | arrayIndexExpression | callExpression| typeCastExpression | instanceOfExpression| primaryExpression
-memberAccessExpression ::= expression '.' identifier
-arrayIndexExpression ::= expression '[' identifier ']'
-callExpression ::= expression '(' arguments ')'
-typeCastExpression ::= expression 'as' typeLiteral
-instanceOfExpression ::= expression 'instanceof' expression
+private postfixGroup ::=
+  memberAccessExpression | arrayIndexExpression | callExpression
+| typeCastExpression | instanceOfExpression | referenceExpression | literalExpression
+
+private memberName ::= identifier | 'string'
+
+memberAccessExpression ::= expression '.' memberName
+arrayIndexExpression ::= expression '[' expression ']'
+callExpression ::= expression arguments
+typeCastExpression ::= expression 'as' type
+instanceOfExpression ::= expression 'instanceof' type
 
 
-primaryExpression ::=
+referenceExpression ::= identifier | primitiveType
+
+
+literalExpression ::= arrayLiteral | mapLiteral | functionLiteral | bracketHandlerLiteral | primitiveLiteral
+
+arrayLiteral ::= '[' expression (',' (expression | &']'))* ']' { pin(".*")=1 }
+mapLiteral ::= '{' mapEntry (',' (mapEntry | &'}'))* '}' { pin(".*")=1 }
+
+functionLiteral ::= 'function' parameters ('as' type)? functionBody { pin=2 }
+
+primitiveLiteral ::=
       INT_LITERAL
     | LONG_LITERAL
     | FLOAT_LITERAL
@@ -258,38 +263,40 @@ primaryExpression ::=
     | 'true'
     | 'false'
     | 'null'
-    | identifier
-    | 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
-    | bracketHandler
-    | '[' (expression (',' expression)*)? ','? ']'
-    | '{' (mapEntry (',' mapEntry)*)? ','? '}'
-    | '(' expression ')'
 
-bracketHandler ::= '<' {(!'>')*} '>'
+bracketHandlerLiteral ::= '<' (!'>')* '>' { pin=1 }
 
-arguments ::= (expression (',' expression)*)?;
+arguments ::= '(' argumentList? ')' { pin=1 }
+private argumentList ::= expression (',' expression)* { pin(".*")="','" }
 
-mapEntry ::= expression ':' expression;
+mapEntry ::= expression ':' expression { pin=2 }
 
 
 
-typeLiteral ::=
-  qualifiedName arraySuffix
-  | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' typeLiteral arraySuffix
-  | '[' typeLiteral ']' arraySuffix
-  | primitiveType arraySuffix
+classType ::= identifier (qualifiedClassType)*
+left qualifiedClassType ::= '.' identifier { pin=1 }
 
-arraySuffix ::= ('[' ']')*
+type ::=
+    primitiveType
+  | arrayType
+  | mapType
+  | listType
+  | classType
+  | functionType
 
+functionType ::= 'function' '(' (type (',' type)*)? ')' type { pin=1 }
+listType ::= '[' type ']' { pin=1 }
+arrayType ::= type '[' ']'
+mapType ::= type '[' type ']'
 primitiveType ::=
-    ANY
-  | BYTE
-  | SHORT
-  | INT
-  | LONG
-  | FLOAT
-  | DOUBLE
-  | BOOL
-  | VOID
-  | STRING
+    'any'
+  | 'byte'
+  | 'short'
+  | 'int'
+  | 'long'
+  | 'float'
+  | 'double'
+  | 'bool'
+  | 'void'
+  | 'string'
 

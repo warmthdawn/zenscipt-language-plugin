@@ -8,12 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface ZenScriptIfStatement extends PsiElement {
 
   @Nullable
-  ZenScriptElseBody getElseBody();
-
-  @NotNull
   ZenScriptExpression getExpression();
 
   @NotNull
-  ZenScriptThenBody getThenBody();
+  List<ZenScriptStatement> getStatementList();
 
 }

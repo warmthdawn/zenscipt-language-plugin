@@ -28,21 +28,21 @@ public class ZenScriptVariableDeclarationImpl extends ASTWrapperPsiElement imple
   }
 
   @Override
-  @NotNull
+  @Nullable
+  public ZenScriptExpression getExpression() {
+    return findChildByClass(ZenScriptExpression.class);
+  }
+
+  @Override
+  @Nullable
   public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptInitializer getInitializer() {
-    return findChildByClass(ZenScriptInitializer.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptTypeLiteral getTypeLiteral() {
-    return findChildByClass(ZenScriptTypeLiteral.class);
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
 }

@@ -8,9 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface ZenScriptArrayIndexExpression extends ZenScriptExpression {
 
   @NotNull
-  ZenScriptExpression getExpression();
-
-  @NotNull
-  ZenScriptIdentifier getIdentifier();
+  List<ZenScriptExpression> getExpressionList();
 
 }

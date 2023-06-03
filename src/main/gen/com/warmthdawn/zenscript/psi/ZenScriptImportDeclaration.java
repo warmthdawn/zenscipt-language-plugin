@@ -8,9 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface ZenScriptImportDeclaration extends PsiElement {
 
   @Nullable
-  ZenScriptAlias getAlias();
+  ZenScriptIdentifier getIdentifier();
 
-  @NotNull
+  @Nullable
   ZenScriptQualifiedName getQualifiedName();
 
 }

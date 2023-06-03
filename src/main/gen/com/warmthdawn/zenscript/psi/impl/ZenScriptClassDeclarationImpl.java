@@ -40,9 +40,9 @@ public class ZenScriptClassDeclarationImpl extends ASTWrapperPsiElement implemen
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptQualifiedName getQualifiedName() {
-    return findNotNullChildByClass(ZenScriptQualifiedName.class);
+    return findChildByClass(ZenScriptQualifiedName.class);
   }
 
   @Override

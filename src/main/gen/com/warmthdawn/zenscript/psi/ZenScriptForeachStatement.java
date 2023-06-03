@@ -7,13 +7,13 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptForeachStatement extends PsiElement {
 
-  @NotNull
+  @Nullable
   ZenScriptExpression getExpression();
 
-  @NotNull
+  @Nullable
   ZenScriptForeachBody getForeachBody();
 
   @NotNull
-  List<ZenScriptSimpleVariable> getSimpleVariableList();
+  List<ZenScriptIdentifier> getIdentifierList();
 
 }

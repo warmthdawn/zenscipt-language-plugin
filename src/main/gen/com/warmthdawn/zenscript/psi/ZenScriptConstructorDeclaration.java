@@ -7,10 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptConstructorDeclaration extends PsiElement {
 
-  @NotNull
+  @Nullable
   ZenScriptConstructorBody getConstructorBody();
 
-  @NotNull
-  List<ZenScriptParameter> getParameterList();
+  @Nullable
+  ZenScriptParameters getParameters();
 
 }

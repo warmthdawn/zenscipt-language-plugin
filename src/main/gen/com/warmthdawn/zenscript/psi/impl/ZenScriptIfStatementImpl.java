@@ -29,20 +29,14 @@ public class ZenScriptIfStatementImpl extends ASTWrapperPsiElement implements Ze
 
   @Override
   @Nullable
-  public ZenScriptElseBody getElseBody() {
-    return findChildByClass(ZenScriptElseBody.class);
-  }
-
-  @Override
-  @NotNull
   public ZenScriptExpression getExpression() {
-    return findNotNullChildByClass(ZenScriptExpression.class);
+    return findChildByClass(ZenScriptExpression.class);
   }
 
   @Override
   @NotNull
-  public ZenScriptThenBody getThenBody() {
-    return findNotNullChildByClass(ZenScriptThenBody.class);
+  public List<ZenScriptStatement> getStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
   }
 
 }

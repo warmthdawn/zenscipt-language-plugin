@@ -29,14 +29,8 @@ public class ZenScriptArrayIndexExpressionImpl extends ZenScriptExpressionImpl i
 
   @Override
   @NotNull
-  public ZenScriptExpression getExpression() {
-    return findNotNullChildByClass(ZenScriptExpression.class);
-  }
-
-  @Override
-  @NotNull
-  public ZenScriptIdentifier getIdentifier() {
-    return findNotNullChildByClass(ZenScriptIdentifier.class);
+  public List<ZenScriptExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
   }
 
 }

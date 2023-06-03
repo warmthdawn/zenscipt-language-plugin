@@ -29,14 +29,14 @@ public class ZenScriptImportDeclarationImpl extends ASTWrapperPsiElement impleme
 
   @Override
   @Nullable
-  public ZenScriptAlias getAlias() {
-    return findChildByClass(ZenScriptAlias.class);
+  public ZenScriptIdentifier getIdentifier() {
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptQualifiedName getQualifiedName() {
-    return findNotNullChildByClass(ZenScriptQualifiedName.class);
+    return findChildByClass(ZenScriptQualifiedName.class);
   }
 
 }

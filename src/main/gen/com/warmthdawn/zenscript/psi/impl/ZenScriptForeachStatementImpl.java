@@ -28,21 +28,21 @@ public class ZenScriptForeachStatementImpl extends ASTWrapperPsiElement implemen
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptExpression getExpression() {
-    return findNotNullChildByClass(ZenScriptExpression.class);
+    return findChildByClass(ZenScriptExpression.class);
   }
 
   @Override
-  @NotNull
+  @Nullable
   public ZenScriptForeachBody getForeachBody() {
-    return findNotNullChildByClass(ZenScriptForeachBody.class);
+    return findChildByClass(ZenScriptForeachBody.class);
   }
 
   @Override
   @NotNull
-  public List<ZenScriptSimpleVariable> getSimpleVariableList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptSimpleVariable.class);
+  public List<ZenScriptIdentifier> getIdentifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptIdentifier.class);
   }
 
 }

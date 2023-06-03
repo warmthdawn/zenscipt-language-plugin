@@ -10,7 +10,7 @@ public interface ZenScriptMemberAccessExpression extends ZenScriptExpression {
   @NotNull
   ZenScriptExpression getExpression();
 
-  @NotNull
+  @Nullable
   ZenScriptIdentifier getIdentifier();
 
 }

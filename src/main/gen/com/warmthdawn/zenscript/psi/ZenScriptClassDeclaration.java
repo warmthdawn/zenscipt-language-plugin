@@ -13,7 +13,7 @@ public interface ZenScriptClassDeclaration extends PsiElement {
   @NotNull
   List<ZenScriptFunctionDeclaration> getFunctionDeclarationList();
 
-  @NotNull
+  @Nullable
   ZenScriptQualifiedName getQualifiedName();
 
   @NotNull

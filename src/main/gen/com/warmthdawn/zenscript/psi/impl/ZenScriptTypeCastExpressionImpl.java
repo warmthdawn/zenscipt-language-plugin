@@ -34,9 +34,9 @@ public class ZenScriptTypeCastExpressionImpl extends ZenScriptExpressionImpl imp
   }
 
   @Override
-  @NotNull
-  public ZenScriptTypeLiteral getTypeLiteral() {
-    return findNotNullChildByClass(ZenScriptTypeLiteral.class);
+  @Nullable
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
 }

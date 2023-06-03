@@ -7,10 +7,10 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptQualifiedName extends PsiElement {
 
-  @NotNull
+  @Nullable
   ZenScriptIdentifier getIdentifier();
 
-  @NotNull
+  @Nullable
   ZenScriptQualifier getQualifier();
 
 }
