@@ -114,7 +114,6 @@
     NEW_LINE              ='regexp:\r|\n|\r\n'
   ]
 
-
   extends("(mul|add|compare|and|xor|or|andAnd|orOr|assignment|range)Expression")=binaryExpression
   extends("[a-z][a-zA-Z]*Expression")=expression
   extends("[a-z][a-zA-Z]*Literal")=literalExpression
@@ -268,7 +267,11 @@ private conditionalTail ::= '?' expression ':' expression { pin=1 }
 private memberName ::= identifier | 'string'
 
 left memberAccessExpression ::= '.' memberName { pin=1 }
-left arrayIndexExpression ::= '[' expression ']' { pin=1 }
+left arrayIndexExpression ::= '[' expression ']'
+    { pin=1; methods=[
+        expression='expression[0]'
+        index='expression[1]'
+    ] }
 left callExpression ::= arguments
 left typeCastExpression ::= 'as' type { pin=1 }
 left instanceOfExpression ::= 'instanceof' type { pin=1 }
@@ -306,7 +309,7 @@ primitiveLiteral ::=
     | 'false'
     | 'null'
 
-bracketHandlerLiteral ::= '<' (!'>' <<any>>)+ '>' { pin(".*")=1 }
+bracketHandlerLiteral ::= '<' (!'>' <<any>>)+ '>' { pin(".*")=1; }
 
 arguments ::= '(' argumentList? ')' { pin=1 }
 private argumentList ::= expression (',' expression)* { pin(".*")="','" }
