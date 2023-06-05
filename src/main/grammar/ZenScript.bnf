@@ -120,7 +120,7 @@
   extends("[a-z][a-zA-Z]*Literal")=literalExpression
   extends("[a-z][a-zA-Z]*Type")=type
   extends("[a-z][a-zA-Z]*Statement")=statement
-  implements("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")=function
+  implements("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")="ZenScriptFunction"
 
   generate=[
     token-sets="yes"
@@ -147,10 +147,12 @@ private script_body_recover ::= !('$expand' | 'function' | 'static' | 'zenClass'
 private funcReturnTypeDef ::= 'as' type { pin=1 }
 functionDeclaration ::=
     preprocessors ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=4; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
+    { pin=4; implements="ZenScriptNamedElement";
+      mixin="ZenScriptNamedElementImpl"; methods=[returnType="type"];}
 
 expandFunctionDeclaration ::= preprocessors '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=2; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
+    { pin=2; implements="ZenScriptNamedElement";
+      mixin="ZenScriptNamedElementImpl"; methods=[returnType="type[1]"];}
 
 functionBody ::= '{' statement* '}'
     { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
@@ -161,10 +163,8 @@ classDeclaration ::= preprocessors 'zenClass' qualifiedName '{' classBodyItem* '
 private classBodyItem ::= variableDeclaration | constructorDeclaration | functionDeclaration { pin=1;  recoverWhile=class_body_recover; }
 private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor' | PREPROCESSOR)
 
-fake function ::= &'(' parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=1; }
-
-constructorDeclaration ::= preprocessors 'zenConstructor' parameters functionBody { pin=2; }
+constructorDeclaration ::= preprocessors 'zenConstructor' parameters functionBody
+    { pin=2; methods=[getReturnType]; }
 
 variableDeclaration ::=
     ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' initializerOrDefault)? ';'
@@ -336,7 +336,8 @@ mapEntry ::= expression ':' expression { pin=1; recoverWhile=map_literal_recover
 
 private map_literal_recover ::= !(',' | '}') & statement_recover
 
-functionLiteral ::= 'function' parameters funcReturnTypeDef? functionBody { pin=1 }
+functionLiteral ::= 'function' parameters funcReturnTypeDef? functionBody
+    { pin=1;  methods=[returnType="type"]; }
 
 primitiveLiteral ::=
       INT_LITERAL

@@ -22,4 +22,7 @@ public interface ZenScriptExpandFunctionDeclaration extends ZenScriptNamedElemen
   @NotNull
   List<ZenScriptType> getTypeList();
 
+  @Nullable
+  ZenScriptType getReturnType();
+
 }

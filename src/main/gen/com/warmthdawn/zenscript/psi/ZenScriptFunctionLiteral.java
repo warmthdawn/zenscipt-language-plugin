@@ -14,6 +14,6 @@ public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression, Ze
   ZenScriptParameters getParameters();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptType getReturnType();
 
 }

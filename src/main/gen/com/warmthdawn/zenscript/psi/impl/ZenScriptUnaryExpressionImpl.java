@@ -9,6 +9,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
+import com.intellij.psi.tree.IElementType;
 
 public class ZenScriptUnaryExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptUnaryExpression {
 
@@ -31,6 +32,12 @@ public class ZenScriptUnaryExpressionImpl extends ZenScriptExpressionImpl implem
   @Nullable
   public ZenScriptExpression getExpression() {
     return findChildByClass(ZenScriptExpression.class);
+  }
+
+  @Override
+  @NotNull
+  public IElementType getOperator() {
+    return ZenScriptImplUtil.getOperator(this);
   }
 
 }

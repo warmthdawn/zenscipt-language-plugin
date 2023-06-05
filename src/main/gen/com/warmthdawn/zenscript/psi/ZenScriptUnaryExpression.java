@@ -4,14 +4,14 @@ package com.warmthdawn.zenscript.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 public interface ZenScriptUnaryExpression extends ZenScriptExpression {
 
   @Nullable
   ZenScriptExpression getExpression();
 
-  //WARNING: getOperator(...) is skipped
-  //matching getOperator(ZenScriptUnaryExpression, ...)
-  //methods are not found in ZenScriptImplUtil
+  @NotNull
+  IElementType getOperator();
 
 }

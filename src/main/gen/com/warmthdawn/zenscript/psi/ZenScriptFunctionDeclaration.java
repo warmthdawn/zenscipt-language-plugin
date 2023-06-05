@@ -20,6 +20,6 @@ public interface ZenScriptFunctionDeclaration extends ZenScriptNamedElement, Zen
   ZenScriptPreprocessors getPreprocessors();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptType getReturnType();
 
 }

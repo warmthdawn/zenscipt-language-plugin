@@ -41,7 +41,7 @@ public class ZenScriptFunctionLiteralImpl extends ZenScriptLiteralExpressionImpl
 
   @Override
   @Nullable
-  public ZenScriptType getType() {
+  public ZenScriptType getReturnType() {
     return findChildByClass(ZenScriptType.class);
   }
 

@@ -46,3 +46,5 @@ fun getOperator(binaryExpr: ZenScriptBinaryExpression): IElementType {
 fun getIdentifier(classDec: ZenScriptClassDeclaration): ZenScriptIdentifier? {
     return classDec.qualifiedName?.identifier
 }
+
+fun getReturnType(ctor: ZenScriptConstructorDeclaration): ZenScriptType? = null

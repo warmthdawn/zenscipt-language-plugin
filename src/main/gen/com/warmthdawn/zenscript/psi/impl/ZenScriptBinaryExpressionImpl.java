@@ -9,6 +9,7 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
+import com.intellij.psi.tree.IElementType;
 
 public class ZenScriptBinaryExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptBinaryExpression {
 
@@ -45,6 +46,12 @@ public class ZenScriptBinaryExpressionImpl extends ZenScriptExpressionImpl imple
   public ZenScriptExpression getRight() {
     List<ZenScriptExpression> p1 = getExpressionList();
     return p1.size() < 2 ? null : p1.get(1);
+  }
+
+  @Override
+  @NotNull
+  public IElementType getOperator() {
+    return ZenScriptImplUtil.getOperator(this);
   }
 
 }

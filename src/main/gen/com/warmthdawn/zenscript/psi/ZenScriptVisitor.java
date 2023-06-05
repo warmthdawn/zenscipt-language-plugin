@@ -102,10 +102,6 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     // visitLoopStatement(o);
   }
 
-  public void visitFunction(@NotNull ZenScriptFunction o) {
-    visitPsiElement(o);
-  }
-
   public void visitFunctionBody(@NotNull ZenScriptFunctionBody o) {
     visitCodeBlock(o);
   }
@@ -275,6 +271,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitCodeBlock(@NotNull ZenScriptCodeBlock o) {
+    visitPsiElement(o);
+  }
+
+  public void visitFunction(@NotNull ZenScriptFunction o) {
     visitPsiElement(o);
   }
 

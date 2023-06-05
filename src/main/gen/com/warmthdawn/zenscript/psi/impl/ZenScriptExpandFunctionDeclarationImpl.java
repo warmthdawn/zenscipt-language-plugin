@@ -56,4 +56,11 @@ public class ZenScriptExpandFunctionDeclarationImpl extends ZenScriptNamedElemen
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
   }
 
+  @Override
+  @Nullable
+  public ZenScriptType getReturnType() {
+    List<ZenScriptType> p1 = getTypeList();
+    return p1.size() < 2 ? null : p1.get(1);
+  }
+
 }
