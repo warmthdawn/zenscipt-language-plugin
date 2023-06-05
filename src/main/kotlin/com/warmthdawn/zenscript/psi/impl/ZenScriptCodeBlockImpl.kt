@@ -6,7 +6,4 @@ import com.intellij.psi.PsiElement
 import com.warmthdawn.zenscript.psi.ZenScriptCodeBlock
 
 abstract class ZenScriptCodeBlockImpl(node: ASTNode) : ASTWrapperPsiElement(node), ZenScriptCodeBlock {
-    override fun shouldChangeModificationCount(place: PsiElement?): Boolean {
-        return false
-    }
 }

@@ -197,24 +197,27 @@ class ZenScriptKeywordCompletion(
      * 'as' <type>
      */
     private fun addTypeAsKeyword() {
-        if (PsiTreeUtil.getParentOfType(
-                position,
+        if (prevLeaf == null) {
+            return
+        }
+        if (!prevLeaf.textMatches("=") && PsiTreeUtil.getParentOfType(
+                prevLeaf,
                 ZenScriptVariableDeclaration::class.java,
                 true,
                 ZenScriptInitializerOrDefault::class.java
             ) != null
         ) {
-            if (psiElement(ZenScriptIdentifier::class.java).accepts(prevLeaf)) {
+            if (prevLeaf.parent is ZenScriptIdentifier) {
                 addKeyword("as")
             }
             return
         }
 
-        if (INSIDE_FUNCTIONS.accepts(position)) {
+        if (INSIDE_FUNCTIONS.accepts(prevLeaf) && !prevLeaf.textMatches("}")) {
 
             // skip function body
-            if (PsiTreeUtil.getParentOfType(
-                    position,
+            if (!prevLeaf.textMatches("}") &&PsiTreeUtil.getParentOfType(
+                    prevLeaf,
                     ZenScriptFunctionBody::class.java,
                     true,
                     ZenScriptFunction::class.java
@@ -222,21 +225,16 @@ class ZenScriptKeywordCompletion(
             ) {
                 return
             }
-            if (prevLeaf == null) {
-                return
-            }
 
             if (prevLeaf.textMatches(")") && !psiElement().inside(ZenScriptConstructorDeclaration::class.java)
-                    .accepts(position)
+                    .accepts(prevLeaf)
             ) {
                 addKeyword("as")
                 return
             }
 
             val insideParameters = psiElement().inside(true, psiElement(ZenScriptParameters::class.java))
-            if (psiElement(ZenScriptIdentifier::class.java).and(insideParameters)
-                    .accepts(prevLeaf) && insideParameters.accepts(position)
-            ) {
+            if (prevLeaf.parent is ZenScriptIdentifier && insideParameters.accepts(prevLeaf)) {
                 addKeyword("as")
             }
         }
