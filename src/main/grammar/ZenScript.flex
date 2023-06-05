@@ -151,12 +151,12 @@ Identifier = {Letter} {LetterOrDigit}*
   {TraditionalComment}           { return BLOCK_COMMENT;}
   {Preprocessor}                 { return PREPROCESSOR;}
 
-  ('0' | [1-9] [0-9]*)                           { return INT_LITERAL; }
-  '0' [xX] {HexDigits}                           { return INT_LITERAL; }
-  ('0' | [1-9] {Digits}) [lL]?                   { return LONG_LITERAL; }
-  '0' [xX] {HexDigits} [lL]?                     { return LONG_LITERAL; }
-  {Digits} '.' {Digits} ([eE] {Digits})? [fF]    { return FLOAT_LITERAL; }
-  {Digits} '.' {Digits} ([eE] {Digits})? [dD]?   { return DOUBLE_LITERAL; }
+  (0 | ([1-9] {Digit}*))                           { return INT_LITERAL; }
+  0 [xX] {HexDigits}                           { return INT_LITERAL; }
+  (0 | ([1-9] {Digit}*)) [lL]                   { return LONG_LITERAL; }
+  0 [xX] {HexDigits} [lL]                     { return LONG_LITERAL; }
+  (0 | ([1-9] {Digit}*)) '.' {Digits} ([eE] {Digits})? [fF]    { return FLOAT_LITERAL; }
+  (0 | ([1-9] {Digit}*)) '.' {Digits} ([eE] {Digits})? [dD]?   { return DOUBLE_LITERAL; }
 
   {LineTerminator}        { return NEW_LINE; }
   {WhiteSpace}            { return WHITE_SPACE; }

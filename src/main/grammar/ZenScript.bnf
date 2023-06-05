@@ -232,7 +232,7 @@ private simpleVariable ::= identifier
     {  implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl";  }
 
 whileStatement ::=
-    'while' '(' expression ')' statement
+    'while' expression statement
     { pin=1; methods=[condition="expression" body="statement"];
       implements="ZenScriptLoopStatement" }
 

@@ -254,11 +254,11 @@ class ZenScriptKeywordCompletion(
             return
         }
 
-        if (!isEndOfBlock() || !AT_EXPRESSION_STMT_STARING.accepts(position)) {
+        if (!isEndOfBlock()) {
             return
         }
 
-        addKeywords("static", "val", "var", "function")
+        addKeywords("static", "val", "var", "function", "zenConstructor")
     }
 
     private fun addTopLevelKeywords() {
@@ -320,14 +320,13 @@ class ZenScriptKeywordCompletion(
         if (psiElement().withText(string().oneOf("{", "}", ";")).accepts(prev)) return true
         if (prev.textMatches(")")) {
             val parent = prev.parent
-            return if (parent is PsiParameterList) {
+            return if (parent is ZenScriptParameters) {
 //                PsiTreeUtil.getParentOfType(
 //                    PsiTreeUtil.prevVisibleLeaf(element),
 //                    PsiDocComment::class.java
 //                ) != null
                 return false
-            } else !(parent is PsiExpressionList || parent is PsiTypeCastExpression
-                    || parent is PsiRecordHeader)
+            } else !(parent is ZenScriptArguments || parent is ZenScriptParenExpression)
         }
         return false
     }
