@@ -11,7 +11,7 @@ import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public abstract class ZenScriptExpressionImpl extends ASTWrapperPsiElement implements ZenScriptExpression {
+public class ZenScriptExpressionImpl extends ASTWrapperPsiElement implements ZenScriptExpression {
 
   public ZenScriptExpressionImpl(@NotNull ASTNode node) {
     super(node);

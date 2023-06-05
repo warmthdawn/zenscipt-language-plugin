@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptExpressionStatementImpl extends ASTWrapperPsiElement implements ZenScriptExpressionStatement {
+public class ZenScriptExpressionStatementImpl extends ZenScriptStatementImpl implements ZenScriptExpressionStatement {
 
   public ZenScriptExpressionStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitExpressionStatement(this);
   }

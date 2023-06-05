@@ -5,13 +5,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptVariableDeclaration extends PsiElement {
-
-  @Nullable
-  ZenScriptExpression getExpression();
+public interface ZenScriptVariableDeclaration extends ZenScriptStatement, ZenScriptNamedElement {
 
   @Nullable
   ZenScriptIdentifier getIdentifier();
+
+  @Nullable
+  ZenScriptInitializerOrDefault getInitializerOrDefault();
 
   @Nullable
   ZenScriptType getType();

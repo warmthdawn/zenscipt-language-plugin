@@ -102,22 +102,25 @@
     OP_CAT_ASSIGN         ='~='
     OP_DOT_DOT            ='..'
 
-    LINE_COMMENT          ='LINE_COMMENT'
+    LINE_COMMENT          ='regexp://.*'
     BLOCK_COMMENT         ='BLOCK_COMMENT'
     DOC_COMMENT           ='DOC_COMMENT'
-    PREPROCESSOR          ='PREPROCESSOR'
+    PREPROCESSOR          ='regexp:#.*'
 
     ID                    ='regexp:[a-zA-Z_][a-zA-Z0-9_]*'
-    STRING_LITERAL        ="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\\"|\\\'|\\)*\")"
+    STRING_LITERAL        ="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\\"|'|\\)*\")"
     INT_LITERAL           ='regexp:(0|([1-9][0-9]*))'
     WHITE_SPACE           ='regexp:[ \r\t\f\n]+'
-    NEW_LINE              ='regexp:\r|\n|\r\n'
+
+    NEW_LINE              ='<NEW_LINE>'
   ]
 
   extends("(mul|add|compare|and|xor|or|andAnd|orOr|assignment|range)Expression")=binaryExpression
   extends("[a-z][a-zA-Z]*Expression")=expression
   extends("[a-z][a-zA-Z]*Literal")=literalExpression
   extends("[a-z][a-zA-Z]*Type")=type
+  extends("[a-z][a-zA-Z]*Statement")=statement
+  implements("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")=function
 
   generate=[
     token-sets="yes"
@@ -126,42 +129,58 @@
 }
 
 
-file ::= importList scriptBody
+file ::= preprocessors importList scriptBody
 
-importList ::= (importDeclaration)*
+preprocessors ::= PREPROCESSOR* { pin=1 }
+importList ::= importDeclaration*
 
 // Declarations
-importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';' { pin(".*")=1 }
+importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';' { pin(".*")=1; recoverWhile="import_recover" }
+private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | PREPROCESSOR | ';' | statement_start)
 
-scriptBody ::= (functionDeclaration | expandFunctionDeclaration | classDeclaration | topLevelStatement)*
+scriptBody ::= preprocessors topLevelStatement* { pin=2 }
 
-private topLevelStatement ::= statement
+private topLevelStatement ::=  functionDeclaration | expandFunctionDeclaration | classDeclaration | statement {  recoverWhile=script_body_recover; }
+
+private script_body_recover ::= !('$expand' | 'function' | 'static' | 'zenClass' | PREPROCESSOR | statement_start)
 
 private funcReturnTypeDef ::= 'as' type { pin=1 }
 functionDeclaration ::=
-    ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=3 }
+    preprocessors ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
+    { pin=4; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
 
-expandFunctionDeclaration ::= '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody { pin=1 }
+expandFunctionDeclaration ::= preprocessors '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
+    { pin=2; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
 
-functionBody ::= '{' statement* '}' { pin=1 }
+functionBody ::= '{' statement* '}'
+    { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
 
-classDeclaration ::= 'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+classDeclaration ::= preprocessors 'zenClass' qualifiedName '{' classBodyItem* '}'
+    { pin=2; implements="ZenScriptClass"; mixin="ZenScriptClassImpl"; }
+
+private classBodyItem ::= variableDeclaration | constructorDeclaration | functionDeclaration { pin=1;  recoverWhile=class_body_recover; }
+private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor' | PREPROCESSOR)
+
+fake function ::= &'(' parameters (funcReturnTypeDef | &'{') functionBody
     { pin=1; }
 
-constructorDeclaration ::= 'zenConstructor' parameters constructorBody { pin=1; }
-
-constructorBody ::= '{' statement* '}' { pin=1 }
+constructorDeclaration ::= preprocessors 'zenConstructor' parameters functionBody { pin=2; }
 
 variableDeclaration ::=
-    ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' expression)? ';' { pin(".*")=1 }
+    ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' initializerOrDefault)? ';'
+    { pin(".*")=1; extends="statement"; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
+
+initializerOrDefault ::= expression
 
 qualifiedName ::= qualifier? identifier { pin=1 }
 qualifier ::= (identifier '.')+ { pin(".*")=2 }
 
-parameters ::='(' parametersList? ')' { pin(".*")=1 }
-private parametersList ::= parameter (',' parameter)*  { pin(".*")="','" }
-parameter ::= identifier ('as' type)? ('=' expression)? { pin(".*")=1 }
+parameters ::='(' (!')' parametersList)? ')' { pin(".*")=1 }
+private parametersList ::= parameter (',' parameter)*  { pin(".*")=1 }
+parameter ::= identifier ('as' type)? ('=' initializerOrDefault)? { pin(".*")=1; recoverWhile=parameter_recover }
+private parameter_recover ::= !(',' | ')' | 'as' | '{' | '}') & script_body_recover
+
+private statement_start ::= 'break' | 'continue' | 'for' | 'global' | 'if' | 'return' | 'static' | 'val' | 'var' | 'while' | '{' | ';' | expression_start
 
 statement ::=
       blockStatement
@@ -173,8 +192,12 @@ statement ::=
     | whileStatement
     | variableDeclaration
     | expressionStatement
+    | ';'
+    { pin = 1; recoverWhile=statement_recover; }
 
-blockStatement ::= '{' statement* '}' { pin=1 }
+private statement_recover ::= !('}' | 'else' | ';' | '$expand' | 'function' | 'static' | 'zenClass' | PREPROCESSOR | statement_start)
+
+blockStatement ::= '{' statement* '}' { pin=1; implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"]; }
 
 returnStatement ::= 'return' expression? ';' { pin=1 }
 
@@ -182,33 +205,41 @@ breakStatement ::= 'break' ';' { pin=1 }
 
 continueStatement ::= 'continue' ';' { pin=1 }
 
-ifStatement ::= 'if' expression thenBody ('else' elseBody)? { pin(".*")=1 }
-
-private thenBody ::=
-    statement
-
-private elseBody ::=
-    statement
+ifStatement ::= 'if' expression statement ('else' statement)? { pin(".*")=1; methods=[
+        condition="expression"
+        thenBody="statement[0]"
+        elseBody="statement[1]"
+    ];}
 
 foreachStatement ::=
-    'for' foreachEntry 'in' expression foreachBody { pin=1}
+    'for' foreachEntry 'in' expression statement
+    { pin=1; methods=[
+        entries="foreachEntry"
+        iterTarget="expression"
+        body="statement"
+        ];
+     implements="ZenScriptLoopStatement"
+    }
 
-private foreachEntry ::=  forEachEntryWithParen | foreachEntryNoParen
-private forEachEntryWithParen ::= '(' foreachEntryNoParen ')' { pin=1 }
-private foreachEntryNoParen ::= simpleVariable (',' simpleVariable)* { pin(".*")=1 }
+private foreachEntry ::= simpleVariable (',' simpleVariable)* { pin(".*")=1; recoverWhile=for_each_entry_recover }
+//private foreachEntry ::=  forEachEntryWithParen | foreachEntryNoParen
+//private forEachEntryWithParen ::= '(' foreachEntryNoParen ')' { pin=1 }
+//private foreachEntryNoParen ::= simpleVariable (',' simpleVariable)* { pin(".*")=1 }
 
-private simpleVariable ::=
-    identifier
+private for_each_entry_recover ::= !(',' | 'in' | '{' | ';')
 
-foreachBody ::=
-    '{' statement* '}' { pin=1 }
+private simpleVariable ::= identifier
+    {  implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl";  }
 
 whileStatement ::=
-    'while' '(' expression ')' statement { pin=1 }
+    'while' '(' expression ')' statement
+    { pin=1; methods=[condition="expression" body="statement"];
+      implements="ZenScriptLoopStatement" }
 
 expressionStatement ::=
     expression ';' { pin=1 }
 
+private expression_start ::= '!' | '(' | '-' | '<' | '[' | 'any' | 'bool' | 'byte' | 'double' | 'false' | 'float' | 'function' | 'int' | 'long' | 'null' | 'short' | 'string' | 'to' | 'true' | 'void' | '{' | DOUBLE_LITERAL | FLOAT_LITERAL | ID | INT_LITERAL | LONG_LITERAL | STRING_LITERAL
 
 expression ::=
       assignmentExpression
@@ -224,6 +255,7 @@ expression ::=
     | unaryExpression
     | rangeExpression
     | postfixExpression
+    { pin=1; recoverWhile=expression_recover; }
 
 private rangeOp ::= 'to' | '..'
 private unaryOp ::= '!' | '-'
@@ -234,9 +266,13 @@ private compareOP ::= '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has'
 private assignmentOp ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^='
 
 
+private binaryOP ::= rangeOp | mulOp |  addOp | compareOP | assignmentOp | '&' | '^' | '|' |  '&&' |  '||'
+private allOP ::= binaryOP | unaryOp | ':' | '.' '?'
+
+private expression_recover ::= !(allOP | statement_start | ')' | ',' | ':' | ';'| ']' | 'as' | 'else' | 'instanceof' | '}')
 
 fake binaryExpression ::= expression
-    (rangeOp | mulOp |  addOp | compareOP | assignmentOp | '&' | '^' | '|' |  '&&' |  '||')
+    binaryOP
     expression { pin=2;  methods=[
         left="expression[0]"
         right="expression[1]"
@@ -293,11 +329,14 @@ localAccessExpression ::= identifier | primitiveType
 
 literalExpression ::= arrayLiteral | mapLiteral | functionLiteral | bracketHandlerLiteral | primitiveLiteral
 
-arrayLiteral ::= '[' expression (',' (expression | &']'))* ']' { pin(".*")=1 }
-mapLiteral ::= '{' mapEntry (',' (mapEntry | &'}'))* '}' { pin(".*")=1 }
 
+arrayLiteral ::= '[' (!']' expression (',' (expression | &']'))*)? ']' { pin(".*")=1 }
+mapLiteral ::= '{' (!'}' mapEntry (',' (mapEntry | &'}'))*)? '}' { pin(".*")=1 }
+mapEntry ::= expression ':' expression { pin=1; recoverWhile=map_literal_recover }
 
-functionLiteral ::= 'function' parameters ('as' type)? functionBody { pin(".*")=1 }
+private map_literal_recover ::= !(',' | '}') & statement_recover
+
+functionLiteral ::= 'function' parameters funcReturnTypeDef? functionBody { pin=1 }
 
 primitiveLiteral ::=
       INT_LITERAL
@@ -314,7 +353,6 @@ bracketHandlerLiteral ::= '<' (!'>' <<any>>)+ '>' { pin(".*")=1; }
 arguments ::= '(' argumentList? ')' { pin=1 }
 private argumentList ::= expression (',' expression)* { pin(".*")="','" }
 
-mapEntry ::= expression ':' expression { pin=2 }
 
 
 classType ::= identifier (qualifiedClassType)*
@@ -326,10 +364,13 @@ type ::=
   | listType
   | classType
   | functionType
+  { recoverWhile=type_recover; }
 
 functionType ::= 'function' '(' functionParamsType? ')' type { rightAssociative=true; pin=1; }
 private functionParamsType ::= type (',' type)* { pin(".*")=1 }
 listType ::= '[' type ']' { pin=1 }
+
+private type_recover ::= !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveType) & expression_recover & statement_recover
 
 private arrayOrMap ::=  arrayType | mapType
 arrayType ::= type '[' ']'

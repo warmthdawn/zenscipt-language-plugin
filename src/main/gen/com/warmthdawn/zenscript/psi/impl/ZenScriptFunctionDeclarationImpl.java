@@ -8,12 +8,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptFunctionDeclarationImpl extends ASTWrapperPsiElement implements ZenScriptFunctionDeclaration {
+public class ZenScriptFunctionDeclarationImpl extends ZenScriptNamedElementImpl implements ZenScriptFunctionDeclaration {
 
-  public ZenScriptFunctionDeclarationImpl(@NotNull ASTNode node) {
+  public ZenScriptFunctionDeclarationImpl(ASTNode node) {
     super(node);
   }
 
@@ -43,6 +42,12 @@ public class ZenScriptFunctionDeclarationImpl extends ASTWrapperPsiElement imple
   @Nullable
   public ZenScriptParameters getParameters() {
     return findChildByClass(ZenScriptParameters.class);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptPreprocessors getPreprocessors() {
+    return findNotNullChildByClass(ZenScriptPreprocessors.class);
   }
 
   @Override

@@ -6,7 +6,7 @@ import com.warmthdawn.zenscript.psi.ZenScriptTypes.*
 object ZenScriptTokenSet {
     val IDENTIFIERS: TokenSet = TokenSet.create(ID)
     val COMMENTS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT)
-    val HIDDEN_TOKENS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT, PREPROCESSOR)
+    val HIDDEN_TOKENS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT, PREPROCESSOR, NEW_LINE)
 
 
     val KEYWORDS: TokenSet = TokenSet.create(

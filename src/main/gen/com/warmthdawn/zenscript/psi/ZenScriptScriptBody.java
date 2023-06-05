@@ -17,6 +17,9 @@ public interface ZenScriptScriptBody extends PsiElement {
   List<ZenScriptFunctionDeclaration> getFunctionDeclarationList();
 
   @NotNull
+  ZenScriptPreprocessors getPreprocessors();
+
+  @NotNull
   List<ZenScriptStatement> getStatementList();
 
 }

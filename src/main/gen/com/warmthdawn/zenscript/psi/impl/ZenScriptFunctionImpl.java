@@ -11,14 +11,14 @@ import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptForeachBodyImpl extends ASTWrapperPsiElement implements ZenScriptForeachBody {
+public class ZenScriptFunctionImpl extends ASTWrapperPsiElement implements ZenScriptFunction {
 
-  public ZenScriptForeachBodyImpl(@NotNull ASTNode node) {
+  public ZenScriptFunctionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitForeachBody(this);
+    visitor.visitFunction(this);
   }
 
   @Override
@@ -28,9 +28,21 @@ public class ZenScriptForeachBodyImpl extends ASTWrapperPsiElement implements Ze
   }
 
   @Override
-  @NotNull
-  public List<ZenScriptStatement> getStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
+  @Nullable
+  public ZenScriptFunctionBody getFunctionBody() {
+    return findChildByClass(ZenScriptFunctionBody.class);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptParameters getParameters() {
+    return findChildByClass(ZenScriptParameters.class);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
 }

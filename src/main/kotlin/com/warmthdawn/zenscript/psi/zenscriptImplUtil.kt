@@ -2,8 +2,12 @@
 
 package com.warmthdawn.zenscript.psi
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.containers.mapInPlace
+import groovyjarjarantlr.preprocessor.Preprocessor
 
 
 private val unaryOp = TokenSet.create(ZenScriptTypes.OP_SUB, ZenScriptTypes.OP_NOT)
@@ -31,9 +35,14 @@ private val binaryOp = TokenSet.create(
 )
 
 fun getOperator(unaryExpr: ZenScriptUnaryExpression): IElementType {
-    return unaryExpr.node.findChildByType(unaryOp)!!.elementType;
+    return unaryExpr.node.findChildByType(unaryOp)!!.elementType
 }
 
 fun getOperator(binaryExpr: ZenScriptBinaryExpression): IElementType {
-    return binaryExpr.node.findChildByType(binaryOp)!!.elementType;
+    return binaryExpr.node.findChildByType(binaryOp)!!.elementType
+}
+
+
+fun getIdentifier(classDec: ZenScriptClassDeclaration): ZenScriptIdentifier? {
+    return classDec.qualifiedName?.identifier
 }

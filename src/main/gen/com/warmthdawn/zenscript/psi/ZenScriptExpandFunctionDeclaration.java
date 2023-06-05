@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptExpandFunctionDeclaration extends PsiElement {
+public interface ZenScriptExpandFunctionDeclaration extends ZenScriptNamedElement, ZenScriptFunction {
 
   @Nullable
   ZenScriptFunctionBody getFunctionBody();
@@ -15,6 +15,9 @@ public interface ZenScriptExpandFunctionDeclaration extends PsiElement {
 
   @Nullable
   ZenScriptParameters getParameters();
+
+  @NotNull
+  ZenScriptPreprocessors getPreprocessors();
 
   @NotNull
   List<ZenScriptType> getTypeList();

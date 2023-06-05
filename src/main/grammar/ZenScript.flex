@@ -25,7 +25,7 @@ import static com.intellij.psi.TokenType.WHITE_SPACE;
 
 LineTerminator = \r|\n|\r\n
 InputCharacter = [^\r\n]
-WhiteSpace     = {LineTerminator} | [ \t\f]
+WhiteSpace     = [ \t\f]
 
 /* comments */
 Comment = {TraditionalComment} | {EndOfLineComment} | {DocumentationComment}
@@ -158,8 +158,8 @@ Identifier = {Letter} {LetterOrDigit}*
   {Digits} '.' {Digits} ([eE] {Digits})? [fF]    { return FLOAT_LITERAL; }
   {Digits} '.' {Digits} ([eE] {Digits})? [dD]?   { return DOUBLE_LITERAL; }
 
-  {WhiteSpace}            { return WHITE_SPACE; }
   {LineTerminator}        { return NEW_LINE; }
+  {WhiteSpace}            { return WHITE_SPACE; }
 }
 
 

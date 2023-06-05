@@ -5,9 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptConstructorBody extends PsiElement {
-
-  @NotNull
-  List<ZenScriptStatement> getStatementList();
+public interface ZenScriptPreprocessors extends PsiElement {
 
 }

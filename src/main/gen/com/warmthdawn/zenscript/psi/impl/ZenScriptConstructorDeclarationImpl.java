@@ -29,14 +29,20 @@ public class ZenScriptConstructorDeclarationImpl extends ASTWrapperPsiElement im
 
   @Override
   @Nullable
-  public ZenScriptConstructorBody getConstructorBody() {
-    return findChildByClass(ZenScriptConstructorBody.class);
+  public ZenScriptFunctionBody getFunctionBody() {
+    return findChildByClass(ZenScriptFunctionBody.class);
   }
 
   @Override
   @Nullable
   public ZenScriptParameters getParameters() {
     return findChildByClass(ZenScriptParameters.class);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptPreprocessors getPreprocessors() {
+    return findNotNullChildByClass(ZenScriptPreprocessors.class);
   }
 
 }

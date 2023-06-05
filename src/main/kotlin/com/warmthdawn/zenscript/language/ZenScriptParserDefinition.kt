@@ -12,6 +12,7 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import com.warmthdawn.zenscript.ZSLanguage
 import com.warmthdawn.zenscript.parser.ZenScriptParser
+import com.warmthdawn.zenscript.psi.ZenScriptFile
 import com.warmthdawn.zenscript.psi.ZenScriptTokenSet
 import com.warmthdawn.zenscript.psi.ZenScriptTypes
 

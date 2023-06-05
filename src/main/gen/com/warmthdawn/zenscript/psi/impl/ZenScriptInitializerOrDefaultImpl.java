@@ -11,14 +11,14 @@ import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptConstructorBodyImpl extends ASTWrapperPsiElement implements ZenScriptConstructorBody {
+public class ZenScriptInitializerOrDefaultImpl extends ASTWrapperPsiElement implements ZenScriptInitializerOrDefault {
 
-  public ZenScriptConstructorBodyImpl(@NotNull ASTNode node) {
+  public ZenScriptInitializerOrDefaultImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitConstructorBody(this);
+    visitor.visitInitializerOrDefault(this);
   }
 
   @Override
@@ -29,8 +29,8 @@ public class ZenScriptConstructorBodyImpl extends ASTWrapperPsiElement implement
 
   @Override
   @NotNull
-  public List<ZenScriptStatement> getStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
+  public ZenScriptExpression getExpression() {
+    return findNotNullChildByClass(ZenScriptExpression.class);
   }
 
 }

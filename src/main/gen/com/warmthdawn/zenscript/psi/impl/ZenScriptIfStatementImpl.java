@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptIfStatementImpl extends ASTWrapperPsiElement implements ZenScriptIfStatement {
+public class ZenScriptIfStatementImpl extends ZenScriptStatementImpl implements ZenScriptIfStatement {
 
   public ZenScriptIfStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitIfStatement(this);
   }
@@ -28,15 +28,29 @@ public class ZenScriptIfStatementImpl extends ASTWrapperPsiElement implements Ze
   }
 
   @Override
+  @NotNull
+  public List<ZenScriptStatement> getStatementList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
+  }
+
+  @Override
   @Nullable
-  public ZenScriptExpression getExpression() {
+  public ZenScriptExpression getCondition() {
     return findChildByClass(ZenScriptExpression.class);
   }
 
   @Override
-  @NotNull
-  public List<ZenScriptStatement> getStatementList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
+  @Nullable
+  public ZenScriptStatement getThenBody() {
+    List<ZenScriptStatement> p1 = getStatementList();
+    return p1.size() < 1 ? null : p1.get(0);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptStatement getElseBody() {
+    List<ZenScriptStatement> p1 = getStatementList();
+    return p1.size() < 2 ? null : p1.get(1);
   }
 
 }

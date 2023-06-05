@@ -5,12 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptWhileStatement extends PsiElement {
+public interface ZenScriptWhileStatement extends ZenScriptStatement, ZenScriptLoopStatement {
 
   @Nullable
-  ZenScriptExpression getExpression();
+  ZenScriptExpression getCondition();
 
   @Nullable
-  ZenScriptStatement getStatement();
+  ZenScriptStatement getBody();
 
 }

@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptForeachStatementImpl extends ASTWrapperPsiElement implements ZenScriptForeachStatement {
+public class ZenScriptForeachStatementImpl extends ZenScriptStatementImpl implements ZenScriptForeachStatement {
 
   public ZenScriptForeachStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitForeachStatement(this);
   }
@@ -28,21 +28,21 @@ public class ZenScriptForeachStatementImpl extends ASTWrapperPsiElement implemen
   }
 
   @Override
+  @NotNull
+  public List<ZenScriptIdentifier> getIdentifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptIdentifier.class);
+  }
+
+  @Override
   @Nullable
-  public ZenScriptExpression getExpression() {
+  public ZenScriptExpression getIterTarget() {
     return findChildByClass(ZenScriptExpression.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptForeachBody getForeachBody() {
-    return findChildByClass(ZenScriptForeachBody.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptIdentifier> getIdentifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptIdentifier.class);
+  public ZenScriptStatement getBody() {
+    return findChildByClass(ZenScriptStatement.class);
   }
 
 }

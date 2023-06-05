@@ -36,5 +36,8 @@
         <lang.syntaxHighlighterFactory
                 language="ZenScript"
                 implementationClass="com.warmthdawn.zenscript.language.ZenScriptSyntaxHighlighterFactory"/>
+        <completion.contributor
+                language="ZenScript"
+                implementationClass="com.warmthdawn.zenscript.completion.ZenScriptCompletionContributor"/>
     </extensions>
 </idea-plugin>

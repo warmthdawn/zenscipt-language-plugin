@@ -5,12 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptConstructorDeclaration extends PsiElement {
+public interface ZenScriptConstructorDeclaration extends ZenScriptFunction {
 
   @Nullable
-  ZenScriptConstructorBody getConstructorBody();
+  ZenScriptFunctionBody getFunctionBody();
 
   @Nullable
   ZenScriptParameters getParameters();
+
+  @NotNull
+  ZenScriptPreprocessors getPreprocessors();
 
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression {
+public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression, ZenScriptFunction {
 
   @Nullable
   ZenScriptFunctionBody getFunctionBody();

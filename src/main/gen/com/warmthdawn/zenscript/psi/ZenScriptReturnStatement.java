@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptReturnStatement extends PsiElement {
+public interface ZenScriptReturnStatement extends ZenScriptStatement {
 
   @Nullable
   ZenScriptExpression getExpression();

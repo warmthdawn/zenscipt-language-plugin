@@ -5,15 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptForeachStatement extends PsiElement {
-
-  @Nullable
-  ZenScriptExpression getExpression();
-
-  @Nullable
-  ZenScriptForeachBody getForeachBody();
+public interface ZenScriptForeachStatement extends ZenScriptStatement, ZenScriptLoopStatement {
 
   @NotNull
   List<ZenScriptIdentifier> getIdentifierList();
+
+  @Nullable
+  ZenScriptExpression getIterTarget();
+
+  @Nullable
+  ZenScriptStatement getBody();
 
 }

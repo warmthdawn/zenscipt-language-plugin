@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptExpressionStatement extends PsiElement {
+public interface ZenScriptExpressionStatement extends ZenScriptStatement {
 
   @NotNull
   ZenScriptExpression getExpression();

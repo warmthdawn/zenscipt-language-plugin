@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptBreakStatementImpl extends ASTWrapperPsiElement implements ZenScriptBreakStatement {
+public class ZenScriptBreakStatementImpl extends ZenScriptStatementImpl implements ZenScriptBreakStatement {
 
   public ZenScriptBreakStatementImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitBreakStatement(this);
   }

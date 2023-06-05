@@ -7,11 +7,11 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptParameter extends PsiElement {
 
-  @Nullable
-  ZenScriptExpression getExpression();
-
   @NotNull
   ZenScriptIdentifier getIdentifier();
+
+  @Nullable
+  ZenScriptInitializerOrDefault getInitializerOrDefault();
 
   @Nullable
   ZenScriptType getType();

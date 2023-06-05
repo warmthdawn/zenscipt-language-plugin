@@ -5,12 +5,18 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptIfStatement extends PsiElement {
-
-  @Nullable
-  ZenScriptExpression getExpression();
+public interface ZenScriptIfStatement extends ZenScriptStatement {
 
   @NotNull
   List<ZenScriptStatement> getStatementList();
+
+  @Nullable
+  ZenScriptExpression getCondition();
+
+  @Nullable
+  ZenScriptStatement getThenBody();
+
+  @Nullable
+  ZenScriptStatement getElseBody();
 
 }

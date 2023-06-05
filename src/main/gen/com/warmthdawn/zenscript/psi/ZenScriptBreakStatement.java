@@ -5,6 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptBreakStatement extends PsiElement {
+public interface ZenScriptBreakStatement extends ZenScriptStatement {
 
 }

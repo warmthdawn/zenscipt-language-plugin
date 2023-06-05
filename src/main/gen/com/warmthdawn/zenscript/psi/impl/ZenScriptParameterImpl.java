@@ -28,15 +28,15 @@ public class ZenScriptParameterImpl extends ASTWrapperPsiElement implements ZenS
   }
 
   @Override
-  @Nullable
-  public ZenScriptExpression getExpression() {
-    return findChildByClass(ZenScriptExpression.class);
-  }
-
-  @Override
   @NotNull
   public ZenScriptIdentifier getIdentifier() {
     return findNotNullChildByClass(ZenScriptIdentifier.class);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptInitializerOrDefault getInitializerOrDefault() {
+    return findChildByClass(ZenScriptInitializerOrDefault.class);
   }
 
   @Override

@@ -47,6 +47,12 @@ public class ZenScriptScriptBodyImpl extends ASTWrapperPsiElement implements Zen
 
   @Override
   @NotNull
+  public ZenScriptPreprocessors getPreprocessors() {
+    return findNotNullChildByClass(ZenScriptPreprocessors.class);
+  }
+
+  @Override
+  @NotNull
   public List<ZenScriptStatement> getStatementList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
   }

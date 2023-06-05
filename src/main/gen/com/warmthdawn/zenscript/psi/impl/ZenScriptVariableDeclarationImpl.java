@@ -8,10 +8,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptVariableDeclarationImpl extends ASTWrapperPsiElement implements ZenScriptVariableDeclaration {
+public class ZenScriptVariableDeclarationImpl extends ZenScriptNamedElementImpl implements ZenScriptVariableDeclaration {
 
   public ZenScriptVariableDeclarationImpl(@NotNull ASTNode node) {
     super(node);
@@ -29,14 +28,14 @@ public class ZenScriptVariableDeclarationImpl extends ASTWrapperPsiElement imple
 
   @Override
   @Nullable
-  public ZenScriptExpression getExpression() {
-    return findChildByClass(ZenScriptExpression.class);
+  public ZenScriptIdentifier getIdentifier() {
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptIdentifier getIdentifier() {
-    return findChildByClass(ZenScriptIdentifier.class);
+  public ZenScriptInitializerOrDefault getInitializerOrDefault() {
+    return findChildByClass(ZenScriptInitializerOrDefault.class);
   }
 
   @Override
