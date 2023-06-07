@@ -33,4 +33,18 @@ public class ZenScriptMapTypeImpl extends ZenScriptTypeImpl implements ZenScript
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
   }
 
+  @Override
+  @Nullable
+  public ZenScriptType getKeyType() {
+    List<ZenScriptType> p1 = getTypeList();
+    return p1.size() < 2 ? null : p1.get(1);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptType getValueType() {
+    List<ZenScriptType> p1 = getTypeList();
+    return p1.get(0);
+  }
+
 }

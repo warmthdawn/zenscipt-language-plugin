@@ -129,46 +129,51 @@
 }
 
 
-file ::= preprocessors importList scriptBody
+file ::= importList scriptBody
 
-preprocessors ::= PREPROCESSOR* { pin=1 }
 importList ::= importDeclaration*
 
 // Declarations
 importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';' { pin(".*")=1; recoverWhile="import_recover" }
-private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | PREPROCESSOR | ';' | statement_start)
+private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | ';' | statement_start)
 
-scriptBody ::= preprocessors topLevelStatement* { pin=2 }
+scriptBody ::= topLevelStatement*
+    {
+        pin=1; implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl";
+        methods=[statements="statement" functions="functionDeclaration" classes="classDeclaration" expandFunctions="expandFunctionDeclaration"]
+    }
 
 private topLevelStatement ::=  functionDeclaration | expandFunctionDeclaration | classDeclaration | statement {  recoverWhile=script_body_recover; }
 
-private script_body_recover ::= !('$expand' | 'function' | 'static' | 'zenClass' | PREPROCESSOR | statement_start)
+private script_body_recover ::= !('$expand' | 'function' | 'static' | 'zenClass' | statement_start)
 
 private funcReturnTypeDef ::= 'as' type { pin=1 }
 functionDeclaration ::=
-    preprocessors ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=4; implements="ZenScriptNamedElement";
+    ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
+    { pin=3; implements="ZenScriptNamedElement";
       mixin="ZenScriptNamedElementImpl"; methods=[returnType="type"];}
 
-expandFunctionDeclaration ::= preprocessors '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=2; implements="ZenScriptNamedElement";
+expandFunctionDeclaration ::= '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
+    { pin=1; implements="ZenScriptNamedElement";
       mixin="ZenScriptNamedElementImpl"; methods=[returnType="type[1]"];}
 
 functionBody ::= '{' statement* '}'
     { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
 
-classDeclaration ::= preprocessors 'zenClass' qualifiedName '{' classBodyItem* '}'
-    { pin=2; implements="ZenScriptClass"; mixin="ZenScriptClassImpl"; }
+classDeclaration ::= 'zenClass' qualifiedName '{' classBodyItem* '}'
+    { pin=1; implements="ZenScriptClass"; mixin="ZenScriptClassImpl"; }
 
 private classBodyItem ::= variableDeclaration | constructorDeclaration | functionDeclaration { pin=1;  recoverWhile=class_body_recover; }
-private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor' | PREPROCESSOR)
+private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor')
 
-constructorDeclaration ::= preprocessors 'zenConstructor' parameters functionBody
-    { pin=2; methods=[getReturnType]; }
+constructorDeclaration ::= 'zenConstructor' parameters functionBody
+    { pin=1; methods=[getReturnType]; }
 
 variableDeclaration ::=
     ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' initializerOrDefault)? ';'
-    { pin(".*")=1; extends="statement"; implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
+    { pin(".*")=1; extends="statement";
+      methods=[initializer="initializerOrDefault"];
+      implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
 
 initializerOrDefault ::= expression
 
@@ -177,7 +182,13 @@ qualifier ::= (identifier '.')+ { pin(".*")=2 }
 
 parameters ::='(' (!')' parametersList)? ')' { pin(".*")=1 }
 private parametersList ::= parameter (',' parameter)*  { pin(".*")=1 }
-parameter ::= identifier ('as' type)? ('=' initializerOrDefault)? { pin(".*")=1; recoverWhile=parameter_recover }
+parameter ::= identifier ('as' type)? ('=' initializerOrDefault)?
+    {
+        pin(".*")=1; recoverWhile=parameter_recover;
+        methods=[initializer="initializerOrDefault"];
+        implements="ZenScriptNamedElement";
+        mixin="ZenScriptNamedElementImpl";
+    }
 private parameter_recover ::= !(',' | ')' | 'as' | '{' | '}') & script_body_recover
 
 private statement_start ::= 'break' | 'continue' | 'for' | 'global' | 'if' | 'return' | 'static' | 'val' | 'var' | 'while' | '{' | ';' | expression_start
@@ -195,7 +206,7 @@ statement ::=
     | ';'
     { pin = 1; recoverWhile=statement_recover; }
 
-private statement_recover ::= !('}' | 'else' | ';' | '$expand' | 'function' | 'static' | 'zenClass' | PREPROCESSOR | statement_start)
+private statement_recover ::= !('}' | 'else' | ';' | '$expand' | 'function' | 'static' | 'zenClass' | statement_start)
 
 blockStatement ::= '{' statement* '}' { pin=1; implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"]; }
 
@@ -222,9 +233,6 @@ foreachStatement ::=
     }
 
 private foreachEntry ::= simpleVariable (',' simpleVariable)* { pin(".*")=1; recoverWhile=for_each_entry_recover }
-//private foreachEntry ::=  forEachEntryWithParen | foreachEntryNoParen
-//private forEachEntryWithParen ::= '(' foreachEntryNoParen ')' { pin=1 }
-//private foreachEntryNoParen ::= simpleVariable (',' simpleVariable)* { pin(".*")=1 }
 
 private for_each_entry_recover ::= !(',' | 'in' | '{' | ';')
 
@@ -367,7 +375,8 @@ type ::=
   | functionType
   { recoverWhile=type_recover; }
 
-functionType ::= 'function' '(' functionParamsType? ')' type { rightAssociative=true; pin=1; }
+functionType ::= 'function' '(' functionParamsType? ')' type
+    { rightAssociative=true; pin=1; methods=[getReturnType getParamsType] }
 private functionParamsType ::= type (',' type)* { pin(".*")=1 }
 listType ::= '[' type ']' { pin=1 }
 
@@ -375,7 +384,9 @@ private type_recover ::= !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' 
 
 private arrayOrMap ::=  arrayType | mapType
 arrayType ::= type '[' ']'
-mapType ::= type '[' type ']' { rightAssociative=true }
+mapType ::= type '[' type ']'
+    { rightAssociative=true; methods=[keyType="type[1]" valueType="type[0]"] }
+
 
 primitiveType ::=
     'any'

@@ -40,12 +40,6 @@ public class ZenScriptConstructorDeclarationImpl extends ASTWrapperPsiElement im
   }
 
   @Override
-  @NotNull
-  public ZenScriptPreprocessors getPreprocessors() {
-    return findNotNullChildByClass(ZenScriptPreprocessors.class);
-  }
-
-  @Override
   @Nullable
   public ZenScriptType getReturnType() {
     return ZenScriptImplUtil.getReturnType(this);

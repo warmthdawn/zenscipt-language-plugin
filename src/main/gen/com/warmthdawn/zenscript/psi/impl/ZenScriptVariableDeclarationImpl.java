@@ -34,14 +34,14 @@ public class ZenScriptVariableDeclarationImpl extends ZenScriptNamedElementImpl 
 
   @Override
   @Nullable
-  public ZenScriptInitializerOrDefault getInitializerOrDefault() {
-    return findChildByClass(ZenScriptInitializerOrDefault.class);
+  public ZenScriptType getType() {
+    return findChildByClass(ZenScriptType.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptType getType() {
-    return findChildByClass(ZenScriptType.class);
+  public ZenScriptInitializerOrDefault getInitializer() {
+    return findChildByClass(ZenScriptInitializerOrDefault.class);
   }
 
 }

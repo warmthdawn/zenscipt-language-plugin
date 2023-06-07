@@ -13,9 +13,6 @@ public interface ZenScriptConstructorDeclaration extends ZenScriptFunction {
   @Nullable
   ZenScriptParameters getParameters();
 
-  @NotNull
-  ZenScriptPreprocessors getPreprocessors();
-
   @Nullable
   ZenScriptType getReturnType();
 

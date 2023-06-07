@@ -5,15 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptParameter extends PsiElement {
+public interface ZenScriptParameter extends ZenScriptNamedElement {
 
   @NotNull
   ZenScriptIdentifier getIdentifier();
 
   @Nullable
-  ZenScriptInitializerOrDefault getInitializerOrDefault();
+  ZenScriptType getType();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptInitializerOrDefault getInitializer();
 
 }

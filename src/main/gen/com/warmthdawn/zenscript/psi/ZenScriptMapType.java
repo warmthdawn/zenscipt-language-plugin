@@ -10,4 +10,10 @@ public interface ZenScriptMapType extends ZenScriptType {
   @NotNull
   List<ZenScriptType> getTypeList();
 
+  @Nullable
+  ZenScriptType getKeyType();
+
+  @NotNull
+  ZenScriptType getValueType();
+
 }

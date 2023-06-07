@@ -55,7 +55,6 @@ public interface ZenScriptTypes {
   IElementType PARAMETERS = new ZenScriptElementType("PARAMETERS");
   IElementType PAREN_EXPRESSION = new ZenScriptElementType("PAREN_EXPRESSION");
   IElementType POSTFIX_EXPRESSION = new ZenScriptElementType("POSTFIX_EXPRESSION");
-  IElementType PREPROCESSORS = new ZenScriptElementType("PREPROCESSORS");
   IElementType PRIMITIVE_LITERAL = new ZenScriptElementType("PRIMITIVE_LITERAL");
   IElementType PRIMITIVE_TYPE = new ZenScriptElementType("PRIMITIVE_TYPE");
   IElementType QUALIFIED_CLASS_TYPE = new ZenScriptElementType("QUALIFIED_CLASS_TYPE");
@@ -329,9 +328,6 @@ public interface ZenScriptTypes {
       }
       else if (type == PAREN_EXPRESSION) {
         return new ZenScriptParenExpressionImpl(node);
-      }
-      else if (type == PREPROCESSORS) {
-        return new ZenScriptPreprocessorsImpl(node);
       }
       else if (type == PRIMITIVE_LITERAL) {
         return new ZenScriptPrimitiveLiteralImpl(node);

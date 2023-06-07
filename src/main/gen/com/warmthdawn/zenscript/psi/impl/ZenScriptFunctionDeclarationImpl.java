@@ -45,12 +45,6 @@ public class ZenScriptFunctionDeclarationImpl extends ZenScriptNamedElementImpl 
   }
 
   @Override
-  @NotNull
-  public ZenScriptPreprocessors getPreprocessors() {
-    return findNotNullChildByClass(ZenScriptPreprocessors.class);
-  }
-
-  @Override
   @Nullable
   public ZenScriptType getReturnType() {
     return findChildByClass(ZenScriptType.class);

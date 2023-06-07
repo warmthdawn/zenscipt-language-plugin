@@ -39,12 +39,6 @@ public class ZenScriptClassDeclarationImpl extends ZenScriptClassImpl implements
   }
 
   @Override
-  @NotNull
-  public ZenScriptPreprocessors getPreprocessors() {
-    return findNotNullChildByClass(ZenScriptPreprocessors.class);
-  }
-
-  @Override
   @Nullable
   public ZenScriptQualifiedName getQualifiedName() {
     return findChildByClass(ZenScriptQualifiedName.class);

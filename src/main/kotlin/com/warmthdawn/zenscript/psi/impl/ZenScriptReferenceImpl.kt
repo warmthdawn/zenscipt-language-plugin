@@ -13,10 +13,11 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import com.warmthdawn.zenscript.psi.ZenScriptNamedElement
 import com.warmthdawn.zenscript.psi.ZenScriptReference
+import com.warmthdawn.zenscript.reference.resolveZenScriptReference
 
 
 open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), ZenScriptReference,
-    PsiPolyVariantReference {
+        PsiPolyVariantReference {
     override fun getElement(): PsiElement {
         return this
     }
@@ -31,8 +32,8 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
         if (!dartReferences.isNullOrEmpty()) {
             val lastReferenceRange: TextRange = dartReferences[dartReferences.size - 1].textRange
             return UnfairTextRange(
-                lastReferenceRange.startOffset - textRange.startOffset,
-                lastReferenceRange.endOffset - textRange.endOffset
+                    lastReferenceRange.startOffset - textRange.startOffset,
+                    lastReferenceRange.endOffset - textRange.endOffset
             )
         }
         return UnfairTextRange(0, textRange.endOffset - textRange.startOffset)
@@ -59,9 +60,9 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        TODO()
-//        ResolveCache.getInstance(project).resolveWithCaching(
-//        ResolveCache.getInstance(project).resolveWithCaching(this, ZenScriptReferenceResolver, true, incompleteCode);
+        return ResolveCache.getInstance(project).resolveWithCaching(this, { ref, inc ->
+            resolveZenScriptReference(ref, inc)
+        }, true, incompleteCode)
     }
 
 

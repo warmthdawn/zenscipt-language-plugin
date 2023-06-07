@@ -17,9 +17,6 @@ public interface ZenScriptExpandFunctionDeclaration extends ZenScriptNamedElemen
   ZenScriptParameters getParameters();
 
   @NotNull
-  ZenScriptPreprocessors getPreprocessors();
-
-  @NotNull
   List<ZenScriptType> getTypeList();
 
   @Nullable

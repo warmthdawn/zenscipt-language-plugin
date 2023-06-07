@@ -33,4 +33,16 @@ public class ZenScriptFunctionTypeImpl extends ZenScriptTypeImpl implements ZenS
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
   }
 
+  @Override
+  @Nullable
+  public ZenScriptType getReturnType() {
+    return ZenScriptImplUtil.getReturnType(this);
+  }
+
+  @Override
+  @NotNull
+  public List<ZenScriptType> getParamsType() {
+    return ZenScriptImplUtil.getParamsType(this);
+  }
+
 }

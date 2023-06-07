@@ -35,6 +35,10 @@ class ZenScriptParserDefinition : ParserDefinition {
         return ZenScriptTokenSet.HIDDEN_TOKENS
     }
 
+    override fun getWhitespaceTokens(): TokenSet {
+        return ZenScriptTokenSet.WHITE_SPACES
+    }
+
     override fun getStringLiteralElements(): TokenSet {
         return ZenScriptTokenSet.IDENTIFIERS
     }

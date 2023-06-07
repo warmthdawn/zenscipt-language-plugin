@@ -113,7 +113,7 @@ class ZenScriptKeywordCompletion(
         // else
         if (psiElement().withText(string().oneOf(";", "}"))
                 .withSuperParent(2, psiElement(ZenScriptIfStatement::class.java))
-                .accepts(position)
+                .accepts(prevLeaf)
         ) {
             addKeyword("else")
         }

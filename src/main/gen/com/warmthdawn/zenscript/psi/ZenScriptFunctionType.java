@@ -10,4 +10,10 @@ public interface ZenScriptFunctionType extends ZenScriptType {
   @NotNull
   List<ZenScriptType> getTypeList();
 
+  @Nullable
+  ZenScriptType getReturnType();
+
+  @NotNull
+  List<ZenScriptType> getParamsType();
+
 }

@@ -11,9 +11,9 @@ public interface ZenScriptVariableDeclaration extends ZenScriptStatement, ZenScr
   ZenScriptIdentifier getIdentifier();
 
   @Nullable
-  ZenScriptInitializerOrDefault getInitializerOrDefault();
+  ZenScriptType getType();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptInitializerOrDefault getInitializer();
 
 }

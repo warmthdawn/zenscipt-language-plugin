@@ -10,9 +10,4 @@ public class ZenScriptParserUtil extends GeneratedParserUtilBase {
         return true;
     }
 
-
-    public static boolean isNewLine(PsiBuilder builder, int level) {
-        builder.advanceLexer();
-        return true;
-    }
 }

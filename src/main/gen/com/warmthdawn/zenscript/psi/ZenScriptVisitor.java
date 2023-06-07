@@ -185,7 +185,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitParameter(@NotNull ZenScriptParameter o) {
-    visitPsiElement(o);
+    visitNamedElement(o);
   }
 
   public void visitParameters(@NotNull ZenScriptParameters o) {
@@ -198,10 +198,6 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitPostfixExpression(@NotNull ZenScriptPostfixExpression o) {
     visitExpression(o);
-  }
-
-  public void visitPreprocessors(@NotNull ZenScriptPreprocessors o) {
-    visitPsiElement(o);
   }
 
   public void visitPrimitiveLiteral(@NotNull ZenScriptPrimitiveLiteral o) {
@@ -233,7 +229,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitScriptBody(@NotNull ZenScriptScriptBody o) {
-    visitPsiElement(o);
+    visitCodeBlock(o);
   }
 
   public void visitStatement(@NotNull ZenScriptStatement o) {

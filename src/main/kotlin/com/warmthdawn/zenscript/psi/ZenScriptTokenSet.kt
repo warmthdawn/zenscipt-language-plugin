@@ -1,12 +1,14 @@
 package com.warmthdawn.zenscript.psi
 
+import com.intellij.psi.TokenType.WHITE_SPACE
 import com.intellij.psi.tree.TokenSet
 import com.warmthdawn.zenscript.psi.ZenScriptTypes.*
 
 object ZenScriptTokenSet {
     val IDENTIFIERS: TokenSet = TokenSet.create(ID)
     val COMMENTS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT)
-    val HIDDEN_TOKENS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT, PREPROCESSOR, NEW_LINE)
+    val HIDDEN_TOKENS: TokenSet = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT, DOC_COMMENT, PREPROCESSOR)
+    val WHITE_SPACES: TokenSet = TokenSet.create(NEW_LINE, WHITE_SPACE)
 
 
     val KEYWORDS: TokenSet = TokenSet.create(

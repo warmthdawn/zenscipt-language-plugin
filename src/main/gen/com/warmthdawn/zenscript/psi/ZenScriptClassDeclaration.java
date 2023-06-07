@@ -13,9 +13,6 @@ public interface ZenScriptClassDeclaration extends ZenScriptClass {
   @NotNull
   List<ZenScriptFunctionDeclaration> getFunctionDeclarationList();
 
-  @NotNull
-  ZenScriptPreprocessors getPreprocessors();
-
   @Nullable
   ZenScriptQualifiedName getQualifiedName();
 

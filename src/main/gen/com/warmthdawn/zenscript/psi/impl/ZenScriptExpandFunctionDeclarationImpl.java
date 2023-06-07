@@ -46,12 +46,6 @@ public class ZenScriptExpandFunctionDeclarationImpl extends ZenScriptNamedElemen
 
   @Override
   @NotNull
-  public ZenScriptPreprocessors getPreprocessors() {
-    return findNotNullChildByClass(ZenScriptPreprocessors.class);
-  }
-
-  @Override
-  @NotNull
   public List<ZenScriptType> getTypeList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
   }
