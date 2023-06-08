@@ -10,14 +10,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptLocalAccessExpressionImpl extends ZenScriptReferenceImpl implements ZenScriptLocalAccessExpression {
+public class ZenScriptForeachVariableDeclarationImpl extends ZenScriptNamedElementImpl implements ZenScriptForeachVariableDeclaration {
 
-  public ZenScriptLocalAccessExpressionImpl(@NotNull ASTNode node) {
+  public ZenScriptForeachVariableDeclarationImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitLocalAccessExpression(this);
+    visitor.visitForeachVariableDeclaration(this);
   }
 
   @Override
@@ -27,15 +27,9 @@ public class ZenScriptLocalAccessExpressionImpl extends ZenScriptReferenceImpl i
   }
 
   @Override
-  @Nullable
+  @NotNull
   public ZenScriptIdentifier getIdentifier() {
-    return findChildByClass(ZenScriptIdentifier.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptPrimitiveType getPrimitiveType() {
-    return findChildByClass(ZenScriptPrimitiveType.class);
+    return findNotNullChildByClass(ZenScriptIdentifier.class);
   }
 
 }

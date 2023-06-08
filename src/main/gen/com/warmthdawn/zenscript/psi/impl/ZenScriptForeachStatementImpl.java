@@ -9,6 +9,8 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.scope.PsiScopeProcessor;
 
 public class ZenScriptForeachStatementImpl extends ZenScriptStatementImpl implements ZenScriptForeachStatement {
 
@@ -29,8 +31,8 @@ public class ZenScriptForeachStatementImpl extends ZenScriptStatementImpl implem
 
   @Override
   @NotNull
-  public List<ZenScriptIdentifier> getIdentifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptIdentifier.class);
+  public List<ZenScriptForeachVariableDeclaration> getEntries() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptForeachVariableDeclaration.class);
   }
 
   @Override
@@ -43,6 +45,11 @@ public class ZenScriptForeachStatementImpl extends ZenScriptStatementImpl implem
   @Nullable
   public ZenScriptStatement getBody() {
     return findChildByClass(ZenScriptStatement.class);
+  }
+
+  @Override
+  public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, @Nullable PsiElement lastParent, @NotNull PsiElement place) {
+    return ZenScriptImplUtil.processDeclarations(this, processor, state, lastParent, place);
   }
 
 }

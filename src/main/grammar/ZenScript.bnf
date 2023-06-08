@@ -225,18 +225,19 @@ ifStatement ::= 'if' expression statement ('else' statement)? { pin(".*")=1; met
 foreachStatement ::=
     'for' foreachEntry 'in' expression statement
     { pin=1; methods=[
-        entries="foreachEntry"
-        iterTarget="expression"
-        body="statement"
+            entries="foreachVariableDeclaration"
+            iterTarget="expression"
+            body="statement"
+            processDeclarations
         ];
      implements="ZenScriptLoopStatement"
     }
 
-private foreachEntry ::= simpleVariable (',' simpleVariable)* { pin(".*")=1; recoverWhile=for_each_entry_recover }
+private foreachEntry ::= foreachVariableDeclaration (',' foreachVariableDeclaration)* { pin(".*")=1; recoverWhile=for_each_entry_recover }
 
 private for_each_entry_recover ::= !(',' | 'in' | '{' | ';')
 
-private simpleVariable ::= identifier
+foreachVariableDeclaration ::= identifier
     {  implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl";  }
 
 whileStatement ::=
@@ -333,6 +334,7 @@ postfixExpression ::=  primaryExpression (
 
 
 localAccessExpression ::= identifier | primitiveType
+    { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
 
 
 literalExpression ::= arrayLiteral | mapLiteral | functionLiteral | bracketHandlerLiteral | primitiveLiteral

@@ -610,19 +610,19 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // simpleVariable (',' simpleVariable)*
+  // foreachVariableDeclaration (',' foreachVariableDeclaration)*
   static boolean foreachEntry(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreachEntry")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
-    r = simpleVariable(b, l + 1);
+    r = foreachVariableDeclaration(b, l + 1);
     p = r; // pin = 1
     r = r && foreachEntry_1(b, l + 1);
     exit_section_(b, l, m, r, p, ZenScriptParser::for_each_entry_recover);
     return r || p;
   }
 
-  // (',' simpleVariable)*
+  // (',' foreachVariableDeclaration)*
   private static boolean foreachEntry_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreachEntry_1")) return false;
     while (true) {
@@ -633,14 +633,14 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // ',' simpleVariable
+  // ',' foreachVariableDeclaration
   private static boolean foreachEntry_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "foreachEntry_1_0")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, COMMA);
     p = r; // pin = 1
-    r = r && simpleVariable(b, l + 1);
+    r = r && foreachVariableDeclaration(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -660,6 +660,18 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     r = p && statement(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // identifier
+  public static boolean foreachVariableDeclaration(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "foreachVariableDeclaration")) return false;
+    if (!nextTokenIs(b, "<foreach variable declaration>", ID, K_TO)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, FOREACH_VARIABLE_DECLARATION, "<foreach variable declaration>");
+    r = identifier(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -1519,12 +1531,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, K_ZEN_CLASS);
     if (!r) r = statement_start(b, l + 1);
     return r;
-  }
-
-  /* ********************************************************** */
-  // identifier
-  static boolean simpleVariable(PsiBuilder b, int l) {
-    return identifier(b, l + 1);
   }
 
   /* ********************************************************** */

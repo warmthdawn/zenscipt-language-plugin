@@ -28,26 +28,26 @@ public class ZenScriptScriptBodyImpl extends ZenScriptCodeBlockImpl implements Z
 
   @Override
   @NotNull
-  public List<ZenScriptClassDeclaration> getClassDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptClassDeclaration.class);
+  public List<ZenScriptStatement> getStatements() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
   }
 
   @Override
   @NotNull
-  public List<ZenScriptExpandFunctionDeclaration> getExpandFunctionDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpandFunctionDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptFunctionDeclaration> getFunctionDeclarationList() {
+  public List<ZenScriptFunctionDeclaration> getFunctions() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptFunctionDeclaration.class);
   }
 
   @Override
   @NotNull
-  public List<ZenScriptStatement> getStatements() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptStatement.class);
+  public List<ZenScriptClassDeclaration> getClasses() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptClassDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<ZenScriptExpandFunctionDeclaration> getExpandFunctions() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpandFunctionDeclaration.class);
   }
 
 }

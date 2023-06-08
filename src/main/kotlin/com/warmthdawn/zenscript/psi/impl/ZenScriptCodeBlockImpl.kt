@@ -24,7 +24,7 @@ abstract class ZenScriptCodeBlockImpl(node: ASTNode) : ASTWrapperPsiElement(node
                 processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
                 return false
             }
-            prev = lastParent.prevSibling
+            prev = prev.prevSibling
         }
 
         processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)

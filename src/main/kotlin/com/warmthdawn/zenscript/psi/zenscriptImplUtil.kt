@@ -58,3 +58,17 @@ fun getParamsType(funcType: ZenScriptFunctionType): List<ZenScriptType> = funcTy
 }
 
 
+fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
+    if (lastParent != forEachStmt.body) {
+        return true
+    }
+    processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, forEachStmt)
+    for (variable in forEachStmt.entries) {
+        if (!processor.execute(variable, state)) {
+            processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
+            return false
+        }
+    }
+    processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
+    return true
+}

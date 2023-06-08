@@ -102,6 +102,10 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     // visitLoopStatement(o);
   }
 
+  public void visitForeachVariableDeclaration(@NotNull ZenScriptForeachVariableDeclaration o) {
+    visitNamedElement(o);
+  }
+
   public void visitFunctionBody(@NotNull ZenScriptFunctionBody o) {
     visitCodeBlock(o);
   }
@@ -154,6 +158,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitLocalAccessExpression(@NotNull ZenScriptLocalAccessExpression o) {
     visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitMapEntry(@NotNull ZenScriptMapEntry o) {

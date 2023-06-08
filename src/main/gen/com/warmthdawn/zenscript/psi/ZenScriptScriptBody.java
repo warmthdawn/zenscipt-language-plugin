@@ -8,15 +8,15 @@ import com.intellij.psi.PsiElement;
 public interface ZenScriptScriptBody extends ZenScriptCodeBlock {
 
   @NotNull
-  List<ZenScriptClassDeclaration> getClassDeclarationList();
-
-  @NotNull
-  List<ZenScriptExpandFunctionDeclaration> getExpandFunctionDeclarationList();
-
-  @NotNull
-  List<ZenScriptFunctionDeclaration> getFunctionDeclarationList();
-
-  @NotNull
   List<ZenScriptStatement> getStatements();
+
+  @NotNull
+  List<ZenScriptFunctionDeclaration> getFunctions();
+
+  @NotNull
+  List<ZenScriptClassDeclaration> getClasses();
+
+  @NotNull
+  List<ZenScriptExpandFunctionDeclaration> getExpandFunctions();
 
 }

@@ -31,6 +31,7 @@ public interface ZenScriptTypes {
   IElementType EXPRESSION = new ZenScriptElementType("EXPRESSION");
   IElementType EXPRESSION_STATEMENT = new ZenScriptElementType("EXPRESSION_STATEMENT");
   IElementType FOREACH_STATEMENT = new ZenScriptElementType("FOREACH_STATEMENT");
+  IElementType FOREACH_VARIABLE_DECLARATION = new ZenScriptElementType("FOREACH_VARIABLE_DECLARATION");
   IElementType FUNCTION_BODY = new ZenScriptElementType("FUNCTION_BODY");
   IElementType FUNCTION_DECLARATION = new ZenScriptElementType("FUNCTION_DECLARATION");
   IElementType FUNCTION_LITERAL = new ZenScriptElementType("FUNCTION_LITERAL");
@@ -262,6 +263,9 @@ public interface ZenScriptTypes {
       }
       else if (type == FOREACH_STATEMENT) {
         return new ZenScriptForeachStatementImpl(node);
+      }
+      else if (type == FOREACH_VARIABLE_DECLARATION) {
+        return new ZenScriptForeachVariableDeclarationImpl(node);
       }
       else if (type == FUNCTION_BODY) {
         return new ZenScriptFunctionBodyImpl(node);

@@ -5,12 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptLocalAccessExpression extends ZenScriptExpression, ZenScriptReference {
+public interface ZenScriptForeachVariableDeclaration extends ZenScriptNamedElement {
 
-  @Nullable
+  @NotNull
   ZenScriptIdentifier getIdentifier();
-
-  @Nullable
-  ZenScriptPrimitiveType getPrimitiveType();
 
 }
