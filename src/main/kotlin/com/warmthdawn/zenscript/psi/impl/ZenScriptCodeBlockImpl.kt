@@ -5,7 +5,9 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveState
 import com.intellij.psi.scope.PsiScopeProcessor
+import com.intellij.psi.util.elementType
 import com.warmthdawn.zenscript.psi.ZenScriptCodeBlock
+import com.warmthdawn.zenscript.psi.ZenScriptTokenSet
 
 abstract class ZenScriptCodeBlockImpl(node: ASTNode) : ASTWrapperPsiElement(node), ZenScriptCodeBlock {
 
@@ -17,9 +19,12 @@ abstract class ZenScriptCodeBlockImpl(node: ASTNode) : ASTWrapperPsiElement(node
         }
 
         processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, this)
-        var prev = lastParent.prevSibling
+        var prev = lastParent
 
         while (prev != null) {
+            if (ZenScriptTokenSet.HIDDEN_TOKENS.contains(prev.elementType)) {
+                continue
+            }
             if (!processor.execute(prev, state)) {
                 processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
                 return false

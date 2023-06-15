@@ -28,7 +28,7 @@ class ZenScriptClassNameIndex : ScalarIndexExtension<String>() {
             val zsFile = (content.psiFile as ZenScriptFile).scriptBody ?: return@DataIndexer emptyMap()
             val namespace = (content.psiFile as ZenScriptFile).packageName
             zsFile.classes.asSequence()
-                    .map { namespace + it.name }
+                    .map { namespace + "." + it.name }
                     .map { it to null }
                     .toMap()
         } else if (content.fileType == JavaClassFileType.INSTANCE) {

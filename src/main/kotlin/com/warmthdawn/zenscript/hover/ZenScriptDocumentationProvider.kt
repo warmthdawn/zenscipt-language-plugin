@@ -44,7 +44,7 @@ class ZenScriptDocumentationProvider : AbstractDocumentationProvider() {
 
         val packageName = (zenClass.containingFile as ZenScriptFile).packageName
 
-        builder.append(packageName).appendLine()
+        builder.append(packageName).append("<br>")
 
         builder.append("zenClass").append(" ")
 

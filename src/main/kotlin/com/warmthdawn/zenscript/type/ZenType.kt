@@ -2,18 +2,7 @@ package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.psi.*
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.elementType
-import com.intellij.util.indexing.FileBasedIndex
-import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
-import com.warmthdawn.zenscript.psi.ZenScriptArrayTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptClassTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptFunctionTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptListTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptMapTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptPrimitiveTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptTypeRef
-import com.warmthdawn.zenscript.psi.ZenScriptTypes
+import com.warmthdawn.zenscript.psi.*
 
 interface ZenType {
     val simpleName: String
@@ -53,11 +42,16 @@ interface ZenType {
 
 private fun getClassType(zenScriptClassType: ZenScriptClassTypeRef): ZenType {
     val resolved = zenScriptClassType.resolve()
-    val qualifiedName = zenScriptClassType.text
-    if(resolved != null) {
-        return ZenScriptClassType(qualifiedName)
+    val nameOrQualifiedName = zenScriptClassType.text
+    if (resolved != null) {
+        if(resolved is ZenScriptClassDeclaration) {
+            val file = resolved.containingFile as ZenScriptFile
+            return ZenScriptClassType(file.packageName + "." + resolved.qualifiedName!!.text)
+        }
+
+        return ZenScriptClassType(nameOrQualifiedName)
     }
-    return ZenUnknownType(qualifiedName)
+    return ZenUnknownType(nameOrQualifiedName)
 //    val project = zenScriptClassType.project
 //    var found = false
 //    FileBasedIndex.getInstance().getFilesWithKey(ZenScriptClassNameIndex.NAME, setOf(qualifiedName), {

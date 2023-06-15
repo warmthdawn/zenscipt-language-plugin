@@ -51,7 +51,7 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
                 return ""
             }
 
-            return "scripts" + currPath.substring(sourceRoot.length, currPath.length - 2).replace('/', '.')
+            return "scripts" + currPath.substring(sourceRoot.length, currPath.length - 3).replace('/', '.')
         }
 
 }
