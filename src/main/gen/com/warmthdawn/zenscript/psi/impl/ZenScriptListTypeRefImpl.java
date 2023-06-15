@@ -10,15 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptQualifiedClassTypeImpl extends ZenScriptTypeImpl implements ZenScriptQualifiedClassType {
+public class ZenScriptListTypeRefImpl extends ZenScriptTypeRefImpl implements ZenScriptListTypeRef {
 
-  public ZenScriptQualifiedClassTypeImpl(@NotNull ASTNode node) {
+  public ZenScriptListTypeRefImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitQualifiedClassType(this);
+    visitor.visitListTypeRef(this);
   }
 
   @Override
@@ -28,15 +28,9 @@ public class ZenScriptQualifiedClassTypeImpl extends ZenScriptTypeImpl implement
   }
 
   @Override
-  @NotNull
-  public List<ZenScriptIdentifier> getIdentifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptIdentifier.class);
-  }
-
-  @Override
   @Nullable
-  public ZenScriptQualifiedClassType getQualifiedClassType() {
-    return findChildByClass(ZenScriptQualifiedClassType.class);
+  public ZenScriptTypeRef getTypeRef() {
+    return findChildByClass(ZenScriptTypeRef.class);
   }
 
 }

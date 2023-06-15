@@ -5,12 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptClassType extends ZenScriptType {
-
-  @Nullable
-  ZenScriptIdentifier getIdentifier();
-
-  @Nullable
-  ZenScriptQualifiedClassType getQualifiedClassType();
+public interface ZenScriptTypeRef extends PsiElement {
 
 }

@@ -11,6 +11,6 @@ public interface ZenScriptInstanceOfExpression extends ZenScriptExpression {
   ZenScriptExpression getExpression();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptTypeRef getTypeRef();
 
 }

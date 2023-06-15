@@ -182,7 +182,7 @@ class ZenScriptKeywordCompletion(
     }
 
     private fun addTypeKeywords() {
-        if (!psiElement().inside(psiElement(ZenScriptType::class.java)).accepts(position)) {
+        if (!psiElement().inside(psiElement(ZenScriptTypeRef::class.java)).accepts(position)) {
             return
         }
 

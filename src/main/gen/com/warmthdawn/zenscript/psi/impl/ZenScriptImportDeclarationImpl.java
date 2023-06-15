@@ -8,12 +8,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptImportDeclarationImpl extends ASTWrapperPsiElement implements ZenScriptImportDeclaration {
+public class ZenScriptImportDeclarationImpl extends ZenScriptReferenceImpl implements ZenScriptImportDeclaration {
 
-  public ZenScriptImportDeclarationImpl(@NotNull ASTNode node) {
+  public ZenScriptImportDeclarationImpl(ASTNode node) {
     super(node);
   }
 
@@ -29,14 +28,38 @@ public class ZenScriptImportDeclarationImpl extends ASTWrapperPsiElement impleme
 
   @Override
   @Nullable
-  public ZenScriptIdentifier getIdentifier() {
-    return findChildByClass(ZenScriptIdentifier.class);
+  public ZenScriptQualifiedName getQualifiedName() {
+    return findChildByClass(ZenScriptQualifiedName.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptQualifiedName getQualifiedName() {
-    return findChildByClass(ZenScriptQualifiedName.class);
+  public ZenScriptIdentifier getIdentifier() {
+    return ZenScriptImplUtil.getIdentifier(this);
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return ZenScriptImplUtil.getName(this);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptImportDeclaration setName(@NotNull String name) {
+    return ZenScriptImplUtil.setName(this, name);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getNameIdentifier() {
+    return ZenScriptImplUtil.getNameIdentifier(this);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptIdentifier getAlias() {
+    return findChildByClass(ZenScriptIdentifier.class);
   }
 
 }

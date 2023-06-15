@@ -31,8 +31,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitLiteralExpression(o);
   }
 
-  public void visitArrayType(@NotNull ZenScriptArrayType o) {
-    visitType(o);
+  public void visitArrayTypeRef(@NotNull ZenScriptArrayTypeRef o) {
+    visitTypeRef(o);
   }
 
   public void visitAssignmentExpression(@NotNull ZenScriptAssignmentExpression o) {
@@ -58,14 +58,16 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitCallExpression(@NotNull ZenScriptCallExpression o) {
     visitExpression(o);
+    // visitReference(o);
   }
 
   public void visitClassDeclaration(@NotNull ZenScriptClassDeclaration o) {
     visitClass(o);
   }
 
-  public void visitClassType(@NotNull ZenScriptClassType o) {
-    visitType(o);
+  public void visitClassTypeRef(@NotNull ZenScriptClassTypeRef o) {
+    visitTypeRef(o);
+    // visitReference(o);
   }
 
   public void visitCompareExpression(@NotNull ZenScriptCompareExpression o) {
@@ -77,7 +79,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitConstructorDeclaration(@NotNull ZenScriptConstructorDeclaration o) {
-    visitFunction(o);
+    visitMember(o);
+    // visitFunction(o);
   }
 
   public void visitContinueStatement(@NotNull ZenScriptContinueStatement o) {
@@ -86,6 +89,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitExpandFunctionDeclaration(@NotNull ZenScriptExpandFunctionDeclaration o) {
     visitNamedElement(o);
+    // visitMember(o);
     // visitFunction(o);
   }
 
@@ -112,6 +116,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitFunctionDeclaration(@NotNull ZenScriptFunctionDeclaration o) {
     visitNamedElement(o);
+    // visitMember(o);
     // visitFunction(o);
   }
 
@@ -120,8 +125,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     // visitFunction(o);
   }
 
-  public void visitFunctionType(@NotNull ZenScriptFunctionType o) {
-    visitType(o);
+  public void visitFunctionTypeRef(@NotNull ZenScriptFunctionTypeRef o) {
+    visitTypeRef(o);
   }
 
   public void visitIdentifier(@NotNull ZenScriptIdentifier o) {
@@ -133,7 +138,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitImportDeclaration(@NotNull ZenScriptImportDeclaration o) {
-    visitPsiElement(o);
+    visitReference(o);
+    // visitNamedElement(o);
   }
 
   public void visitImportList(@NotNull ZenScriptImportList o) {
@@ -148,8 +154,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
-  public void visitListType(@NotNull ZenScriptListType o) {
-    visitType(o);
+  public void visitListTypeRef(@NotNull ZenScriptListTypeRef o) {
+    visitTypeRef(o);
   }
 
   public void visitLiteralExpression(@NotNull ZenScriptLiteralExpression o) {
@@ -169,12 +175,17 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitLiteralExpression(o);
   }
 
-  public void visitMapType(@NotNull ZenScriptMapType o) {
-    visitType(o);
+  public void visitMapTypeRef(@NotNull ZenScriptMapTypeRef o) {
+    visitTypeRef(o);
   }
 
   public void visitMemberAccessExpression(@NotNull ZenScriptMemberAccessExpression o) {
     visitExpression(o);
+    // visitReference(o);
+  }
+
+  public void visitMemberName(@NotNull ZenScriptMemberName o) {
+    visitIdentifier(o);
   }
 
   public void visitMulExpression(@NotNull ZenScriptMulExpression o) {
@@ -209,12 +220,8 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitLiteralExpression(o);
   }
 
-  public void visitPrimitiveType(@NotNull ZenScriptPrimitiveType o) {
-    visitType(o);
-  }
-
-  public void visitQualifiedClassType(@NotNull ZenScriptQualifiedClassType o) {
-    visitType(o);
+  public void visitPrimitiveTypeRef(@NotNull ZenScriptPrimitiveTypeRef o) {
+    visitTypeRef(o);
   }
 
   public void visitQualifiedName(@NotNull ZenScriptQualifiedName o) {
@@ -241,12 +248,12 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitType(@NotNull ZenScriptType o) {
-    visitPsiElement(o);
-  }
-
   public void visitTypeCastExpression(@NotNull ZenScriptTypeCastExpression o) {
     visitExpression(o);
+  }
+
+  public void visitTypeRef(@NotNull ZenScriptTypeRef o) {
+    visitPsiElement(o);
   }
 
   public void visitUnaryExpression(@NotNull ZenScriptUnaryExpression o) {
@@ -255,6 +262,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitVariableDeclaration(@NotNull ZenScriptVariableDeclaration o) {
     visitStatement(o);
+    // visitMember(o);
     // visitNamedElement(o);
   }
 
@@ -275,11 +283,15 @@ public class ZenScriptVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitFunction(@NotNull ZenScriptFunction o) {
+  public void visitMember(@NotNull ZenScriptMember o) {
     visitPsiElement(o);
   }
 
   public void visitNamedElement(@NotNull ZenScriptNamedElement o) {
+    visitPsiElement(o);
+  }
+
+  public void visitReference(@NotNull ZenScriptReference o) {
     visitPsiElement(o);
   }
 

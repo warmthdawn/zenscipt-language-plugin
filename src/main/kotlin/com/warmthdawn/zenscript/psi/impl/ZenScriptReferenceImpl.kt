@@ -18,6 +18,7 @@ import com.warmthdawn.zenscript.reference.resolveZenScriptReference
 
 open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), ZenScriptReference,
         PsiPolyVariantReference {
+
     override fun getElement(): PsiElement {
         return this
     }
@@ -28,9 +29,9 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
 
     override fun getRangeInElement(): TextRange {
         val textRange = textRange
-        val dartReferences = PsiTreeUtil.getChildrenOfType(this, ZenScriptReference::class.java)
-        if (!dartReferences.isNullOrEmpty()) {
-            val lastReferenceRange: TextRange = dartReferences[dartReferences.size - 1].textRange
+        val zsRef = PsiTreeUtil.getChildrenOfType(this, ZenScriptReference::class.java)
+        if (!zsRef.isNullOrEmpty()) {
+            val lastReferenceRange: TextRange = zsRef[zsRef.size - 1].textRange
             return UnfairTextRange(
                     lastReferenceRange.startOffset - textRange.startOffset,
                     lastReferenceRange.endOffset - textRange.endOffset

@@ -37,8 +37,9 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
-    create_token_set_(ARRAY_TYPE, CLASS_TYPE, FUNCTION_TYPE, LIST_TYPE,
-      MAP_TYPE, PRIMITIVE_TYPE, QUALIFIED_CLASS_TYPE, TYPE),
+    create_token_set_(IDENTIFIER, MEMBER_NAME),
+    create_token_set_(ARRAY_TYPE_REF, CLASS_TYPE_REF, FUNCTION_TYPE_REF, LIST_TYPE_REF,
+      MAP_TYPE_REF, PRIMITIVE_TYPE_REF, TYPE_REF),
     create_token_set_(BLOCK_STATEMENT, BREAK_STATEMENT, CONTINUE_STATEMENT, EXPRESSION_STATEMENT,
       FOREACH_STATEMENT, IF_STATEMENT, RETURN_STATEMENT, STATEMENT,
       VARIABLE_DECLARATION, WHILE_STATEMENT),
@@ -485,7 +486,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
+  // '$expand' typeRef '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
   public static boolean expandFunctionDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "expandFunctionDeclaration")) return false;
     if (!nextTokenIs(b, K_EXPAND)) return false;
@@ -493,7 +494,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, EXPAND_FUNCTION_DECLARATION, null);
     r = consumeToken(b, K_EXPAND);
     p = r; // pin = 1
-    r = r && report_error_(b, type(b, l + 1, -1));
+    r = r && report_error_(b, typeRef(b, l + 1, -1));
     r = p && report_error_(b, consumeToken(b, OP_DOLLAR)) && r;
     r = p && report_error_(b, identifier(b, l + 1)) && r;
     r = p && report_error_(b, parameters(b, l + 1)) && r;
@@ -675,7 +676,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'as' type
+  // 'as' typeRef
   static boolean funcReturnTypeDef(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "funcReturnTypeDef")) return false;
     if (!nextTokenIs(b, K_AS)) return false;
@@ -683,7 +684,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, K_AS);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -795,37 +796,37 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // type (',' type)*
-  static boolean functionParamsType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionParamsType")) return false;
+  // typeRef (',' typeRef)*
+  static boolean functionParamsTypeRef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionParamsTypeRef")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
-    r = type(b, l + 1, -1);
+    r = typeRef(b, l + 1, -1);
     p = r; // pin = 1
-    r = r && functionParamsType_1(b, l + 1);
+    r = r && functionParamsTypeRef_1(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // (',' type)*
-  private static boolean functionParamsType_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionParamsType_1")) return false;
+  // (',' typeRef)*
+  private static boolean functionParamsTypeRef_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionParamsTypeRef_1")) return false;
     while (true) {
       int c = current_position_(b);
-      if (!functionParamsType_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "functionParamsType_1", c)) break;
+      if (!functionParamsTypeRef_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "functionParamsTypeRef_1", c)) break;
     }
     return true;
   }
 
-  // ',' type
-  private static boolean functionParamsType_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionParamsType_1_0")) return false;
+  // ',' typeRef
+  private static boolean functionParamsTypeRef_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionParamsTypeRef_1_0")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, COMMA);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -963,7 +964,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'instanceof' type
+  // 'instanceof' typeRef
   public static boolean instanceOfExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "instanceOfExpression")) return false;
     if (!nextTokenIs(b, K_INSTANCEOF)) return false;
@@ -971,7 +972,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _LEFT_, INSTANCE_OF_EXPRESSION, null);
     r = consumeToken(b, K_INSTANCEOF);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -992,13 +993,13 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier | primitiveType
+  // identifier | primitiveTypeRef
   public static boolean localAccessExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "localAccessExpression")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LOCAL_ACCESS_EXPRESSION, "<local access expression>");
     r = identifier(b, l + 1);
-    if (!r) r = primitiveType(b, l + 1);
+    if (!r) r = primitiveTypeRef(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -1163,11 +1164,13 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // identifier | 'string'
-  static boolean memberName(PsiBuilder b, int l) {
+  public static boolean memberName(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "memberName")) return false;
     boolean r;
+    Marker m = enter_section_(b, l, _COLLAPSE_, MEMBER_NAME, "<member name>");
     r = identifier(b, l + 1);
     if (!r) r = consumeToken(b, K_STRING);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -1181,7 +1184,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier ('as' type)? ('=' initializerOrDefault)?
+  // identifier ('as' typeRef)? ('=' initializerOrDefault)?
   public static boolean parameter(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameter")) return false;
     boolean r, p;
@@ -1194,21 +1197,21 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // ('as' type)?
+  // ('as' typeRef)?
   private static boolean parameter_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameter_1")) return false;
     parameter_1_0(b, l + 1);
     return true;
   }
 
-  // 'as' type
+  // 'as' typeRef
   private static boolean parameter_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameter_1_0")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, K_AS);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -1399,20 +1402,6 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, PRIMITIVE_LITERAL_TOKENS);
     exit_section_(b, l, m, r, false, null);
     return r;
-  }
-
-  /* ********************************************************** */
-  // '.' identifier
-  public static boolean qualifiedClassType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "qualifiedClassType")) return false;
-    if (!nextTokenIs(b, DOT)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _LEFT_, QUALIFIED_CLASS_TYPE, null);
-    r = consumeToken(b, DOT);
-    p = r; // pin = 1
-    r = r && identifier(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
   }
 
   /* ********************************************************** */
@@ -1624,7 +1613,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'as' type
+  // 'as' typeRef
   public static boolean typeCastExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "typeCastExpression")) return false;
     if (!nextTokenIs(b, K_AS)) return false;
@@ -1632,13 +1621,13 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _LEFT_, TYPE_CAST_EXPRESSION, null);
     r = consumeToken(b, K_AS);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
   /* ********************************************************** */
-  // !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveType) & expression_recover & statement_recover
+  // !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveTypeRef) & expression_recover & statement_recover
   static boolean type_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_recover")) return false;
     boolean r;
@@ -1650,7 +1639,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveType)
+  // !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveTypeRef)
   private static boolean type_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_recover_0")) return false;
     boolean r;
@@ -1660,7 +1649,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // '$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveType
+  // '$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveTypeRef
   private static boolean type_recover_0_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_recover_0_0")) return false;
     boolean r;
@@ -1672,7 +1661,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, K_TO);
     if (!r) r = consumeToken(b, ID);
     if (!r) r = consumeToken(b, K_FUNCTION);
-    if (!r) r = primitiveType(b, l + 1);
+    if (!r) r = primitiveTypeRef(b, l + 1);
     return r;
   }
 
@@ -1708,7 +1697,7 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' initializerOrDefault)? ';'
+  // ('var' | 'val' | 'static' | 'global') identifier ('as' typeRef)? ('=' initializerOrDefault)? ';'
   public static boolean variableDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "variableDeclaration")) return false;
     boolean r, p;
@@ -1734,21 +1723,21 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // ('as' type)?
+  // ('as' typeRef)?
   private static boolean variableDeclaration_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "variableDeclaration_2")) return false;
     variableDeclaration_2_0(b, l + 1);
     return true;
   }
 
-  // 'as' type
+  // 'as' typeRef
   private static boolean variableDeclaration_2_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "variableDeclaration_2_0")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, K_AS);
     p = r; // pin = 1
-    r = r && type(b, l + 1, -1);
+    r = r && typeRef(b, l + 1, -1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -1938,41 +1927,41 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // Expression root: type
+  // Expression root: typeRef
   // Operator priority table:
-  // 0: ATOM(primitiveType)
-  // 1: POSTFIX(arrayType) BINARY(mapType)
-  // 2: ATOM(listType)
-  // 3: ATOM(classType)
-  // 4: ATOM(functionType)
-  public static boolean type(PsiBuilder b, int l, int g) {
-    if (!recursion_guard_(b, l, "type")) return false;
-    addVariant(b, "<type>");
+  // 0: ATOM(primitiveTypeRef)
+  // 1: POSTFIX(arrayTypeRef) BINARY(mapTypeRef)
+  // 2: ATOM(listTypeRef)
+  // 3: ATOM(classTypeRef)
+  // 4: ATOM(functionTypeRef)
+  public static boolean typeRef(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "typeRef")) return false;
+    addVariant(b, "<type ref>");
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<type>");
-    r = primitiveType(b, l + 1);
-    if (!r) r = listType(b, l + 1);
-    if (!r) r = classType(b, l + 1);
-    if (!r) r = functionType(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, "<type ref>");
+    r = primitiveTypeRef(b, l + 1);
+    if (!r) r = listTypeRef(b, l + 1);
+    if (!r) r = classTypeRef(b, l + 1);
+    if (!r) r = functionTypeRef(b, l + 1);
     p = r;
-    r = r && type_0(b, l + 1, g);
+    r = r && typeRef_0(b, l + 1, g);
     exit_section_(b, l, m, null, r, p, null);
     return r || p;
   }
 
-  public static boolean type_0(PsiBuilder b, int l, int g) {
-    if (!recursion_guard_(b, l, "type_0")) return false;
+  public static boolean typeRef_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "typeRef_0")) return false;
     boolean r = true;
     while (true) {
       Marker m = enter_section_(b, l, _LEFT_, null);
       if (g < 1 && parseTokensSmart(b, 0, BRACK_OPEN, BRACK_CLOSE)) {
         r = true;
-        exit_section_(b, l, m, ARRAY_TYPE, r, true, null);
+        exit_section_(b, l, m, ARRAY_TYPE_REF, r, true, null);
       }
       else if (g < 1 && consumeTokenSmart(b, BRACK_OPEN)) {
-        r = report_error_(b, type(b, l, 0));
+        r = report_error_(b, typeRef(b, l, 0));
         r = consumeToken(b, BRACK_CLOSE) && r;
-        exit_section_(b, l, m, MAP_TYPE, r, true, null);
+        exit_section_(b, l, m, MAP_TYPE_REF, r, true, null);
       }
       else {
         exit_section_(b, l, m, null, false, false, null);
@@ -1992,81 +1981,58 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   //   | 'bool'
   //   | 'void'
   //   | 'string'
-  public static boolean primitiveType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "primitiveType")) return false;
+  public static boolean primitiveTypeRef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "primitiveTypeRef")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, PRIMITIVE_TYPE, "<primitive type>");
-    r = consumeTokenSmart(b, PRIMITIVE_TYPE_TOKENS);
+    Marker m = enter_section_(b, l, _NONE_, PRIMITIVE_TYPE_REF, "<primitive type ref>");
+    r = consumeTokenSmart(b, PRIMITIVE_TYPE_REF_TOKENS);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // '[' type ']'
-  public static boolean listType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "listType")) return false;
+  // '[' typeRef ']'
+  public static boolean listTypeRef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "listTypeRef")) return false;
     if (!nextTokenIsSmart(b, BRACK_OPEN)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, LIST_TYPE, null);
+    Marker m = enter_section_(b, l, _NONE_, LIST_TYPE_REF, null);
     r = consumeTokenSmart(b, BRACK_OPEN);
     p = r; // pin = 1
-    r = r && report_error_(b, type(b, l + 1, -1));
+    r = r && report_error_(b, typeRef(b, l + 1, -1));
     r = p && consumeToken(b, BRACK_CLOSE) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // identifier (qualifiedClassType)*
-  public static boolean classType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "classType")) return false;
-    if (!nextTokenIsSmart(b, ID, K_TO)) return false;
+  // qualifiedName
+  public static boolean classTypeRef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "classTypeRef")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, CLASS_TYPE, "<class type>");
-    r = identifier(b, l + 1);
-    r = r && classType_1(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, CLASS_TYPE_REF, "<class type ref>");
+    r = qualifiedName(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // (qualifiedClassType)*
-  private static boolean classType_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "classType_1")) return false;
-    while (true) {
-      int c = current_position_(b);
-      if (!classType_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "classType_1", c)) break;
-    }
-    return true;
-  }
-
-  // (qualifiedClassType)
-  private static boolean classType_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "classType_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = qualifiedClassType(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // 'function' '(' functionParamsType? ')' type
-  public static boolean functionType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionType")) return false;
+  // 'function' '(' functionParamsTypeRef? ')' typeRef
+  public static boolean functionTypeRef(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionTypeRef")) return false;
     if (!nextTokenIsSmart(b, K_FUNCTION)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, FUNCTION_TYPE, null);
+    Marker m = enter_section_(b, l, _NONE_, FUNCTION_TYPE_REF, null);
     r = consumeTokensSmart(b, 1, K_FUNCTION, PAREN_OPEN);
     p = r; // pin = 1
-    r = r && report_error_(b, functionType_2(b, l + 1));
+    r = r && report_error_(b, functionTypeRef_2(b, l + 1));
     r = p && report_error_(b, consumeToken(b, PAREN_CLOSE)) && r;
-    r = p && type(b, l + 1, -1) && r;
+    r = p && typeRef(b, l + 1, -1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
-  // functionParamsType?
-  private static boolean functionType_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "functionType_2")) return false;
-    functionParamsType(b, l + 1);
+  // functionParamsTypeRef?
+  private static boolean functionTypeRef_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "functionTypeRef_2")) return false;
+    functionParamsTypeRef(b, l + 1);
     return true;
   }
 

@@ -33,4 +33,18 @@ public class ZenScriptMapEntryImpl extends ASTWrapperPsiElement implements ZenSc
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptExpression.class);
   }
 
+  @Override
+  @NotNull
+  public ZenScriptExpression getKey() {
+    List<ZenScriptExpression> p1 = getExpressionList();
+    return p1.get(0);
+  }
+
+  @Override
+  @Nullable
+  public ZenScriptExpression getValue() {
+    List<ZenScriptExpression> p1 = getExpressionList();
+    return p1.size() < 2 ? null : p1.get(1);
+  }
+
 }

@@ -2,6 +2,7 @@ package com.warmthdawn.zenscript.psi
 
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveState
@@ -41,6 +42,16 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
     }
 
 
+    val packageName: String
+        get() {
+            val sourceRoot = ProjectRootManager.getInstance(project).fileIndex.getSourceRootForFile(this.virtualFile)?.path
 
+            val currPath = virtualFile.path
+            if (sourceRoot == null || !currPath.startsWith(sourceRoot)) {
+                return ""
+            }
+
+            return "scripts" + currPath.substring(sourceRoot.length, currPath.length - 2).replace('/', '.')
+        }
 
 }

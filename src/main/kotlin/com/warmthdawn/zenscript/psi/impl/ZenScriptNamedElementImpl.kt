@@ -23,5 +23,10 @@ abstract class ZenScriptNamedElementImpl(node: ASTNode) : ASTWrapperPsiElement(n
 
     override fun getName(): String? = identifier?.text
 
+
     override fun getNameIdentifier(): PsiElement? = identifier
+
+    override fun getTextOffset(): Int {
+        return identifier?.textOffset ?: super.getTextOffset()
+    }
 }

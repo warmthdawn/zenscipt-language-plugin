@@ -118,7 +118,7 @@
   extends("(mul|add|compare|and|xor|or|andAnd|orOr|assignment|range)Expression")=binaryExpression
   extends("[a-z][a-zA-Z]*Expression")=expression
   extends("[a-z][a-zA-Z]*Literal")=literalExpression
-  extends("[a-z][a-zA-Z]*Type")=type
+  extends("[a-z][a-zA-Z]*TypeRef")=typeRef
   extends("[a-z][a-zA-Z]*Statement")=statement
   implements("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")="ZenScriptFunction"
 
@@ -134,7 +134,11 @@ file ::= importList scriptBody
 importList ::= importDeclaration*
 
 // Declarations
-importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';' { pin(".*")=1; recoverWhile="import_recover" }
+importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';'
+    { pin(".*")=1; recoverWhile="import_recover";
+    implements=["ZenScriptReference" "ZenScriptNamedElement"]; mixin="ZenScriptReferenceImpl";
+    methods=[getIdentifier getName setName getNameIdentifier alias="identifier"]
+     }
 private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | ';' | statement_start)
 
 scriptBody ::= topLevelStatement*
@@ -147,15 +151,15 @@ private topLevelStatement ::=  functionDeclaration | expandFunctionDeclaration |
 
 private script_body_recover ::= !('$expand' | 'function' | 'static' | 'zenClass' | statement_start)
 
-private funcReturnTypeDef ::= 'as' type { pin=1 }
+private funcReturnTypeDef ::= 'as' typeRef { pin=1 }
 functionDeclaration ::=
     ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=3; implements="ZenScriptNamedElement";
-      mixin="ZenScriptNamedElementImpl"; methods=[returnType="type"];}
+    { pin=3; implements=["ZenScriptNamedElement" "ZenScriptMember"];
+      mixin="ZenScriptNamedElementImpl"; methods=[returnType="typeRef"];}
 
-expandFunctionDeclaration ::= '$expand' type '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
-    { pin=1; implements="ZenScriptNamedElement";
-      mixin="ZenScriptNamedElementImpl"; methods=[returnType="type[1]"];}
+expandFunctionDeclaration ::= '$expand' typeRef '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
+    { pin=1; implements=["ZenScriptNamedElement" "ZenScriptMember"];
+      mixin="ZenScriptNamedElementImpl"; methods=[returnType="typeRef[1]" expandTarget="typeRef[0]"];}
 
 functionBody ::= '{' statement* '}'
     { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
@@ -167,13 +171,13 @@ private classBodyItem ::= variableDeclaration | constructorDeclaration | functio
 private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor')
 
 constructorDeclaration ::= 'zenConstructor' parameters functionBody
-    { pin=1; methods=[getReturnType]; }
+    { pin=1; methods=[getReturnType getIdentifier]; implements=[ "ZenScriptMember" ] mixin="ZenScriptNamedElementImpl"; }
 
 variableDeclaration ::=
-    ('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' initializerOrDefault)? ';'
+    ('var' | 'val' | 'static' | 'global') identifier ('as' typeRef)? ('=' initializerOrDefault)? ';'
     { pin(".*")=1; extends="statement";
       methods=[initializer="initializerOrDefault"];
-      implements="ZenScriptNamedElement"; mixin="ZenScriptNamedElementImpl"; }
+      implements=["ZenScriptMember" "ZenScriptNamedElement"]; mixin="ZenScriptNamedElementImpl"; }
 
 initializerOrDefault ::= expression
 
@@ -182,7 +186,7 @@ qualifier ::= (identifier '.')+ { pin(".*")=2 }
 
 parameters ::='(' (!')' parametersList)? ')' { pin(".*")=1 }
 private parametersList ::= parameter (',' parameter)*  { pin(".*")=1 }
-parameter ::= identifier ('as' type)? ('=' initializerOrDefault)?
+parameter ::= identifier ('as' typeRef)? ('=' initializerOrDefault)?
     {
         pin(".*")=1; recoverWhile=parameter_recover;
         methods=[initializer="initializerOrDefault"];
@@ -309,17 +313,19 @@ parenExpression ::= '(' expression ')' { pin=1 }
 
 private conditionalTail ::= '?' expression ':' expression { pin=1 }
 
-private memberName ::= identifier | 'string'
+memberName ::= identifier | 'string' { extends="identifier"; }
 
-left memberAccessExpression ::= '.' memberName { pin=1 }
+left memberAccessExpression ::= '.' memberName
+    { pin=1; implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; methods=[getRangeInElement] }
 left arrayIndexExpression ::= '[' expression ']'
     { pin=1; methods=[
         expression='expression[0]'
         index='expression[1]'
     ] }
 left callExpression ::= arguments
-left typeCastExpression ::= 'as' type { pin=1 }
-left instanceOfExpression ::= 'instanceof' type { pin=1 }
+    { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
+left typeCastExpression ::= 'as' typeRef { pin=1 }
+left instanceOfExpression ::= 'instanceof' typeRef { pin=1 }
 
 
 private primaryExpression ::= literalExpression | localAccessExpression | parenExpression { pin=1 }
@@ -333,7 +339,7 @@ postfixExpression ::=  primaryExpression (
 
 
 
-localAccessExpression ::= identifier | primitiveType
+localAccessExpression ::= identifier | primitiveTypeRef
     { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
 
 
@@ -342,12 +348,13 @@ literalExpression ::= arrayLiteral | mapLiteral | functionLiteral | bracketHandl
 
 arrayLiteral ::= '[' (!']' expression (',' (expression | &']'))*)? ']' { pin(".*")=1 }
 mapLiteral ::= '{' (!'}' mapEntry (',' (mapEntry | &'}'))*)? '}' { pin(".*")=1 }
-mapEntry ::= expression ':' expression { pin=1; recoverWhile=map_literal_recover }
+mapEntry ::= expression ':' expression
+    { pin=1; methods=[key="expression[0]" value="expression[1]"]; recoverWhile=map_literal_recover; }
 
 private map_literal_recover ::= !(',' | '}') & statement_recover
 
 functionLiteral ::= 'function' parameters funcReturnTypeDef? functionBody
-    { pin=1;  methods=[returnType="type"]; }
+    { pin=1;  methods=[returnType="typeRef"]; }
 
 primitiveLiteral ::=
       INT_LITERAL
@@ -365,32 +372,31 @@ arguments ::= '(' argumentList? ')' { pin=1 }
 private argumentList ::= expression (',' expression)* { pin(".*")="','" }
 
 
+classTypeRef ::= qualifiedName
+    { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
 
-classType ::= identifier (qualifiedClassType)*
-left qualifiedClassType ::= '.' identifier { pin=1 }
-
-type ::=
-    primitiveType
+typeRef ::=
+    primitiveTypeRef
   | arrayOrMap
-  | listType
-  | classType
-  | functionType
+  | listTypeRef
+  | classTypeRef
+  | functionTypeRef
   { recoverWhile=type_recover; }
 
-functionType ::= 'function' '(' functionParamsType? ')' type
+functionTypeRef ::= 'function' '(' functionParamsTypeRef? ')' typeRef
     { rightAssociative=true; pin=1; methods=[getReturnType getParamsType] }
-private functionParamsType ::= type (',' type)* { pin(".*")=1 }
-listType ::= '[' type ']' { pin=1 }
+private functionParamsTypeRef ::= typeRef (',' typeRef)* { pin(".*")=1 }
+listTypeRef ::= '[' typeRef ']' { pin=1 }
 
-private type_recover ::= !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveType) & expression_recover & statement_recover
+private type_recover ::= !('$' | '=' | '[' | ']' | ',' | 'to' | ID | 'function' | primitiveTypeRef) & expression_recover & statement_recover
 
-private arrayOrMap ::=  arrayType | mapType
-arrayType ::= type '[' ']'
-mapType ::= type '[' type ']'
-    { rightAssociative=true; methods=[keyType="type[1]" valueType="type[0]"] }
+private arrayOrMap ::=  arrayTypeRef | mapTypeRef
+arrayTypeRef ::= typeRef '[' ']'
+mapTypeRef ::= typeRef '[' typeRef ']'
+    { rightAssociative=true; methods=[keyType="typeRef[1]" valueType="typeRef[0]"] }
 
 
-primitiveType ::=
+primitiveTypeRef ::=
     'any'
   | 'byte'
   | 'short'

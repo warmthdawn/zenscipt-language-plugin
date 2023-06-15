@@ -46,8 +46,8 @@ public class ZenScriptFunctionDeclarationImpl extends ZenScriptNamedElementImpl 
 
   @Override
   @Nullable
-  public ZenScriptType getReturnType() {
-    return findChildByClass(ZenScriptType.class);
+  public ZenScriptTypeRef getReturnType() {
+    return findChildByClass(ZenScriptTypeRef.class);
   }
 
 }

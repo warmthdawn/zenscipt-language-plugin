@@ -34,8 +34,8 @@ public class ZenScriptVariableDeclarationImpl extends ZenScriptNamedElementImpl 
 
   @Override
   @Nullable
-  public ZenScriptType getType() {
-    return findChildByClass(ZenScriptType.class);
+  public ZenScriptTypeRef getTypeRef() {
+    return findChildByClass(ZenScriptTypeRef.class);
   }
 
   @Override

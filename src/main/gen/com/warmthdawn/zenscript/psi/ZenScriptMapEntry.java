@@ -10,4 +10,10 @@ public interface ZenScriptMapEntry extends PsiElement {
   @NotNull
   List<ZenScriptExpression> getExpressionList();
 
+  @NotNull
+  ZenScriptExpression getKey();
+
+  @Nullable
+  ZenScriptExpression getValue();
+
 }

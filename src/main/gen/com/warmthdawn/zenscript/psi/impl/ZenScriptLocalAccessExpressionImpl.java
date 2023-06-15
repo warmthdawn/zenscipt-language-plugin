@@ -34,8 +34,8 @@ public class ZenScriptLocalAccessExpressionImpl extends ZenScriptReferenceImpl i
 
   @Override
   @Nullable
-  public ZenScriptPrimitiveType getPrimitiveType() {
-    return findChildByClass(ZenScriptPrimitiveType.class);
+  public ZenScriptPrimitiveTypeRef getPrimitiveTypeRef() {
+    return findChildByClass(ZenScriptPrimitiveTypeRef.class);
   }
 
 }

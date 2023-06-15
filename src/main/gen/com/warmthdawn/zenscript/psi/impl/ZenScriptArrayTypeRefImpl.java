@@ -10,21 +10,27 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptPrimitiveTypeImpl extends ZenScriptTypeImpl implements ZenScriptPrimitiveType {
+public class ZenScriptArrayTypeRefImpl extends ZenScriptTypeRefImpl implements ZenScriptArrayTypeRef {
 
-  public ZenScriptPrimitiveTypeImpl(@NotNull ASTNode node) {
+  public ZenScriptArrayTypeRefImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitPrimitiveType(this);
+    visitor.visitArrayTypeRef(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ZenScriptVisitor) accept((ZenScriptVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @NotNull
+  public ZenScriptTypeRef getTypeRef() {
+    return findNotNullChildByClass(ZenScriptTypeRef.class);
   }
 
 }

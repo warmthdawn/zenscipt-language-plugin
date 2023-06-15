@@ -5,15 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptMapType extends ZenScriptType {
-
-  @NotNull
-  List<ZenScriptType> getTypeList();
-
-  @Nullable
-  ZenScriptType getKeyType();
-
-  @NotNull
-  ZenScriptType getValueType();
+public interface ZenScriptPrimitiveTypeRef extends ZenScriptTypeRef {
 
 }

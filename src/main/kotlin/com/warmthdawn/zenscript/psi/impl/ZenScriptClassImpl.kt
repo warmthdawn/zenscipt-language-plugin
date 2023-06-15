@@ -9,14 +9,8 @@ import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.util.hasStaticModifier
 
 abstract class ZenScriptClassImpl(node: ASTNode) : ZenScriptNamedElementImpl(node), ZenScriptClass {
-    override val members: List<PsiElement>
-        get() = PsiTreeUtil.getChildrenOfAnyType(this, ZenScriptFunction::class.java, ZenScriptVariableDeclaration::class.java)
-    override val methods: List<PsiElement>
-        get() = TODO("Not yet implemented")
-    override val properties: List<PsiElement>
-        get() = TODO("Not yet implemented")
-    override val constructors: List<PsiElement>
-        get() = TODO("Not yet implemented")
+    override val members: Array<ZenScriptMember>
+        get() = findChildrenByClass(ZenScriptMember::class.java)
 
 
     override val identifier: ZenScriptIdentifier?

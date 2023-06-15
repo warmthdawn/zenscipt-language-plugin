@@ -8,7 +8,7 @@ interface ZenScriptFunction: PsiElement {
 
     val functionBody: ZenScriptFunctionBody?
     val parameters: ZenScriptParameters?
-    val returnType: ZenScriptType?
+    val returnType: ZenScriptTypeRef?
 
 
     override fun processDeclarations(processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {

@@ -10,39 +10,21 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptFunctionTypeImpl extends ZenScriptTypeImpl implements ZenScriptFunctionType {
+public class ZenScriptMemberNameImpl extends ZenScriptIdentifierImpl implements ZenScriptMemberName {
 
-  public ZenScriptFunctionTypeImpl(@NotNull ASTNode node) {
+  public ZenScriptMemberNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitFunctionType(this);
+    visitor.visitMemberName(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ZenScriptVisitor) accept((ZenScriptVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptType> getTypeList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
-  }
-
-  @Override
-  @Nullable
-  public ZenScriptType getReturnType() {
-    return ZenScriptImplUtil.getReturnType(this);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptType> getParamsType() {
-    return ZenScriptImplUtil.getParamsType(this);
   }
 
 }

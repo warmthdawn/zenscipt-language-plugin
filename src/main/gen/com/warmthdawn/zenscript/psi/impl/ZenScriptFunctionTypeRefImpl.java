@@ -10,15 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptMapTypeImpl extends ZenScriptTypeImpl implements ZenScriptMapType {
+public class ZenScriptFunctionTypeRefImpl extends ZenScriptTypeRefImpl implements ZenScriptFunctionTypeRef {
 
-  public ZenScriptMapTypeImpl(@NotNull ASTNode node) {
+  public ZenScriptFunctionTypeRefImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitMapType(this);
+    visitor.visitFunctionTypeRef(this);
   }
 
   @Override
@@ -29,22 +29,20 @@ public class ZenScriptMapTypeImpl extends ZenScriptTypeImpl implements ZenScript
 
   @Override
   @NotNull
-  public List<ZenScriptType> getTypeList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptType.class);
+  public List<ZenScriptTypeRef> getTypeRefList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptTypeRef.class);
   }
 
   @Override
   @Nullable
-  public ZenScriptType getKeyType() {
-    List<ZenScriptType> p1 = getTypeList();
-    return p1.size() < 2 ? null : p1.get(1);
+  public ZenScriptTypeRef getReturnType() {
+    return ZenScriptImplUtil.getReturnType(this);
   }
 
   @Override
   @NotNull
-  public ZenScriptType getValueType() {
-    List<ZenScriptType> p1 = getTypeList();
-    return p1.get(0);
+  public List<ZenScriptTypeRef> getParamsType() {
+    return ZenScriptImplUtil.getParamsType(this);
   }
 
 }

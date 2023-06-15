@@ -5,15 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptFunctionType extends ZenScriptType {
+public interface ZenScriptFunctionTypeRef extends ZenScriptTypeRef {
 
   @NotNull
-  List<ZenScriptType> getTypeList();
+  List<ZenScriptTypeRef> getTypeRefList();
 
   @Nullable
-  ZenScriptType getReturnType();
+  ZenScriptTypeRef getReturnType();
 
   @NotNull
-  List<ZenScriptType> getParamsType();
+  List<ZenScriptTypeRef> getParamsType();
 
 }

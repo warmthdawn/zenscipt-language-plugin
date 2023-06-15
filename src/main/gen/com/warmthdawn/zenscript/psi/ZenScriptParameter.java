@@ -11,7 +11,7 @@ public interface ZenScriptParameter extends ZenScriptNamedElement {
   ZenScriptIdentifier getIdentifier();
 
   @Nullable
-  ZenScriptType getType();
+  ZenScriptTypeRef getTypeRef();
 
   @Nullable
   ZenScriptInitializerOrDefault getInitializer();

@@ -19,7 +19,8 @@ intellij {
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf(
-        "java",
+            "java",
+            "com.jetbrains.hackathon.indices.viewer:1.23"
     ))
 }
 
@@ -30,6 +31,7 @@ sourceSets {
         }
     }
 }
+
 
 tasks {
     // Set the JVM compatibility versions

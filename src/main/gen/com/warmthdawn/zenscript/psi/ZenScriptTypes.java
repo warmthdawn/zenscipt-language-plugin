@@ -15,14 +15,14 @@ public interface ZenScriptTypes {
   IElementType ARGUMENTS = new ZenScriptElementType("ARGUMENTS");
   IElementType ARRAY_INDEX_EXPRESSION = new ZenScriptElementType("ARRAY_INDEX_EXPRESSION");
   IElementType ARRAY_LITERAL = new ZenScriptElementType("ARRAY_LITERAL");
-  IElementType ARRAY_TYPE = new ZenScriptElementType("ARRAY_TYPE");
+  IElementType ARRAY_TYPE_REF = new ZenScriptElementType("ARRAY_TYPE_REF");
   IElementType ASSIGNMENT_EXPRESSION = new ZenScriptElementType("ASSIGNMENT_EXPRESSION");
   IElementType BLOCK_STATEMENT = new ZenScriptElementType("BLOCK_STATEMENT");
   IElementType BRACKET_HANDLER_LITERAL = new ZenScriptElementType("BRACKET_HANDLER_LITERAL");
   IElementType BREAK_STATEMENT = new ZenScriptElementType("BREAK_STATEMENT");
   IElementType CALL_EXPRESSION = new ZenScriptElementType("CALL_EXPRESSION");
   IElementType CLASS_DECLARATION = new ZenScriptElementType("CLASS_DECLARATION");
-  IElementType CLASS_TYPE = new ZenScriptElementType("CLASS_TYPE");
+  IElementType CLASS_TYPE_REF = new ZenScriptElementType("CLASS_TYPE_REF");
   IElementType COMPARE_EXPRESSION = new ZenScriptElementType("COMPARE_EXPRESSION");
   IElementType CONDITIONAL_EXPRESSION = new ZenScriptElementType("CONDITIONAL_EXPRESSION");
   IElementType CONSTRUCTOR_DECLARATION = new ZenScriptElementType("CONSTRUCTOR_DECLARATION");
@@ -35,20 +35,21 @@ public interface ZenScriptTypes {
   IElementType FUNCTION_BODY = new ZenScriptElementType("FUNCTION_BODY");
   IElementType FUNCTION_DECLARATION = new ZenScriptElementType("FUNCTION_DECLARATION");
   IElementType FUNCTION_LITERAL = new ZenScriptElementType("FUNCTION_LITERAL");
-  IElementType FUNCTION_TYPE = new ZenScriptElementType("FUNCTION_TYPE");
+  IElementType FUNCTION_TYPE_REF = new ZenScriptElementType("FUNCTION_TYPE_REF");
   IElementType IDENTIFIER = new ZenScriptElementType("IDENTIFIER");
   IElementType IF_STATEMENT = new ZenScriptElementType("IF_STATEMENT");
   IElementType IMPORT_DECLARATION = new ZenScriptElementType("IMPORT_DECLARATION");
   IElementType IMPORT_LIST = new ZenScriptElementType("IMPORT_LIST");
   IElementType INITIALIZER_OR_DEFAULT = new ZenScriptElementType("INITIALIZER_OR_DEFAULT");
   IElementType INSTANCE_OF_EXPRESSION = new ZenScriptElementType("INSTANCE_OF_EXPRESSION");
-  IElementType LIST_TYPE = new ZenScriptElementType("LIST_TYPE");
+  IElementType LIST_TYPE_REF = new ZenScriptElementType("LIST_TYPE_REF");
   IElementType LITERAL_EXPRESSION = new ZenScriptElementType("LITERAL_EXPRESSION");
   IElementType LOCAL_ACCESS_EXPRESSION = new ZenScriptElementType("LOCAL_ACCESS_EXPRESSION");
   IElementType MAP_ENTRY = new ZenScriptElementType("MAP_ENTRY");
   IElementType MAP_LITERAL = new ZenScriptElementType("MAP_LITERAL");
-  IElementType MAP_TYPE = new ZenScriptElementType("MAP_TYPE");
+  IElementType MAP_TYPE_REF = new ZenScriptElementType("MAP_TYPE_REF");
   IElementType MEMBER_ACCESS_EXPRESSION = new ZenScriptElementType("MEMBER_ACCESS_EXPRESSION");
+  IElementType MEMBER_NAME = new ZenScriptElementType("MEMBER_NAME");
   IElementType MUL_EXPRESSION = new ZenScriptElementType("MUL_EXPRESSION");
   IElementType OR_EXPRESSION = new ZenScriptElementType("OR_EXPRESSION");
   IElementType OR_OR_EXPRESSION = new ZenScriptElementType("OR_OR_EXPRESSION");
@@ -57,16 +58,15 @@ public interface ZenScriptTypes {
   IElementType PAREN_EXPRESSION = new ZenScriptElementType("PAREN_EXPRESSION");
   IElementType POSTFIX_EXPRESSION = new ZenScriptElementType("POSTFIX_EXPRESSION");
   IElementType PRIMITIVE_LITERAL = new ZenScriptElementType("PRIMITIVE_LITERAL");
-  IElementType PRIMITIVE_TYPE = new ZenScriptElementType("PRIMITIVE_TYPE");
-  IElementType QUALIFIED_CLASS_TYPE = new ZenScriptElementType("QUALIFIED_CLASS_TYPE");
+  IElementType PRIMITIVE_TYPE_REF = new ZenScriptElementType("PRIMITIVE_TYPE_REF");
   IElementType QUALIFIED_NAME = new ZenScriptElementType("QUALIFIED_NAME");
   IElementType QUALIFIER = new ZenScriptElementType("QUALIFIER");
   IElementType RANGE_EXPRESSION = new ZenScriptElementType("RANGE_EXPRESSION");
   IElementType RETURN_STATEMENT = new ZenScriptElementType("RETURN_STATEMENT");
   IElementType SCRIPT_BODY = new ZenScriptElementType("SCRIPT_BODY");
   IElementType STATEMENT = new ZenScriptElementType("STATEMENT");
-  IElementType TYPE = new ZenScriptElementType("TYPE");
   IElementType TYPE_CAST_EXPRESSION = new ZenScriptElementType("TYPE_CAST_EXPRESSION");
+  IElementType TYPE_REF = new ZenScriptElementType("TYPE_REF");
   IElementType UNARY_EXPRESSION = new ZenScriptElementType("UNARY_EXPRESSION");
   IElementType VARIABLE_DECLARATION = new ZenScriptElementType("VARIABLE_DECLARATION");
   IElementType WHILE_STATEMENT = new ZenScriptElementType("WHILE_STATEMENT");
@@ -188,7 +188,7 @@ public interface ZenScriptTypes {
         DOUBLE_LITERAL, FLOAT_LITERAL, INT_LITERAL, K_FALSE, 
         K_NULL, K_TRUE, LONG_LITERAL, STRING_LITERAL
     );
-    TokenSet PRIMITIVE_TYPE_TOKENS = TokenSet.create(
+    TokenSet PRIMITIVE_TYPE_REF_TOKENS = TokenSet.create(
         K_ANY, K_BOOL, K_BYTE, K_DOUBLE, 
         K_FLOAT, K_INT, K_LONG, K_SHORT, 
         K_STRING, K_VOID
@@ -216,8 +216,8 @@ public interface ZenScriptTypes {
       else if (type == ARRAY_LITERAL) {
         return new ZenScriptArrayLiteralImpl(node);
       }
-      else if (type == ARRAY_TYPE) {
-        return new ZenScriptArrayTypeImpl(node);
+      else if (type == ARRAY_TYPE_REF) {
+        return new ZenScriptArrayTypeRefImpl(node);
       }
       else if (type == ASSIGNMENT_EXPRESSION) {
         return new ZenScriptAssignmentExpressionImpl(node);
@@ -237,8 +237,8 @@ public interface ZenScriptTypes {
       else if (type == CLASS_DECLARATION) {
         return new ZenScriptClassDeclarationImpl(node);
       }
-      else if (type == CLASS_TYPE) {
-        return new ZenScriptClassTypeImpl(node);
+      else if (type == CLASS_TYPE_REF) {
+        return new ZenScriptClassTypeRefImpl(node);
       }
       else if (type == COMPARE_EXPRESSION) {
         return new ZenScriptCompareExpressionImpl(node);
@@ -276,8 +276,8 @@ public interface ZenScriptTypes {
       else if (type == FUNCTION_LITERAL) {
         return new ZenScriptFunctionLiteralImpl(node);
       }
-      else if (type == FUNCTION_TYPE) {
-        return new ZenScriptFunctionTypeImpl(node);
+      else if (type == FUNCTION_TYPE_REF) {
+        return new ZenScriptFunctionTypeRefImpl(node);
       }
       else if (type == IDENTIFIER) {
         return new ZenScriptIdentifierImpl(node);
@@ -297,8 +297,8 @@ public interface ZenScriptTypes {
       else if (type == INSTANCE_OF_EXPRESSION) {
         return new ZenScriptInstanceOfExpressionImpl(node);
       }
-      else if (type == LIST_TYPE) {
-        return new ZenScriptListTypeImpl(node);
+      else if (type == LIST_TYPE_REF) {
+        return new ZenScriptListTypeRefImpl(node);
       }
       else if (type == LOCAL_ACCESS_EXPRESSION) {
         return new ZenScriptLocalAccessExpressionImpl(node);
@@ -309,11 +309,14 @@ public interface ZenScriptTypes {
       else if (type == MAP_LITERAL) {
         return new ZenScriptMapLiteralImpl(node);
       }
-      else if (type == MAP_TYPE) {
-        return new ZenScriptMapTypeImpl(node);
+      else if (type == MAP_TYPE_REF) {
+        return new ZenScriptMapTypeRefImpl(node);
       }
       else if (type == MEMBER_ACCESS_EXPRESSION) {
         return new ZenScriptMemberAccessExpressionImpl(node);
+      }
+      else if (type == MEMBER_NAME) {
+        return new ZenScriptMemberNameImpl(node);
       }
       else if (type == MUL_EXPRESSION) {
         return new ZenScriptMulExpressionImpl(node);
@@ -336,11 +339,8 @@ public interface ZenScriptTypes {
       else if (type == PRIMITIVE_LITERAL) {
         return new ZenScriptPrimitiveLiteralImpl(node);
       }
-      else if (type == PRIMITIVE_TYPE) {
-        return new ZenScriptPrimitiveTypeImpl(node);
-      }
-      else if (type == QUALIFIED_CLASS_TYPE) {
-        return new ZenScriptQualifiedClassTypeImpl(node);
+      else if (type == PRIMITIVE_TYPE_REF) {
+        return new ZenScriptPrimitiveTypeRefImpl(node);
       }
       else if (type == QUALIFIED_NAME) {
         return new ZenScriptQualifiedNameImpl(node);
@@ -360,11 +360,11 @@ public interface ZenScriptTypes {
       else if (type == STATEMENT) {
         return new ZenScriptStatementImpl(node);
       }
-      else if (type == TYPE) {
-        return new ZenScriptTypeImpl(node);
-      }
       else if (type == TYPE_CAST_EXPRESSION) {
         return new ZenScriptTypeCastExpressionImpl(node);
+      }
+      else if (type == TYPE_REF) {
+        return new ZenScriptTypeRefImpl(node);
       }
       else if (type == UNARY_EXPRESSION) {
         return new ZenScriptUnaryExpressionImpl(node);

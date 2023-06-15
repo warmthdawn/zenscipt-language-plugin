@@ -21,10 +21,15 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
+    <depends>com.jetbrains.hackathon.indices.viewer</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="com.warmthdawn.zenscript.index.ZenScriptMemberCache" />
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex" />
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptClassNameIndex" />
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptTypeExpansionIndex" />
         <fileType
                 name="ZenScript File"
                 implementationClass="com.warmthdawn.zenscript.ZSLanguageFileType"
@@ -40,5 +45,8 @@
         <completion.contributor
                 language="ZenScript"
                 implementationClass="com.warmthdawn.zenscript.completion.ZenScriptCompletionContributor"/>
+        <lang.documentationProvider
+                language="ZenScript"
+                implementationClass="com.warmthdawn.zenscript.hover.ZenScriptDocumentationProvider"/>
     </extensions>
 </idea-plugin>

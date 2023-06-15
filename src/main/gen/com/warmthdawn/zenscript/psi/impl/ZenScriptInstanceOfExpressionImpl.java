@@ -35,8 +35,8 @@ public class ZenScriptInstanceOfExpressionImpl extends ZenScriptExpressionImpl i
 
   @Override
   @Nullable
-  public ZenScriptType getType() {
-    return findChildByClass(ZenScriptType.class);
+  public ZenScriptTypeRef getTypeRef() {
+    return findChildByClass(ZenScriptTypeRef.class);
   }
 
 }

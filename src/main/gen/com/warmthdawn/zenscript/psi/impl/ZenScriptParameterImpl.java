@@ -34,8 +34,8 @@ public class ZenScriptParameterImpl extends ZenScriptNamedElementImpl implements
 
   @Override
   @Nullable
-  public ZenScriptType getType() {
-    return findChildByClass(ZenScriptType.class);
+  public ZenScriptTypeRef getTypeRef() {
+    return findChildByClass(ZenScriptTypeRef.class);
   }
 
   @Override

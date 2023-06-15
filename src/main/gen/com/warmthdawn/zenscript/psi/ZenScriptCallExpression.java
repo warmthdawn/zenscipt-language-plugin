@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptCallExpression extends ZenScriptExpression {
+public interface ZenScriptCallExpression extends ZenScriptExpression, ZenScriptReference {
 
   @NotNull
   ZenScriptArguments getArguments();

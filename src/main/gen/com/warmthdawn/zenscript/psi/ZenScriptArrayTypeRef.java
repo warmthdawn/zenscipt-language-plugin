@@ -5,6 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptPrimitiveType extends ZenScriptType {
+public interface ZenScriptArrayTypeRef extends ZenScriptTypeRef {
+
+  @NotNull
+  ZenScriptTypeRef getTypeRef();
 
 }

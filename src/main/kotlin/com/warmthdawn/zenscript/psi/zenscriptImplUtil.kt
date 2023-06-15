@@ -2,11 +2,18 @@
 
 package com.warmthdawn.zenscript.psi
 
+import com.intellij.openapi.util.NlsSafe
+import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.UnfairTextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveState
 import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.refactoring.suggested.startOffset
+import com.warmthdawn.zenscript.psi.impl.ZenScriptPrimitiveTypeRefImpl
+import com.warmthdawn.zenscript.util.createIdentifierFromText
 import com.warmthdawn.zenscript.util.hasStaticModifier
 
 
@@ -47,9 +54,13 @@ fun getIdentifier(classDec: ZenScriptClassDeclaration): ZenScriptIdentifier? {
     return classDec.qualifiedName?.identifier
 }
 
-fun getReturnType(ctor: ZenScriptConstructorDeclaration): ZenScriptType? = null
-fun getReturnType(funcType: ZenScriptFunctionType): ZenScriptType? = funcType.typeList.lastOrNull()
-fun getParamsType(funcType: ZenScriptFunctionType): List<ZenScriptType> = funcType.typeList.let {
+fun getIdentifier(ctor: ZenScriptConstructorDeclaration): ZenScriptIdentifier? {
+    return (ctor.parent as? ZenScriptClassDeclaration)?.identifier
+}
+
+fun getReturnType(ctor: ZenScriptConstructorDeclaration): ZenScriptTypeRef? = null
+fun getReturnType(funcType: ZenScriptFunctionTypeRef): ZenScriptTypeRef? = funcType.typeRefList.lastOrNull()
+fun getParamsType(funcType: ZenScriptFunctionTypeRef): List<ZenScriptTypeRef> = funcType.typeRefList.let {
     if (it.size > 1) {
         it.subList(0, it.size - 1)
     } else {
@@ -57,6 +68,12 @@ fun getParamsType(funcType: ZenScriptFunctionType): List<ZenScriptType> = funcTy
     }
 }
 
+fun getRangeInElement(memberAccessExpr: ZenScriptMemberAccessExpression): TextRange {
+    val nameRange = memberAccessExpr.identifier!!.textRange
+    val exprRange = memberAccessExpr.textRange
+
+    return UnfairTextRange(nameRange.startOffset - exprRange.startOffset, nameRange.endOffset - exprRange.startOffset)
+}
 
 fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
     if (lastParent != forEachStmt.body) {
@@ -72,3 +89,23 @@ fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiSc
     processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
     return true
 }
+
+fun getIdentifier(importDecl: ZenScriptImportDeclaration): ZenScriptIdentifier? {
+    return importDecl.alias ?: importDecl.qualifiedName?.identifier
+}
+fun getName(importDecl: ZenScriptImportDeclaration): String? {
+    return importDecl.identifier?.text
+}
+fun setName(importDecl: ZenScriptImportDeclaration, name: String): ZenScriptImportDeclaration {
+    if(importDecl.alias != null) {
+        createIdentifierFromText(importDecl.project, name)?.let {
+            importDecl.node.replaceChild(importDecl.alias!!.node, it.node)
+        }
+    }
+    return importDecl
+}
+
+
+fun getNameIdentifier(importDecl: ZenScriptImportDeclaration): PsiElement? = importDecl.identifier
+
+fun getTextOffset(importDecl: ZenScriptImportDeclaration): Int = importDecl.identifier?.textOffset ?: importDecl.node.startOffset

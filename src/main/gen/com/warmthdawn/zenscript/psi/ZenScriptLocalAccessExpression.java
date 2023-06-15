@@ -11,6 +11,6 @@ public interface ZenScriptLocalAccessExpression extends ZenScriptExpression, Zen
   ZenScriptIdentifier getIdentifier();
 
   @Nullable
-  ZenScriptPrimitiveType getPrimitiveType();
+  ZenScriptPrimitiveTypeRef getPrimitiveTypeRef();
 
 }
