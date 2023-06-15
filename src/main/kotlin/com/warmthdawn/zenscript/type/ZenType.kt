@@ -44,24 +44,11 @@ private fun getClassType(zenScriptClassType: ZenScriptClassTypeRef): ZenType {
     val resolved = zenScriptClassType.resolve()
     val nameOrQualifiedName = zenScriptClassType.text
     if (resolved != null) {
-        if(resolved is ZenScriptClassDeclaration) {
-            val file = resolved.containingFile as ZenScriptFile
-            return ZenScriptClassType(file.packageName + "." + resolved.qualifiedName!!.text)
+        if (resolved is ZenScriptClassDeclaration || resolved is PsiClass) {
+            return getTargetType(resolved)
         }
-
-        return ZenScriptClassType(nameOrQualifiedName)
     }
     return ZenUnknownType(nameOrQualifiedName)
-//    val project = zenScriptClassType.project
-//    var found = false
-//    FileBasedIndex.getInstance().getFilesWithKey(ZenScriptClassNameIndex.NAME, setOf(qualifiedName), {
-//        found = true
-//        false
-//    }, GlobalSearchScope.projectScope(project))
-//    if (!found) {
-//        return ZenUnknownType(qualifiedName)
-//    }
-//    return ZenScriptClassType(qualifiedName)
 }
 
 private fun getClassType(psiClassType: PsiClassType): ZenType? {

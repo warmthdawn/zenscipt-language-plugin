@@ -1,6 +1,8 @@
 package com.warmthdawn.zenscript.type
 
+import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.elementType
@@ -11,6 +13,32 @@ import com.warmthdawn.zenscript.index.ZenScriptMemberCache
 import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.util.type
 
+
+fun getTargetType(element: PsiElement): ZenType {
+    return when (element) {
+        is ZenScriptClassDeclaration -> {
+            val file = element.containingFile as ZenScriptFile
+            ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
+        }
+
+        is ZenScriptVariableDeclaration -> ZenType.fromTypeRef(element.typeRef)
+        is ZenScriptImportDeclaration -> element.resolve()?.let { getTargetType(it) }
+                ?: ZenUnknownType(element.qualifiedName!!.text)
+
+        is PsiClass -> {
+            val qualifiedName = element.getAnnotation("stanhebben.zenscript.annotations.ZenClass")?.let { anno ->
+                AnnotationUtil.getStringAttributeValue(anno, "value")
+            }
+            if (qualifiedName != null)
+                ZenScriptClassType(qualifiedName)
+            else ZenUnknownType(element.qualifiedName!!)
+        }
+
+        is PsiMethod -> ZenScriptPrimitiveType.ANY // TODO: Method
+        is PsiField -> ZenType.fromJavaType(element.type)
+        else -> throw IllegalArgumentException()
+    }
+}
 
 fun getType(expr: ZenScriptExpression?): ZenType {
     return when (expr) {
@@ -98,22 +126,17 @@ fun getTypeImpl(expr: ZenScriptLiteralExpression): ZenType {
 
 fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
     val element = expr.resolve()
-    if(element != null) {
-        return when(element) {
+    if (element != null) {
+        return when (element) {
             is ZenScriptVariableDeclaration -> element.type
             is ZenScriptClassDeclaration -> {
                 val file = element.containingFile as ZenScriptFile
                 ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
             }
+
             is ZenScriptFunctionDeclaration -> ZenScriptPrimitiveType.ANY
             is ZenScriptImportDeclaration -> element.resolve()?.let {
-                val qualifiedName = element.qualifiedName!!.text
-                when(it) {
-                    is PsiClass, is ZenScriptClassDeclaration -> ZenScriptClassType(qualifiedName)
-                    is PsiMethod -> ZenScriptPrimitiveType.ANY // TODO: Method
-                    is PsiField -> ZenType.fromJavaType(it.type)
-                    else -> throw IllegalArgumentException()
-                }
+                getTargetType(it)
             } ?: return ZenUnknownType(element.qualifiedName!!.text)
 
             else -> ZenUnknownType(element.text)

@@ -136,7 +136,7 @@ importList ::= importDeclaration*
 // Declarations
 importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';'
     { pin(".*")=1; recoverWhile="import_recover";
-    implements=["ZenScriptReference" "ZenScriptNamedElement"]; mixin="ZenScriptReferenceImpl";
+    implements=["ZenScriptReference" "ZenScriptNamedElement" "com.intellij.psi.PsiPolyVariantReference"]; mixin="ZenScriptReferenceImpl";
     methods=[getIdentifier getName setName getNameIdentifier alias="identifier"]
      }
 private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | ';' | statement_start)
