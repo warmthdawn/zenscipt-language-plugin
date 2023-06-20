@@ -31,7 +31,7 @@ fun findStaticMembers(project: Project, element: PsiElement, name: String): Arra
             return element.variableDeclarationList.asSequence()
                     .filter { it.name == name }
                     .filter { it.hasStaticModifier }
-                    .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_VARIABLE }
+                    .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_VARIABLE) }
                     .toList()
                     .toTypedArray()
         }
@@ -61,8 +61,8 @@ fun findStaticMembers(project: Project, element: PsiElement, name: String): Arra
     return emptyArray()
 }
 
-private fun List<PsiElement>.createResult(type: ZenResolveResultType): List<ZenScriptElementResolveResult> {
-    return this.map { ZenScriptElementResolveResult(it, type) }
+private fun List<PsiElement>.createResult(type: ZenResolveResultType, isValid: Boolean = true): List<ZenScriptElementResolveResult> {
+    return this.map { ZenScriptElementResolveResult(it, type, isValid) }
 }
 
 fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptElementResolveResult> {
@@ -113,9 +113,9 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
                         } else if (prop.setter != null) {
                             candidates.add(prop.setter)
                         }
-                        candidates.createResult( ZenResolveResultType.JAVA_PROPERTY)
+                        candidates.createResult(ZenResolveResultType.JAVA_PROPERTY)
                     } else {
-                        it.methods[name]?.methods?.createResult(ZenResolveResultType.JAVA_METHODS)
+                        it.methods[name]?.methods?.createResult(ZenResolveResultType.JAVA_METHODS, false)
                     }
                 }
             } else {
@@ -126,7 +126,7 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
                                     .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_VARIABLE, !it.hasStaticModifier) },
                             zenClazz.functionDeclarationList.asSequence()
                                     .filter { it.name == name }
-                                    .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_METHOD) },
+                                    .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_METHOD, false) },
                     ).flatten().toList()
                 }
 
@@ -138,14 +138,14 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
         is ZenScriptArrayType -> null
         is ZenScriptListType -> when (name) {
             "length" -> memberCache.getNativeMember(CraftTweakerNativeMember.LIST_SIZE).createResult(ZenResolveResultType.JAVA_PROPERTY)
-            "remove" -> memberCache.getNativeMember(CraftTweakerNativeMember.LIST_REMOVE).createResult(ZenResolveResultType.ZEN_METHOD)
+            "remove" -> memberCache.getNativeMember(CraftTweakerNativeMember.LIST_REMOVE).createResult(ZenResolveResultType.JAVA_METHODS, false)
             else -> null
         }
 
         is ZenScriptMapType -> when (name) {
-            "keys", "keySet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_KEYSET).createResult(ZenResolveResultType.ZEN_METHOD)
-            "values", "valueSet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_VALUES).createResult(ZenResolveResultType.ZEN_METHOD)
-            "entries", "entrySet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_ENTRYSET).createResult(ZenResolveResultType.ZEN_METHOD)
+            "keys", "keySet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_KEYSET).createResult(ZenResolveResultType.JAVA_METHODS, false)
+            "values", "valueSet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_VALUES).createResult(ZenResolveResultType.JAVA_METHODS, false)
+            "entries", "entrySet" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_ENTRYSET).createResult(ZenResolveResultType.JAVA_METHODS, false)
             "length" -> memberCache.getNativeMember(CraftTweakerNativeMember.MAP_SIZE).createResult(ZenResolveResultType.JAVA_PROPERTY)
             else -> null
         }
@@ -156,8 +156,8 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
             else -> null
         }
 
-        is ZenScriptPrimitiveType -> when (type) {
-            ZenScriptPrimitiveType.STRING -> memberCache.getStringNativeMethods(name).createResult(ZenResolveResultType.ZEN_METHOD)
+        is ZenPrimitiveType -> when (type) {
+            ZenPrimitiveType.STRING -> memberCache.getStringNativeMethods(name).createResult(ZenResolveResultType.JAVA_METHODS, false)
             else -> null
         }
 
@@ -181,13 +181,6 @@ fun findExpansionMember(project: Project, type: ZenType, name: String): List<Zen
     return emptyList()
 }
 
-fun findOverridingMethods(project: Project, type: ZenType, name: String): List<PsiElement> {
-    return emptyList()
-}
-
-fun selectMethod(project: Project, methods: List<PsiMethod>) {
-
-}
 
 fun findJavaClass(project: Project, qualifiedName: String): PsiClass? {
     return (findFile(project, qualifiedName) as? PsiClassOwner)?.let {
@@ -197,6 +190,12 @@ fun findJavaClass(project: Project, qualifiedName: String): PsiClass? {
             } == qualifiedName
         }
     }
+}
+
+
+fun isFunctionalInterface(javaClazz: PsiClass?): Boolean {
+    javaClazz ?: return false
+    return false
 }
 
 

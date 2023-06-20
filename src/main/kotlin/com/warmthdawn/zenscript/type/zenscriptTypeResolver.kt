@@ -2,41 +2,106 @@ package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.elementType
 import com.intellij.util.indexing.FileBasedIndex
-import com.jetbrains.rd.util.qualifiedName
 import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
 import com.warmthdawn.zenscript.index.ZenScriptMemberCache
 import com.warmthdawn.zenscript.psi.*
-import com.warmthdawn.zenscript.util.type
+import com.warmthdawn.zenscript.reference.ZenResolveResultType
+import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
 
 
-fun getTargetType(element: PsiElement): ZenType {
-    return when (element) {
-        is ZenScriptClassDeclaration -> {
-            val file = element.containingFile as ZenScriptFile
-            ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
-        }
+fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, isImport: Boolean = true): ZenType? {
+    if (resolveResults.isEmpty()) {
+        return null
+    }
 
-        is ZenScriptVariableDeclaration -> ZenType.fromTypeRef(element.typeRef)
-        is ZenScriptImportDeclaration -> element.resolve()?.let { getTargetType(it) }
-                ?: ZenUnknownType(element.qualifiedName!!.text)
-
-        is PsiClass -> {
-            val qualifiedName = element.getAnnotation("stanhebben.zenscript.annotations.ZenClass")?.let { anno ->
-                AnnotationUtil.getStringAttributeValue(anno, "value")
+    for (resolveResult in resolveResults) {
+        val element = resolveResult.element
+        when (resolveResult.type) {
+            ZenResolveResultType.JAVA_PROPERTY -> {
+                if (element is PsiField) {
+                    return ZenType.fromJavaType(element.type)
+                }
+                if (element is PsiMethod) {
+                    val params = element.parameterList
+                    if (params.parametersCount == 0) {
+                        return ZenType.fromJavaType(element.returnType)
+                    }
+                    if (params.parametersCount == 1) {
+                        return ZenType.fromJavaType(params.getParameter(0)!!.type)
+                    }
+                }
             }
-            if (qualifiedName != null)
-                ZenScriptClassType(qualifiedName)
-            else ZenUnknownType(element.qualifiedName!!)
+
+            ZenResolveResultType.ZEN_IMPORT -> {
+                return getTargetType((element as ZenScriptImportDeclaration).advancedResolve())
+                        ?: ZenUnknownType(element.qualifiedName!!.text)
+            }
+
+            ZenResolveResultType.ZEN_CLASS -> {
+                element as ZenScriptClassDeclaration
+                val file = element.containingFile as ZenScriptFile
+                ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
+            }
+
+            ZenResolveResultType.JAVA_CLASS -> {
+                element as PsiClass
+                val qualifiedName = element.getAnnotation("stanhebben.zenscript.annotations.ZenClass")?.let { anno ->
+                    AnnotationUtil.getStringAttributeValue(anno, "value")
+                }
+                return if (qualifiedName != null)
+                    ZenScriptClassType(qualifiedName)
+                else ZenUnknownType(element.qualifiedName!!)
+            }
+
+            ZenResolveResultType.ZEN_METHOD -> {
+                if (isImport) {
+                    continue
+                }
+                return ZenPrimitiveType.ANY // TODO: Function
+            }
+
+            ZenResolveResultType.JAVA_METHODS -> {
+                if (isImport) {
+                    continue
+                }
+                return ZenPrimitiveType.ANY // TODO: Function
+            }
+
+            ZenResolveResultType.JAVA_GLOBAL_VAR -> {
+                if (element is PsiField) {
+                    return ZenType.fromJavaType(element.type)
+                }
+                // TODO: Function
+                return ZenPrimitiveType.ANY
+
+            }
+
+            ZenResolveResultType.ZEN_VARIABLE -> {
+                return getVariableType((element as ZenScriptVariableDeclaration))
+            }
+
+            else -> throw IllegalArgumentException()
         }
 
-        is PsiMethod -> ZenScriptPrimitiveType.ANY // TODO: Method
-        is PsiField -> ZenType.fromJavaType(element.type)
-        else -> throw IllegalArgumentException()
+    }
+
+    return ZenUnknownType("<unknown>")
+}
+
+private fun getVariableType(decl: ZenScriptVariableDeclaration): ZenType {
+    val typeRef = decl.typeRef
+    val initializer = decl.initializer?.expression
+
+    return if (typeRef == null && initializer == null) {
+        ZenPrimitiveType.ANY
+    } else if (typeRef != null) {
+        ZenType.fromTypeRef(typeRef)
+    } else {
+        getType(initializer)
     }
 }
 
@@ -46,7 +111,7 @@ fun getType(expr: ZenScriptExpression?): ZenType {
         is ZenScriptMemberAccessExpression -> getTypeImpl(expr)
         is ZenScriptCallExpression -> getTypeImpl(expr)
         is ZenScriptArrayIndexExpression -> getTypeImpl(expr)
-        is ZenScriptInstanceOfExpression -> ZenScriptPrimitiveType.BOOL
+        is ZenScriptInstanceOfExpression -> ZenPrimitiveType.BOOL
         is ZenScriptTypeCastExpression -> ZenType.fromTypeRef(expr.typeRef)
         is ZenScriptLiteralExpression -> getTypeImpl(expr)
         is ZenScriptParenExpression -> getType(expr.expression)
@@ -75,25 +140,135 @@ fun getTypeImpl(expr: ZenScriptBinaryExpression): ZenType {
 }
 
 fun getTypeImpl(expr: ZenScriptArrayIndexExpression): ZenType {
-    TODO()
+    // TODO
+    val mapType = getType(expr.expression)
+    if (mapType is ZenScriptMapType) {
+        return mapType.valueType
+    }
+    if (mapType is ZenScriptArrayType) {
+        return mapType.elementType
+    }
+    if (mapType is ZenScriptListType) {
+        return mapType.elementType
+    }
+    return ZenUnknownType("<unknown>")
 }
 
 fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
-    TODO()
+    val methodExpr = expr.expression
+    val project = expr.project
+    val typeUtil = ZenScriptTypeService.getInstance(project)
+    val arguments = expr.arguments.expressionList.map { getType(it) }
+    var methodType: ZenType? = null
+    if (methodExpr is ZenScriptReference) {
+
+        var resolvedMethods = methodExpr.advancedResolve(false)
+
+        if (resolvedMethods.isNotEmpty()) {
+            if (resolvedMethods[0].type == ZenResolveResultType.ZEN_IMPORT) {
+                resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).advancedResolve(false)
+            }
+
+            val candidateMethods = resolvedMethods.asSequence()
+                    .filter { it.type == ZenResolveResultType.ZEN_METHOD || it.type == ZenResolveResultType.JAVA_METHODS }
+                    .map { it.element }
+                    .toList()
+            if (candidateMethods.isNotEmpty()) {
+
+                val selected = typeUtil.selectMethod(arguments, candidateMethods)
+
+                if (selected < 0) {
+                    return ZenUnknownType("<unknown call>")
+                }
+                val method = candidateMethods[selected]
+
+                return if (method is ZenScriptFunctionDeclaration) {
+                    // TODO: predicate type
+                    method.returnType?.let { ZenType.fromTypeRef(it) } ?: ZenPrimitiveType.ANY
+                } else {
+                    ZenType.fromJavaType((method as PsiMethod).returnType!!)
+                }
+
+            }
+
+            if (resolvedMethods.isNotEmpty()) {
+                when (resolvedMethods[0].type) {
+                    ZenResolveResultType.ZEN_CLASS -> {
+                        return getTargetType(resolvedMethods)!!
+                    }
+
+                    ZenResolveResultType.JAVA_CLASS -> {
+                        return getTargetType(resolvedMethods)!!
+                    }
+
+                    ZenResolveResultType.ZEN_VARIABLE -> {
+                        methodType = getVariableType(resolvedMethods[0].element as ZenScriptVariableDeclaration)
+                    }
+
+                    ZenResolveResultType.JAVA_PROPERTY -> {
+                        methodType = when (val prop = resolvedMethods[0].element) {
+                            is PsiField -> ZenType.fromJavaType(prop.type)
+                            is PsiMethod -> {
+                                val params = prop.parameterList
+                                ZenType.fromJavaType(if (params.isEmpty) {
+                                    prop.returnType
+                                } else {
+                                    params.getParameter(0)!!.type
+                                })
+                            }
+
+                            else -> null
+                        }
+                    }
+
+                    ZenResolveResultType.JAVA_GLOBAL_VAR -> {
+                        when (val el = resolvedMethods[0].element) {
+                            is PsiField -> methodType = ZenType.fromJavaType(el.type)
+                            is PsiMethod -> {
+                                return ZenType.fromJavaType(el.returnType)
+                            }
+                        }
+                    }
+
+                    else -> {
+                        return ZenUnknownType("<unknown call>")
+                    }
+                }
+            }
+        }
+
+    }
+
+    if (methodType == null) {
+        methodType = getType(methodExpr)
+    }
+
+    if (methodType is ZenScriptClassType && methodType.isLibrary) {
+        val javaClazz = findJavaClass(project, methodType.qualifiedName)
+        if (isFunctionalInterface(javaClazz)) {
+            methodType = null
+        }
+    }
+
+    if (methodType is ZenScriptFunctionType) {
+        return methodType.returnType
+    }
+
+    return ZenUnknownType("${expr.text} is not callable")
 }
 
 fun getTypeImpl(expr: ZenScriptLiteralExpression): ZenType {
 
     return when (expr) {
         is ZenScriptPrimitiveLiteral -> when (expr.firstChild.elementType) {
-            ZenScriptTypes.INT_LITERAL -> ZenScriptPrimitiveType.INT
-            ZenScriptTypes.LONG_LITERAL -> ZenScriptPrimitiveType.LONG
-            ZenScriptTypes.FLOAT_LITERAL -> ZenScriptPrimitiveType.FLOAT
-            ZenScriptTypes.DOUBLE_LITERAL -> ZenScriptPrimitiveType.DOUBLE
-            ZenScriptTypes.STRING_LITERAL -> ZenScriptPrimitiveType.STRING
-            ZenScriptTypes.K_TRUE -> ZenScriptPrimitiveType.BOOL
-            ZenScriptTypes.K_FALSE -> ZenScriptPrimitiveType.BOOL
-            ZenScriptTypes.K_NULL -> ZenScriptPrimitiveType.NULL
+            ZenScriptTypes.INT_LITERAL -> ZenPrimitiveType.INT
+            ZenScriptTypes.LONG_LITERAL -> ZenPrimitiveType.LONG
+            ZenScriptTypes.FLOAT_LITERAL -> ZenPrimitiveType.FLOAT
+            ZenScriptTypes.DOUBLE_LITERAL -> ZenPrimitiveType.DOUBLE
+            ZenScriptTypes.STRING_LITERAL -> ZenPrimitiveType.STRING
+            ZenScriptTypes.K_TRUE -> ZenPrimitiveType.BOOL
+            ZenScriptTypes.K_FALSE -> ZenPrimitiveType.BOOL
+            ZenScriptTypes.K_NULL -> ZenPrimitiveType.NULL
             else -> throw IllegalArgumentException("unknown primitive literal")
         }
 
@@ -101,7 +276,7 @@ fun getTypeImpl(expr: ZenScriptLiteralExpression): ZenType {
         is ZenScriptArrayLiteral -> {
             val elements = expr.expressionList
             if (elements.isEmpty()) {
-                ZenScriptArrayType(ZenScriptPrimitiveType.ANY)
+                ZenScriptArrayType(ZenPrimitiveType.ANY)
             } else {
                 ZenScriptArrayType(getType(elements[0]))
             }
@@ -110,36 +285,40 @@ fun getTypeImpl(expr: ZenScriptLiteralExpression): ZenType {
         is ZenScriptMapLiteral -> {
             val entries = expr.mapEntryList
             if (entries.isEmpty()) {
-                ZenScriptMapType(ZenScriptPrimitiveType.ANY, ZenScriptPrimitiveType.ANY)
+                ZenScriptMapType(ZenPrimitiveType.ANY, ZenPrimitiveType.ANY)
             } else {
                 ZenScriptMapType(getType(entries[0].key), getType(entries[0].value))
             }
         }
 
         // TODO
-        is ZenScriptFunctionLiteral -> ZenScriptPrimitiveType.ANY
-        is ZenScriptBracketHandlerLiteral -> ZenScriptPrimitiveType.ANY
+        is ZenScriptFunctionLiteral -> ZenPrimitiveType.ANY
+        is ZenScriptBracketHandlerLiteral -> ZenPrimitiveType.ANY
 
         else -> ZenUnknownType(expr.toString())
     }
 }
 
 fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
-    val element = expr.resolve()
-    if (element != null) {
-        return when (element) {
-            is ZenScriptVariableDeclaration -> element.type
-            is ZenScriptClassDeclaration -> {
+    val elements = expr.advancedResolve()
+    if (elements.size != 1) {
+        val resolve = elements[0]
+        return when (resolve.type) {
+            ZenResolveResultType.ZEN_VARIABLE -> getVariableType(resolve.element as ZenScriptVariableDeclaration)
+            ZenResolveResultType.ZEN_CLASS -> {
+                val element = resolve.element as ZenScriptClassDeclaration
                 val file = element.containingFile as ZenScriptFile
                 ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
             }
 
-            is ZenScriptFunctionDeclaration -> ZenScriptPrimitiveType.ANY
-            is ZenScriptImportDeclaration -> element.resolve()?.let {
-                getTargetType(it)
-            } ?: return ZenUnknownType(element.qualifiedName!!.text)
+            ZenResolveResultType.ZEN_METHOD -> ZenPrimitiveType.ANY
+            ZenResolveResultType.ZEN_IMPORT -> {
+                val element = resolve.element as ZenScriptImportDeclaration
+                getTargetType(element.advancedResolve())
+                        ?: return ZenUnknownType(element.qualifiedName!!.text)
+            }
 
-            else -> ZenUnknownType(element.text)
+            else -> ZenUnknownType(resolve.element.text)
         }
     }
 
@@ -196,7 +375,7 @@ fun getTypeImpl(expr: ZenScriptMemberAccessExpression): ZenType {
                 val field = zenClazz.variableDeclarationList.first {
                     it.name == memberName
                 }
-                ZenType.fromTypeRef(field.typeRef)
+                getVariableType(field)
             }
         }
 

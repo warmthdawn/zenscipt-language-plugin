@@ -20,6 +20,7 @@ intellij {
 
     plugins.set(listOf(
             "java",
+//            "com.intellij.kotlin",
             "com.jetbrains.hackathon.indices.viewer:1.23"
     ))
 }

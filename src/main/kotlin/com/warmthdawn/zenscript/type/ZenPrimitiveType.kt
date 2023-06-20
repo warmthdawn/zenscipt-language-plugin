@@ -5,7 +5,7 @@ import com.intellij.psi.util.elementType
 import com.warmthdawn.zenscript.psi.ZenScriptPrimitiveTypeRef
 import com.warmthdawn.zenscript.psi.ZenScriptTypes
 
-enum class ZenScriptPrimitiveType(override val simpleName: String, override val displayName: String) : ZenType {
+enum class ZenPrimitiveType(override val simpleName: String, override val displayName: String) : ZenType {
     VOID("void"),
     BYTE("byte"),
     SHORT("short"),
@@ -22,7 +22,7 @@ enum class ZenScriptPrimitiveType(override val simpleName: String, override val 
     constructor(name: String) : this(name, name)
 
     companion object {
-        fun fromTypeRef(typeRef: ZenScriptPrimitiveTypeRef): ZenScriptPrimitiveType? {
+        fun fromTypeRef(typeRef: ZenScriptPrimitiveTypeRef): ZenPrimitiveType? {
             return when(typeRef.firstChild.elementType) {
                 ZenScriptTypes.K_ANY -> ANY
                 ZenScriptTypes.K_BYTE -> BYTE
@@ -38,7 +38,7 @@ enum class ZenScriptPrimitiveType(override val simpleName: String, override val 
             }
         }
 
-        fun fromJavaPrimitive(javaPrim: PsiPrimitiveType): ZenScriptPrimitiveType? {
+        fun fromJavaPrimitive(javaPrim: PsiPrimitiveType): ZenPrimitiveType? {
             return when(javaPrim) {
                 PsiPrimitiveType.BYTE -> BYTE
                 PsiPrimitiveType.SHORT -> SHORT

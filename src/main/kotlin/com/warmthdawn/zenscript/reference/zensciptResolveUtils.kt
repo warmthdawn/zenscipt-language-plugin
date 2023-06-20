@@ -20,21 +20,19 @@ import com.warmthdawn.zenscript.psi.ZenScriptScriptBody
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.type.*
 
-fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean): Array<out ResolveResult> {
-
-    return when (ref) {
+fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean): Array<ZenScriptElementResolveResult> {
+    val results = when (ref) {
         is ZenScriptLocalAccessExpression -> resolveLocalAccessExpr(ref)
         is ZenScriptMemberAccessExpression -> resolveMemberAccessExpr(ref)
-        is ZenScriptCallExpression -> resolveCallExpr(ref)
-        is ZenScriptArrayIndexExpression -> resolveArrayIndexExpr(ref)
         is ZenScriptClassTypeRef -> resolveClassTypeRef(ref)
         is ZenScriptImportDeclaration -> resolveImportDecl(ref)
         else -> emptyArray()
     }
-}
-
-fun resolveArrayIndexExpr(ref: ZenScriptArrayIndexExpression): Array<out ResolveResult> {
-    return emptyArray()
+    val parent = ref.parent
+    if (parent is ZenScriptCallExpression) {
+        return resolveCallExpr(parent, results)
+    }
+    return results
 }
 
 fun resolveImportDecl(ref: ZenScriptImportDeclaration): Array<ZenScriptElementResolveResult> {
@@ -66,7 +64,7 @@ fun resolveImportDecl(ref: ZenScriptImportDeclaration): Array<ZenScriptElementRe
     return emptyArray()
 }
 
-fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ResolveResult> {
+fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResolveResult> {
     val name = ref.qualifiedName.text
     var out: ZenScriptNamedElement? = null
     val notFound = PsiTreeUtil.treeWalkUp(ZenScriptScopeProcessor { element, parent, _ ->
@@ -79,7 +77,7 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ResolveResult> {
     }, ref, null, ResolveState.initial())
     val found = out
     if (found is ZenScriptImportDeclaration) {
-        val target = found.multiResolve(true)
+        val target = found.advancedResolve(true)
 
         if (target.isEmpty()) {
             return emptyArray()
@@ -118,21 +116,78 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ResolveResult> {
     return arrayOf(ZenScriptElementResolveResult(found!!, ZenResolveResultType.ZEN_CLASS))
 }
 
-fun resolveCallExpr(ref: ZenScriptCallExpression): Array<ResolveResult> {
-    val callee = ref.expression
+fun resolveCallExpr(ref: ZenScriptCallExpression, el: Array<ZenScriptElementResolveResult>): Array<ZenScriptElementResolveResult> {
     val project = ref.project
+    val typeUtil = ZenScriptTypeService.getInstance(project)
+    val arguments = ref.arguments.expressionList.map { getType(it) }
 
-    if (callee is ZenScriptMemberAccessExpression) {
-        val name = callee.identifier!!.text
-        val qualifierType = getType(callee.expression)
+    var resolvedMethods = el
 
-        val candidateMethods = findOverridingMethods(project, qualifierType, name)
+
+    if (resolvedMethods.isNotEmpty()) {
+        if (resolvedMethods[0].type == ZenResolveResultType.ZEN_IMPORT) {
+            resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).advancedResolve(false)
+        }
     }
+
+    if (resolvedMethods.isEmpty()) {
+        return emptyArray()
+    }
+
+    val candidateMethods = resolvedMethods.asSequence()
+            .filter { it.type == ZenResolveResultType.ZEN_METHOD || it.type == ZenResolveResultType.JAVA_METHODS }
+            .map { it.element }
+            .toList()
+    if (candidateMethods.isNotEmpty()) {
+
+        val selected = typeUtil.selectMethod(arguments, candidateMethods)
+
+        if (selected == -2) {
+            return candidateMethods.map {
+                val type = if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+                ZenScriptElementResolveResult(it, type, false)
+            }.toTypedArray()
+        }
+        if (selected < 0) {
+            return emptyArray()
+        }
+        val method = candidateMethods[selected]
+        val type = if (method is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+
+        return arrayOf(ZenScriptElementResolveResult(method, type))
+
+    }
+
+    if (resolvedMethods.isNotEmpty()) {
+        when (resolvedMethods[0].type) {
+            ZenResolveResultType.ZEN_CLASS, ZenResolveResultType.JAVA_CLASS -> {
+                val clazz = resolvedMethods[0].element
+                val ctors = if (clazz is ZenScriptClassDeclaration) clazz.constructorDeclarationList
+                else listOf(*(clazz as PsiClass).constructors)
+                val selected = typeUtil.selectMethod(arguments, ctors)
+                if (selected == -2) {
+                    return ctors.map { ZenScriptElementResolveResult(it, if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD, false) }.toTypedArray()
+                } else if (selected < 0) {
+                    return emptyArray()
+                }
+                val method = ctors[selected]
+                val type = if (method is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+                return arrayOf(ZenScriptElementResolveResult(method, type))
+            }
+
+            else -> {
+                return resolvedMethods
+            }
+        }
+    }
+
+
+
 
     return emptyArray()
 }
 
-fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<out ResolveResult> {
+fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<ZenScriptElementResolveResult> {
     val identifier = ref.identifier
     val project = ref.project
     if (identifier == null) {
@@ -143,16 +198,22 @@ fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<out Res
     val qualifierExpr = ref.expression
     var qualifierType: ZenType? = null
     if (qualifierExpr is ZenScriptReference) {
-        var qualifierTarget = qualifierExpr.resolve()
-        if (qualifierTarget is ZenScriptImportDeclaration) {
-            qualifierTarget = qualifierTarget.resolve()
+        var qualifierTarget = qualifierExpr.advancedResolve()
+        if (qualifierTarget.isNotEmpty()) {
+            val firstType = qualifierTarget[0].type
+
+            if (firstType == ZenResolveResultType.ZEN_IMPORT) {
+                qualifierTarget = (qualifierTarget[0] as ZenScriptImportDeclaration).advancedResolve()
+            }
         }
-        if (qualifierTarget is ZenScriptClassDeclaration || qualifierTarget is PsiClass) {
-            // static access
-            return findStaticMembers(project, qualifierTarget, name)
-        }
-        if (qualifierTarget != null) {
-            qualifierType = getTargetType(qualifierTarget)
+        if (qualifierTarget.isNotEmpty()) {
+            val firstType = qualifierTarget[0].type
+
+            if (firstType == ZenResolveResultType.ZEN_CLASS || firstType == ZenResolveResultType.JAVA_CLASS) {
+                // static access
+                return findStaticMembers(project, qualifierTarget[0].element, name)
+            }
+            qualifierType = getTargetType(qualifierTarget, false)
         }
     }
 
@@ -164,7 +225,7 @@ fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<out Res
 }
 
 
-private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<ResolveResult> {
+private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<ZenScriptElementResolveResult> {
     val identifier = ref.identifier
     val project = ref.project
     if (identifier != null) {
@@ -178,8 +239,8 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<R
                 true
             }
         }
-        val found = out
         val notFound = PsiTreeUtil.treeWalkUp(processor, ref, null, ResolveState.initial())
+        val found = out
         return if (!notFound) {
 
             val type = when (found) {

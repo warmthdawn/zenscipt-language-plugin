@@ -10,7 +10,7 @@ class ZenScriptElementResolveResult(
 ): ResolveResult {
     override fun getElement(): PsiElement = this.element
 
-    override fun isValidResult(): Boolean = this.isValidResult
+    override fun isValidResult(): Boolean = this.validResult
 }
 
 enum class ZenResolveResultType {

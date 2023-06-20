@@ -13,6 +13,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import com.warmthdawn.zenscript.psi.ZenScriptNamedElement
 import com.warmthdawn.zenscript.psi.ZenScriptReference
+import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
 import com.warmthdawn.zenscript.reference.resolveZenScriptReference
 
 
@@ -31,10 +32,11 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
         val textRange = textRange
         val zsRef = PsiTreeUtil.getChildrenOfType(this, ZenScriptReference::class.java)
         if (!zsRef.isNullOrEmpty()) {
-            val lastReferenceRange: TextRange = zsRef[zsRef.size - 1].textRange
+            val lastReferenceRange: TextRange = zsRef[zsRef.size - 1].rangeInElement
+            val offset: Int = zsRef[zsRef.size - 1].startOffsetInParent
             return UnfairTextRange(
-                    lastReferenceRange.startOffset - textRange.startOffset,
-                    lastReferenceRange.endOffset - textRange.endOffset
+                    lastReferenceRange.startOffset + offset,
+                    lastReferenceRange.endOffset + offset
             )
         }
         return UnfairTextRange(0, textRange.endOffset - textRange.startOffset)
@@ -60,12 +62,15 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
         return false
     }
 
-    override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return ResolveCache.getInstance(project).resolveWithCaching(this, { ref, inc ->
-            resolveZenScriptReference(ref, inc)
-        }, true, incompleteCode)
+    override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> {
+        return advancedResolve(incompleteCode)
     }
 
+    override fun advancedResolve(incompleteCode: Boolean): Array<ZenScriptElementResolveResult> {
+        return ResolveCache.getInstance(project).resolveWithCaching(this, ResolveCache.AbstractResolver { ref, inc ->
+            resolveZenScriptReference(ref, inc)
+        }, true, incompleteCode) ?: emptyArray()
+    }
 
     override fun resolve(): PsiElement? {
         val resolveResults = multiResolve(true)

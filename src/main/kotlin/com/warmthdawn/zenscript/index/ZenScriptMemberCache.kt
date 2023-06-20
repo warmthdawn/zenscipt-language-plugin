@@ -117,7 +117,7 @@ class ZenScriptMemberCache(private val project: Project) {
                         actualName = methodName
                     }
 
-                    (if (isStatic) methods else staticMethods)
+                    (if (isStatic) staticMethods else methods)
                             .computeIfAbsent(actualName) { mutableListOf() }
                             .add(method)
 
@@ -161,7 +161,7 @@ class ZenScriptMemberCache(private val project: Project) {
             val annotation = field.getAnnotation("stanhebben.zenscript.annotations.ZenProperty")
                     ?: continue
             val isStatic = field.hasModifierProperty(PsiModifier.STATIC)
-            val propsMap = (if (isStatic) properties else staticProperties)
+            val propsMap = (if (isStatic) staticProperties else properties)
             var propName = AnnotationUtil.getStringAttributeValue(annotation, "value")
             if (propName.isNullOrEmpty()) {
                 propName = field.name

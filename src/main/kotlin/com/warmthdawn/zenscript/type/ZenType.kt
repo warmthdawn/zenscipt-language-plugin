@@ -3,6 +3,7 @@ package com.warmthdawn.zenscript.type
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.psi.*
 import com.warmthdawn.zenscript.psi.*
+import com.warmthdawn.zenscript.reference.ZenResolveResultType
 
 interface ZenType {
     val simpleName: String
@@ -12,7 +13,7 @@ interface ZenType {
         fun fromJavaType(type: PsiType?): ZenType {
             return when (type) {
                 null -> ZenUnknownType("<unknown>")
-                is PsiPrimitiveType -> ZenScriptPrimitiveType.fromJavaPrimitive(type)
+                is PsiPrimitiveType -> ZenPrimitiveType.fromJavaPrimitive(type)
                 is PsiArrayType -> ZenScriptArrayType(fromJavaType(type.componentType))
                 is PsiClassType -> {
                     getClassType(type)
@@ -29,10 +30,10 @@ interface ZenType {
                 is ZenScriptArrayTypeRef -> ZenScriptArrayType(fromTypeRef(typeRef.typeRef))
                 is ZenScriptListTypeRef -> ZenScriptListType(fromTypeRef(typeRef.typeRef))
                 is ZenScriptMapTypeRef -> ZenScriptMapType(fromTypeRef(typeRef.keyType), fromTypeRef(typeRef.valueType))
-                is ZenScriptPrimitiveTypeRef -> ZenScriptPrimitiveType.fromTypeRef(typeRef)
+                is ZenScriptPrimitiveTypeRef -> ZenPrimitiveType.fromTypeRef(typeRef)
                         ?: throw IllegalArgumentException("Unknown type ref kind: $typeRef")
 
-                is ZenScriptFunctionTypeRef -> ZenScriptPrimitiveType.ANY // TODO: function
+                is ZenScriptFunctionTypeRef -> ZenPrimitiveType.ANY // TODO: function
                 null -> ZenUnknownType("<unknown>")
                 else -> throw IllegalArgumentException("Unknown type ref kind: $typeRef")
             }
@@ -41,11 +42,12 @@ interface ZenType {
 }
 
 private fun getClassType(zenScriptClassType: ZenScriptClassTypeRef): ZenType {
-    val resolved = zenScriptClassType.resolve()
+    val resolved = zenScriptClassType.advancedResolve()
     val nameOrQualifiedName = zenScriptClassType.text
-    if (resolved != null) {
-        if (resolved is ZenScriptClassDeclaration || resolved is PsiClass) {
-            return getTargetType(resolved)
+    if (resolved.size == 1) {
+        val firstType = resolved[0].type
+        if (firstType == ZenResolveResultType.ZEN_CLASS || firstType == ZenResolveResultType.JAVA_CLASS) {
+            return getTargetType(resolved) ?: ZenUnknownType(nameOrQualifiedName)
         }
     }
     return ZenUnknownType(nameOrQualifiedName)
@@ -66,15 +68,15 @@ private fun getClassType(psiClassType: PsiClassType): ZenType? {
         )
     }
     return when (clazz.qualifiedName) {
-        "java.lang.Byte" -> ZenScriptPrimitiveType.BYTE
-        "java.lang.Short" -> ZenScriptPrimitiveType.SHORT
-        "java.lang.Integer" -> ZenScriptPrimitiveType.INT
-        "java.lang.Long" -> ZenScriptPrimitiveType.LONG
-        "java.lang.Float" -> ZenScriptPrimitiveType.FLOAT
-        "java.lang.Double" -> ZenScriptPrimitiveType.DOUBLE
-        "java.lang.Boolean" -> ZenScriptPrimitiveType.BOOL
-        "java.lang.String" -> ZenScriptPrimitiveType.STRING
-        "stanhebben.zenscript.value.IAny" -> ZenScriptPrimitiveType.ANY
+        "java.lang.Byte" -> ZenPrimitiveType.BYTE
+        "java.lang.Short" -> ZenPrimitiveType.SHORT
+        "java.lang.Integer" -> ZenPrimitiveType.INT
+        "java.lang.Long" -> ZenPrimitiveType.LONG
+        "java.lang.Float" -> ZenPrimitiveType.FLOAT
+        "java.lang.Double" -> ZenPrimitiveType.DOUBLE
+        "java.lang.Boolean" -> ZenPrimitiveType.BOOL
+        "java.lang.String" -> ZenPrimitiveType.STRING
+        "stanhebben.zenscript.value.IAny" -> ZenPrimitiveType.ANY
         "stanhebben.zenscript.value.IntRange" -> ZenScriptIntRangeType
         else -> {
             val zenClazzName = clazz.getAnnotation("stanhebben.zenscript.annotations.ZenClass")

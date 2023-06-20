@@ -323,7 +323,6 @@ left arrayIndexExpression ::= '[' expression ']'
         index='expression[1]'
     ] }
 left callExpression ::= arguments
-    { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
 left typeCastExpression ::= 'as' typeRef { pin=1 }
 left instanceOfExpression ::= 'instanceof' typeRef { pin=1 }
 
@@ -372,8 +371,8 @@ arguments ::= '(' argumentList? ')' { pin=1 }
 private argumentList ::= expression (',' expression)* { pin(".*")="','" }
 
 
-classTypeRef ::= qualifiedName
-    { implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
+classTypeRef ::= &identifier qualifiedName
+    { pin=1; implements="ZenScriptReference"; mixin="ZenScriptReferenceImpl"; }
 
 typeRef ::=
     primitiveTypeRef

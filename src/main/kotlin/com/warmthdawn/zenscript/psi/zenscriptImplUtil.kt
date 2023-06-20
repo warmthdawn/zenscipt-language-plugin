@@ -75,6 +75,7 @@ fun getRangeInElement(memberAccessExpr: ZenScriptMemberAccessExpression): TextRa
     return UnfairTextRange(nameRange.startOffset - exprRange.startOffset, nameRange.endOffset - exprRange.startOffset)
 }
 
+
 fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
     if (lastParent != forEachStmt.body) {
         return true
