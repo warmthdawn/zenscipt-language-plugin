@@ -25,10 +25,50 @@ enum class ZenScriptMemberKind {
     LAMBDA,
 }
 
+fun findStaticMembers(project: Project, element: PsiElement): List<Pair<String, PsiElement>> {
+    val result = mutableListOf<Pair<String, PsiElement>>()
+    when (element) {
+        is ZenScriptClassDeclaration -> {
+            element.variables.asSequence()
+                    .filter { it.isValid && it.hasStaticModifier }
+                    .forEach {
+                        val name = it.name
+                        if (name != null) {
+                            result.add(name to it)
+                        }
+                    }
+        }
+
+        is PsiClass -> {
+            val members = ZenScriptMemberCache.getInstance(project).getMembers(element)
+            members.staticProperties.forEach { (name, prop) ->
+                if (prop.getter != null) {
+                    result.add(name to prop.getter)
+                } else if (prop.setter != null) {
+                    result.add(name to prop.setter)
+                } else if (prop.field != null) {
+                    result.add(name to prop.field)
+                }
+            }
+
+            members.staticMethods.forEach { (name, methods) ->
+                for (method in methods.methods) {
+                    if (!method.isValid) {
+                        continue
+                    }
+                    result.add(name to method)
+                }
+            }
+        }
+    }
+
+    return result
+}
+
 fun findStaticMembers(project: Project, element: PsiElement, name: String): Array<ZenScriptElementResolveResult> {
     when (element) {
         is ZenScriptClassDeclaration -> {
-            return element.variableDeclarationList.asSequence()
+            return element.variables.asSequence()
                     .filter { it.name == name }
                     .filter { it.hasStaticModifier }
                     .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_VARIABLE) }
@@ -63,6 +103,124 @@ fun findStaticMembers(project: Project, element: PsiElement, name: String): Arra
 
 private fun List<PsiElement>.createResult(type: ZenResolveResultType, isValid: Boolean = true): List<ZenScriptElementResolveResult> {
     return this.map { ZenScriptElementResolveResult(it, type, isValid) }
+}
+
+
+fun findMembers(project: Project, type: ZenType): List<Pair<String, PsiElement>> {
+    val result = mutableListOf<Pair<String, PsiElement>>()
+    val memberCache = ZenScriptMemberCache.getInstance(project)
+    when (type) {
+        is ZenScriptPackageType -> {
+            // processing outside
+        }
+        is ZenScriptArrayType -> {
+            // processing outside
+        }
+
+        is ZenScriptClassType -> {
+            if (type.isLibrary) {
+                findJavaClass(project, type.qualifiedName)?.let {
+                    memberCache.getMembers(it)
+                }?.let {
+                    it.properties.forEach { (name, prop) ->
+                        if (prop.getter != null) {
+                            result.add(name to prop.getter)
+                        } else if (prop.setter != null) {
+                            result.add(name to prop.setter)
+                        } else if (prop.field != null) {
+                            result.add(name to prop.field)
+                        }
+                    }
+                    it.methods.forEach { (name, methods) ->
+                        for (method in methods.methods) {
+                            if (!method.isValid) {
+                                continue
+                            }
+                            result.add(name to method)
+                        }
+                    }
+                }
+            } else {
+                findZenClass(project, type.qualifiedName)?.let { zenClazz ->
+                    sequenceOf(
+                            zenClazz.variables.asSequence()
+                                    .filter { it.isValid },
+                            zenClazz.functions.asSequence()
+                                    .filter { it.isValid }
+                    ).flatten().forEach {
+                        val name = it.name
+                        if(name != null) {
+                            result.add(name to it)
+                        }
+                    }
+                }
+
+
+            }
+
+        }
+
+        is ZenScriptListType ->  {
+            memberCache.getNativeMember(CraftTweakerNativeMember.LIST_SIZE).forEach {
+                result.add("length" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.LIST_REMOVE).forEach {
+                result.add("remove" to it)
+            }
+
+        }
+        is ZenScriptMapType -> {
+
+            memberCache.getNativeMember(CraftTweakerNativeMember.MAP_KEYSET).forEach {
+                result.add("keys" to it)
+                result.add("keySet" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.MAP_VALUES).forEach {
+                result.add("values" to it)
+                result.add("values" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.MAP_ENTRYSET).forEach {
+                result.add("entries" to it)
+                result.add("entrySet" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.MAP_SIZE).forEach {
+                result.add("length" to it)
+            }
+        }
+
+        is ZenScriptIntRangeType -> {
+
+            memberCache.getNativeMember(CraftTweakerNativeMember.RANGE_FROM).forEach {
+                result.add("from" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.RANGE_TO).forEach {
+                result.add("to" to it)
+            }
+        }
+
+        is ZenPrimitiveType ->  {
+            if(type == ZenPrimitiveType.STRING) {
+                memberCache.getStringNativeMethods().forEach {
+                    if(!it.isValid || it.isConstructor) {
+                        return@forEach
+                    }
+                    result.add(it.name to it)
+                }
+            }
+        }
+
+        is ZenScriptMapEntryType -> {
+            memberCache.getNativeMember(CraftTweakerNativeMember.ENTRY_KEY).forEach {
+                result.add("key" to it)
+            }
+            memberCache.getNativeMember(CraftTweakerNativeMember.ENTRY_VALUE).forEach {
+                result.add("value" to it)
+            }
+        }
+
+    }
+
+    return result
 }
 
 fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptElementResolveResult> {
@@ -120,10 +278,10 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
             } else {
                 findZenClass(project, type.qualifiedName)?.let { zenClazz ->
                     sequenceOf(
-                            zenClazz.variableDeclarationList.asSequence()
+                            zenClazz.variables.asSequence()
                                     .filter { it.name == name }
                                     .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_VARIABLE, !it.hasStaticModifier) },
-                            zenClazz.functionDeclarationList.asSequence()
+                            zenClazz.functions.asSequence()
                                     .filter { it.name == name }
                                     .map { ZenScriptElementResolveResult(it, ZenResolveResultType.ZEN_METHOD, false) },
                     ).flatten().toList()

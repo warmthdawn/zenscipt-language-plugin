@@ -61,6 +61,11 @@ class ZenScriptMemberCache(private val project: Project) {
         return javaClazz.findMethodsByName(name, true).toList()
     }
 
+    fun getStringNativeMethods(): Array<PsiMethod>   {
+        val javaClazz = JavaPsiFacade.getInstance(project).findClass("java.lang.String", GlobalSearchScope.allScope(project)) ?: return emptyArray()
+        return javaClazz.allMethods
+    }
+
     private fun getNativeMember(clazz: String, name: String, isMethod: Boolean = true): List<PsiElement>   {
         val javaClazz = JavaPsiFacade.getInstance(project).findClass(clazz, GlobalSearchScope.allScope(project)) ?: return emptyList()
         return if(isMethod) {

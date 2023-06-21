@@ -157,7 +157,7 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
     var methodType: ZenType? = null
     if (methodExpr is ZenScriptReference) {
 
-        var resolvedMethods = methodExpr.advancedResolve(false)
+        val resolvedMethods = methodExpr.advancedResolve(false)
 
         if (resolvedMethods.isNotEmpty()) {
 

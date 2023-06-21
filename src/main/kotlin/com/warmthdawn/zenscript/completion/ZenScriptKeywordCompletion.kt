@@ -7,6 +7,7 @@ import com.intellij.psi.*
 import com.intellij.psi.templateLanguages.OuterLanguageElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.suggested.endOffset
+import com.warmthdawn.zenscript.completion.ZenScriptPatterns.AT_TOP_LEVEL
 import com.warmthdawn.zenscript.psi.*
 
 class ZenScriptKeywordCompletion(
@@ -21,15 +22,6 @@ class ZenScriptKeywordCompletion(
 
         private val INSIDE_FUNCTIONS = psiElement().inside(psiElement(ZenScriptFunction::class.java))
 
-        private val AT_TOP_LEVEL = not(
-            psiElement().inside(
-                or(
-                    psiElement(ZenScriptClassDeclaration::class.java),
-                    psiElement(ZenScriptFunctionDeclaration::class.java),
-                    psiElement(ZenScriptExpandFunctionDeclaration::class.java)
-                )
-            )
-        )
     }
 
     private val prevLeaf: PsiElement? = PsiTreeUtil.prevCodeLeaf(position)

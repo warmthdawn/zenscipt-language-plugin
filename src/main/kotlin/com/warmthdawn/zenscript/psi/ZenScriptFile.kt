@@ -20,10 +20,11 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
     override fun getFileType(): FileType = ZSLanguageFileType
 
 
-    val importList: ZenScriptImportList = PsiTreeUtil.getChildOfType(this, ZenScriptImportList::class.java)!!
-    val scriptBody: ZenScriptScriptBody? = PsiTreeUtil.getChildOfType(this, ZenScriptScriptBody::class.java)
+    val importList: ZenScriptImportList get() = PsiTreeUtil.getChildOfType(this, ZenScriptImportList::class.java)!!
+    val scriptBody: ZenScriptScriptBody? get() = PsiTreeUtil.getChildOfType(this, ZenScriptScriptBody::class.java)
 
     override fun processDeclarations(processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
+
 
         if (lastParent != this.scriptBody) {
             return true

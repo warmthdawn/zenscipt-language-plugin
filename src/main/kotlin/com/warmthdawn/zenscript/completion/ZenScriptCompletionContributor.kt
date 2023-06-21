@@ -21,9 +21,28 @@ class ZenScriptCompletionContributor : CompletionContributor() {
                     val element = parameters.position
 
                     ZenScriptKeywordCompletion(element, result).addAllKeywords()
+                    ZenScriptMemberCompletion(element, result, parameters.isCompleteOnlyNotImported).addAllMembers()
                 }
             }
         )
+
+
+//        extend(
+//                CompletionType.SMART,
+//                psiElement().withLanguage(ZSLanguage),
+//                object : CompletionProvider<CompletionParameters>() {
+//                    override fun addCompletions(
+//                            parameters: CompletionParameters,
+//                            context: ProcessingContext,
+//                            result: CompletionResultSet
+//                    ) {
+//                        val file = parameters.originalFile
+//                        val element = parameters.position
+//
+//                        ZenScriptMemberCompletion(element, result).addAllMembers()
+//                    }
+//                }
+//        )
     }
 
 }
