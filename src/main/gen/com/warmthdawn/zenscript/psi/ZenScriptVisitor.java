@@ -137,7 +137,7 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitImportDeclaration(@NotNull ZenScriptImportDeclaration o) {
-    visitNamedElement(o);
+    visitPsiElement(o);
   }
 
   public void visitImportList(@NotNull ZenScriptImportList o) {

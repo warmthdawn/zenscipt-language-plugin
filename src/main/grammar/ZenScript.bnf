@@ -135,10 +135,7 @@ importList ::= importDeclaration*
 
 // Declarations
 importDeclaration ::= 'import' importReference ('as' identifier)? ';'
-    { pin(".*")=1; recoverWhile="import_recover";
-    implements=["ZenScriptNamedElement"]; mixin="ZenScriptNamedElementImpl";
-    methods=[getIdentifier setName alias="identifier"]
-     }
+    { pin(".*")=1; recoverWhile="import_recover"; methods=[alias="identifier" getName] }
 
 importReference ::= &identifier qualifiedName
     { pin=1; implements=["ZenScriptReference"]; mixin="ZenScriptReferenceImpl"; }
@@ -169,7 +166,9 @@ functionBody ::= '{' statement* '}'
     { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
 
 classDeclaration ::= 'zenClass' qualifiedName '{' classBodyItem* '}'
-    { pin=1; implements="ZenScriptClass"; mixin="ZenScriptClassImpl"; }
+    { pin=1; implements="ZenScriptClass"; mixin="ZenScriptClassImpl";
+      methods=[variables="variableDeclaration" constructors="constructorDeclaration" functions="functionDeclaration"]
+    }
 
 private classBodyItem ::= variableDeclaration | constructorDeclaration | functionDeclaration { pin=1;  recoverWhile=class_body_recover; }
 private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor')

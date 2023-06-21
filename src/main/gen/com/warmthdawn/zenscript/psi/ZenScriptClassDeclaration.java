@@ -7,16 +7,16 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptClassDeclaration extends ZenScriptClass {
 
-  @NotNull
-  List<ZenScriptConstructorDeclaration> getConstructorDeclarationList();
-
-  @NotNull
-  List<ZenScriptFunctionDeclaration> getFunctionDeclarationList();
-
   @Nullable
   ZenScriptQualifiedName getQualifiedName();
 
   @NotNull
-  List<ZenScriptVariableDeclaration> getVariableDeclarationList();
+  List<ZenScriptVariableDeclaration> getVariables();
+
+  @NotNull
+  List<ZenScriptConstructorDeclaration> getConstructors();
+
+  @NotNull
+  List<ZenScriptFunctionDeclaration> getFunctions();
 
 }

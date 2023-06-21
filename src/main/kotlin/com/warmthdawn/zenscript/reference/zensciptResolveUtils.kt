@@ -66,30 +66,18 @@ fun resolveImportRef(ref: ZenScriptImportReference): Array<ZenScriptElementResol
 
 fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResolveResult> {
     val name = ref.qualifiedName!!.text
-    var out: ZenScriptNamedElement? = null
+    var found: PsiElement? = null
     val notFound = PsiTreeUtil.treeWalkUp(ZenScriptScopeProcessor { element, parent, _ ->
-        if ((element is ZenScriptClassDeclaration || element is ZenScriptImportDeclaration) && (element as ZenScriptNamedElement).name == name) {
-            out = element
+        if (element is ZenScriptClassDeclaration && element.name == name) {
+            found = element
+            false
+        } else if (element is ZenScriptImportDeclaration && element.name == name) {
+            found = element.importReference?.resolve()
             false
         } else {
             true
         }
     }, ref, null, ResolveState.initial())
-    val found = out
-    if (found is ZenScriptImportDeclaration) {
-        val target = found.importReference!!.advancedResolve(true)
-
-        if (target.isEmpty()) {
-            return emptyArray()
-        }
-        val type = (target[0] as? ZenScriptElementResolveResult)?.type
-        if (type != ZenResolveResultType.ZEN_CLASS && type != ZenResolveResultType.JAVA_CLASS) {
-            return emptyArray()
-        }
-
-        return target
-    }
-
     if (notFound) {
 
         val qualifiedName = ref.text
@@ -112,24 +100,19 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResol
         return emptyArray()
     }
 
-
-    return arrayOf(ZenScriptElementResolveResult(found!!, ZenResolveResultType.ZEN_CLASS))
+    return if (found is ZenScriptClassDeclaration) {
+        arrayOf(ZenScriptElementResolveResult(found!!, ZenResolveResultType.ZEN_CLASS))
+    } else if (found is PsiClass) {
+        arrayOf(ZenScriptElementResolveResult(found!!, ZenResolveResultType.JAVA_CLASS))
+    } else {
+        emptyArray()
+    }
 }
 
-fun resolveCallExpr(ref: ZenScriptCallExpression, el: Array<ZenScriptElementResolveResult>): Array<ZenScriptElementResolveResult> {
+fun resolveCallExpr(ref: ZenScriptCallExpression, resolvedMethods: Array<ZenScriptElementResolveResult>): Array<ZenScriptElementResolveResult> {
     val project = ref.project
     val typeUtil = ZenScriptTypeService.getInstance(project)
     val arguments = ref.arguments.expressionList.map { getType(it) }
-
-    var resolvedMethods = el
-
-
-    if (resolvedMethods.isNotEmpty()) {
-        if (resolvedMethods[0].type == ZenResolveResultType.ZEN_IMPORT) {
-            resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).importReference!!.advancedResolve(false)
-        }
-    }
-
     if (resolvedMethods.isEmpty()) {
         return emptyArray()
     }
@@ -162,7 +145,7 @@ fun resolveCallExpr(ref: ZenScriptCallExpression, el: Array<ZenScriptElementReso
         when (resolvedMethods[0].type) {
             ZenResolveResultType.ZEN_CLASS, ZenResolveResultType.JAVA_CLASS -> {
                 val clazz = resolvedMethods[0].element
-                val ctors = if (clazz is ZenScriptClassDeclaration) clazz.constructorDeclarationList
+                val ctors = if (clazz is ZenScriptClassDeclaration) clazz.constructors
                 else listOf(*(clazz as PsiClass).constructors)
                 val selected = typeUtil.selectMethod(arguments, ctors)
                 if (selected == -2) {
@@ -198,14 +181,7 @@ fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<ZenScri
     val qualifierExpr = ref.expression
     var qualifierType: ZenType? = null
     if (qualifierExpr is ZenScriptReference) {
-        var qualifierTarget = qualifierExpr.advancedResolve()
-        if (qualifierTarget.isNotEmpty()) {
-            val firstType = qualifierTarget[0].type
-
-            if (firstType == ZenResolveResultType.ZEN_IMPORT) {
-                qualifierTarget = (qualifierTarget[0].element as ZenScriptImportDeclaration).importReference!!.advancedResolve()
-            }
-        }
+        val qualifierTarget = qualifierExpr.advancedResolve()
         if (qualifierTarget.isNotEmpty()) {
             val firstType = qualifierTarget[0].type
 
@@ -230,27 +206,35 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<Z
     val project = ref.project
     if (identifier != null) {
         val name = identifier.text
-        var out: ZenScriptNamedElement? = null
+        val foundElements = mutableListOf<PsiElement>()
+        var foundImport: ZenScriptImportDeclaration? = null
         val processor = ZenScriptScopeProcessor { element, parent, _ ->
             if (element is ZenScriptNamedElement && element.name == name) {
-                out = element
+                foundElements.add(element)
+                false
+            } else if (element is ZenScriptImportDeclaration && element.name == name) {
+                foundImport = element
                 false
             } else {
                 true
             }
         }
         val notFound = PsiTreeUtil.treeWalkUp(processor, ref, null, ResolveState.initial())
-        val found = out
         return if (!notFound) {
-
-            val type = when (found) {
-                is ZenScriptClassDeclaration -> ZenResolveResultType.ZEN_CLASS
-                is ZenScriptFunctionDeclaration -> ZenResolveResultType.ZEN_METHOD
-                is ZenScriptImportDeclaration -> ZenResolveResultType.ZEN_IMPORT
-                else -> ZenResolveResultType.ZEN_VARIABLE
+            if (foundImport != null) {
+                foundImport!!.importReference!!.advancedResolve()
+            } else {
+                foundElements.map {
+                    val type = when (it) {
+                        is ZenScriptClassDeclaration -> ZenResolveResultType.ZEN_CLASS
+                        is ZenScriptFunctionDeclaration -> ZenResolveResultType.ZEN_METHOD
+                        is ZenScriptImportDeclaration -> ZenResolveResultType.ZEN_IMPORT
+                        else -> ZenResolveResultType.ZEN_VARIABLE
+                    }
+                    ZenScriptElementResolveResult(it, type)
+                }.toTypedArray()
             }
 
-            arrayOf(ZenScriptElementResolveResult(found!!, type))
         } else {
             val result = mutableListOf<PsiNameIdentifierOwner>()
             FileBasedIndex.getInstance().getFilesWithKey(ZenScriptGlobalVariableIndex.NAME, setOf(name), {

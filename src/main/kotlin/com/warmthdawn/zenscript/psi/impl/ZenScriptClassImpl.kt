@@ -9,9 +9,8 @@ import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.util.hasStaticModifier
 
 abstract class ZenScriptClassImpl(node: ASTNode) : ZenScriptNamedElementImpl(node), ZenScriptClass {
-    override val members: Array<ZenScriptMember>
-        get() = findChildrenByClass(ZenScriptMember::class.java)
-
+    override val members: List<ZenScriptMember>
+        get() = listOf(variables, constructors, functions).flatten()
 
     override val identifier: ZenScriptIdentifier?
         get() = findChildByClass(ZenScriptQualifiedName::class.java)?.identifier
@@ -27,19 +26,25 @@ abstract class ZenScriptClassImpl(node: ASTNode) : ZenScriptNamedElementImpl(nod
         }
 
         processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, this)
-        for (member in members) {
-            if (member == lastParent) {
+        var notFound = true
+        for (field in variables) {
+            if (isStatic != field.hasStaticModifier) {
                 continue
             }
+            if (!processor.execute(field, state)) {
+                notFound = false
+                break
+            }
+        }
+        for (member in functions) {
             if (isStatic != member.hasStaticModifier) {
                 continue
             }
             if (!processor.execute(member, state)) {
-                processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
-                return false
+                notFound = false
             }
         }
         processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
-        return true
+        return notFound
     }
 }

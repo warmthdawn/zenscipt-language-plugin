@@ -27,18 +27,6 @@ public class ZenScriptClassDeclarationImpl extends ZenScriptClassImpl implements
   }
 
   @Override
-  @NotNull
-  public List<ZenScriptConstructorDeclaration> getConstructorDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptConstructorDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ZenScriptFunctionDeclaration> getFunctionDeclarationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptFunctionDeclaration.class);
-  }
-
-  @Override
   @Nullable
   public ZenScriptQualifiedName getQualifiedName() {
     return findChildByClass(ZenScriptQualifiedName.class);
@@ -46,8 +34,20 @@ public class ZenScriptClassDeclarationImpl extends ZenScriptClassImpl implements
 
   @Override
   @NotNull
-  public List<ZenScriptVariableDeclaration> getVariableDeclarationList() {
+  public List<ZenScriptVariableDeclaration> getVariables() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptVariableDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<ZenScriptConstructorDeclaration> getConstructors() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptConstructorDeclaration.class);
+  }
+
+  @Override
+  @NotNull
+  public List<ZenScriptFunctionDeclaration> getFunctions() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ZenScriptFunctionDeclaration.class);
   }
 
 }

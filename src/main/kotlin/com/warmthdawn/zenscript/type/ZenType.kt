@@ -47,7 +47,7 @@ private fun getClassType(zenScriptClassType: ZenScriptClassTypeRef): ZenType {
     if (resolved.size == 1) {
         val firstType = resolved[0].type
         if (firstType == ZenResolveResultType.ZEN_CLASS || firstType == ZenResolveResultType.JAVA_CLASS) {
-            return getTargetType(resolved) ?: ZenUnknownType(nameOrQualifiedName)
+            return getTargetType(resolved, true) ?: ZenUnknownType(nameOrQualifiedName)
         }
     }
     return ZenUnknownType(nameOrQualifiedName)

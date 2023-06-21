@@ -91,17 +91,7 @@ fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiSc
     return true
 }
 
-//fun getIdentifier(importDecl: ZenScriptImportDeclaration): ZenScriptIdentifier? {
-//    return importDecl.alias ?: importDecl.importReference?.qualifiedName?.identifier
-//}
-//fun getName(importDecl: ZenScriptImportDeclaration): String? {
-//    return importDecl.identifier?.text
-//}
-//fun setName(importDecl: ZenScriptImportDeclaration, name: String): ZenScriptImportDeclaration {
-//    if(importDecl.alias != null) {
-//        createIdentifierFromText(importDecl.project, name)?.let {
-//            importDecl.node.replaceChild(importDecl.alias!!.node, it.node)
-//        }
-//    }
-//    return importDecl
-//}
+fun getName(importDecl: ZenScriptImportDeclaration): String? {
+    val identifier = importDecl.alias ?: importDecl.importReference?.qualifiedName?.identifier
+    return identifier?.text
+}
