@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement;
 
 public interface ZenScriptClassTypeRef extends ZenScriptTypeRef, ZenScriptReference {
 
-  @NotNull
+  @Nullable
   ZenScriptQualifiedName getQualifiedName();
 
 }

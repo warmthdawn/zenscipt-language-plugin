@@ -4,24 +4,17 @@ package com.warmthdawn.zenscript.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiPolyVariantReference;
 
-public interface ZenScriptImportDeclaration extends ZenScriptReference, ZenScriptNamedElement, PsiPolyVariantReference {
+public interface ZenScriptImportDeclaration extends ZenScriptNamedElement {
 
   @Nullable
-  ZenScriptQualifiedName getQualifiedName();
+  ZenScriptImportReference getImportReference();
 
   @Nullable
   ZenScriptIdentifier getIdentifier();
 
-  @Nullable
-  String getName();
-
   @NotNull
   ZenScriptImportDeclaration setName(@NotNull String name);
-
-  @Nullable
-  PsiElement getNameIdentifier();
 
   @Nullable
   ZenScriptIdentifier getAlias();

@@ -4,7 +4,6 @@ package com.warmthdawn.zenscript.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiPolyVariantReference;
 
 public class ZenScriptVisitor extends PsiElementVisitor {
 
@@ -59,7 +58,6 @@ public class ZenScriptVisitor extends PsiElementVisitor {
 
   public void visitCallExpression(@NotNull ZenScriptCallExpression o) {
     visitExpression(o);
-    // visitReference(o);
   }
 
   public void visitClassDeclaration(@NotNull ZenScriptClassDeclaration o) {
@@ -139,13 +137,15 @@ public class ZenScriptVisitor extends PsiElementVisitor {
   }
 
   public void visitImportDeclaration(@NotNull ZenScriptImportDeclaration o) {
-    visitReference(o);
-    // visitNamedElement(o);
-    // visitPsiPolyVariantReference(o);
+    visitNamedElement(o);
   }
 
   public void visitImportList(@NotNull ZenScriptImportList o) {
     visitPsiElement(o);
+  }
+
+  public void visitImportReference(@NotNull ZenScriptImportReference o) {
+    visitReference(o);
   }
 
   public void visitInitializerOrDefault(@NotNull ZenScriptInitializerOrDefault o) {

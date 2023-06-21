@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptImportDeclarationImpl extends ZenScriptReferenceImpl implements ZenScriptImportDeclaration {
+public class ZenScriptImportDeclarationImpl extends ZenScriptNamedElementImpl implements ZenScriptImportDeclaration {
 
   public ZenScriptImportDeclarationImpl(ASTNode node) {
     super(node);
@@ -28,8 +28,8 @@ public class ZenScriptImportDeclarationImpl extends ZenScriptReferenceImpl imple
 
   @Override
   @Nullable
-  public ZenScriptQualifiedName getQualifiedName() {
-    return findChildByClass(ZenScriptQualifiedName.class);
+  public ZenScriptImportReference getImportReference() {
+    return findChildByClass(ZenScriptImportReference.class);
   }
 
   @Override
@@ -39,21 +39,9 @@ public class ZenScriptImportDeclarationImpl extends ZenScriptReferenceImpl imple
   }
 
   @Override
-  @Nullable
-  public String getName() {
-    return ZenScriptImplUtil.getName(this);
-  }
-
-  @Override
   @NotNull
   public ZenScriptImportDeclaration setName(@NotNull String name) {
     return ZenScriptImplUtil.setName(this, name);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getNameIdentifier() {
-    return ZenScriptImplUtil.getNameIdentifier(this);
   }
 
   @Override

@@ -37,8 +37,9 @@ fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, isImport
             }
 
             ZenResolveResultType.ZEN_IMPORT -> {
-                return getTargetType((element as ZenScriptImportDeclaration).advancedResolve())
-                        ?: ZenUnknownType(element.qualifiedName!!.text)
+                val importReference = (element as ZenScriptImportDeclaration).importReference!!
+                return getTargetType(importReference.advancedResolve())
+                        ?: ZenUnknownType(importReference.qualifiedName!!.text)
             }
 
             ZenResolveResultType.ZEN_CLASS -> {
@@ -166,7 +167,9 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
 
         if (resolvedMethods.isNotEmpty()) {
             if (resolvedMethods[0].type == ZenResolveResultType.ZEN_IMPORT) {
-                resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).advancedResolve(false)
+
+                val importReference = (resolvedMethods[0].element as ZenScriptImportDeclaration).importReference!!
+                resolvedMethods = importReference.advancedResolve(false)
             }
 
             val candidateMethods = resolvedMethods.asSequence()
@@ -301,7 +304,7 @@ fun getTypeImpl(expr: ZenScriptLiteralExpression): ZenType {
 
 fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
     val elements = expr.advancedResolve()
-    if (elements.size != 1) {
+    if (elements.isNotEmpty()) {
         val resolve = elements[0]
         return when (resolve.type) {
             ZenResolveResultType.ZEN_VARIABLE -> getVariableType(resolve.element as ZenScriptVariableDeclaration)
@@ -314,8 +317,8 @@ fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
             ZenResolveResultType.ZEN_METHOD -> ZenPrimitiveType.ANY
             ZenResolveResultType.ZEN_IMPORT -> {
                 val element = resolve.element as ZenScriptImportDeclaration
-                getTargetType(element.advancedResolve())
-                        ?: return ZenUnknownType(element.qualifiedName!!.text)
+                getTargetType(element.importReference!!.advancedResolve())
+                        ?: return ZenUnknownType(element.importReference!!.qualifiedName!!.text)
             }
 
             else -> ZenUnknownType(resolve.element.text)
@@ -335,6 +338,14 @@ fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
 }
 
 fun getTypeImpl(expr: ZenScriptMemberAccessExpression): ZenType {
+
+    val resolveResults = expr.advancedResolve()
+
+    val result = getTargetType(resolveResults, false)
+
+    if (result != null) {
+        return result
+    }
     val prevType = getType(expr.expression)
     val memberName = expr.identifier?.text ?: return ZenUnknownType("<unknown>")
     val project = expr.project
@@ -363,23 +374,8 @@ fun getTypeImpl(expr: ZenScriptMemberAccessExpression): ZenType {
             }
         }
 
-        is ZenScriptClassType -> {
-            if (prevType.isLibrary) {
-                val javaClazz = findJavaClass(project, prevType.qualifiedName)
-                        ?: return ZenUnknownType(prevType.qualifiedName)
-                val members = ZenScriptMemberCache.getInstance(project).getMembers(javaClazz)
-                members.properties[memberName]?.zsType ?: ZenUnknownType(prevType.qualifiedName + "." + memberName)
-            } else {
-                val zenClazz = findZenClass(project, prevType.qualifiedName)
-                        ?: return ZenUnknownType(prevType.qualifiedName)
-                val field = zenClazz.variableDeclarationList.first {
-                    it.name == memberName
-                }
-                getVariableType(field)
-            }
-        }
-
-
+        ZenPrimitiveType.ANY -> ZenPrimitiveType.ANY
         else -> ZenUnknownType(expr.toString())
     }
+
 }

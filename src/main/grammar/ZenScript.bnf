@@ -134,11 +134,15 @@ file ::= importList scriptBody
 importList ::= importDeclaration*
 
 // Declarations
-importDeclaration ::= 'import' qualifiedName ('as' identifier)? ';'
+importDeclaration ::= 'import' importReference ('as' identifier)? ';'
     { pin(".*")=1; recoverWhile="import_recover";
-    implements=["ZenScriptReference" "ZenScriptNamedElement" "com.intellij.psi.PsiPolyVariantReference"]; mixin="ZenScriptReferenceImpl";
-    methods=[getIdentifier getName setName getNameIdentifier alias="identifier"]
+    implements=["ZenScriptNamedElement"]; mixin="ZenScriptNamedElementImpl";
+    methods=[getIdentifier setName alias="identifier"]
      }
+
+importReference ::= &identifier qualifiedName
+    { pin=1; implements=["ZenScriptReference"]; mixin="ZenScriptReferenceImpl"; }
+
 private import_recover ::= !('$expand' | 'function' | 'import' | 'static' | 'zenClass' | ';' | statement_start)
 
 scriptBody ::= topLevelStatement*

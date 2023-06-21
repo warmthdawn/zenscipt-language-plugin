@@ -40,6 +40,7 @@ public interface ZenScriptTypes {
   IElementType IF_STATEMENT = new ZenScriptElementType("IF_STATEMENT");
   IElementType IMPORT_DECLARATION = new ZenScriptElementType("IMPORT_DECLARATION");
   IElementType IMPORT_LIST = new ZenScriptElementType("IMPORT_LIST");
+  IElementType IMPORT_REFERENCE = new ZenScriptElementType("IMPORT_REFERENCE");
   IElementType INITIALIZER_OR_DEFAULT = new ZenScriptElementType("INITIALIZER_OR_DEFAULT");
   IElementType INSTANCE_OF_EXPRESSION = new ZenScriptElementType("INSTANCE_OF_EXPRESSION");
   IElementType LIST_TYPE_REF = new ZenScriptElementType("LIST_TYPE_REF");
@@ -290,6 +291,9 @@ public interface ZenScriptTypes {
       }
       else if (type == IMPORT_LIST) {
         return new ZenScriptImportListImpl(node);
+      }
+      else if (type == IMPORT_REFERENCE) {
+        return new ZenScriptImportReferenceImpl(node);
       }
       else if (type == INITIALIZER_OR_DEFAULT) {
         return new ZenScriptInitializerOrDefaultImpl(node);

@@ -67,7 +67,6 @@ private fun List<PsiElement>.createResult(type: ZenResolveResultType, isValid: B
 
 fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptElementResolveResult> {
     val memberCache = ZenScriptMemberCache.getInstance(project)
-    val javaFacade = JavaPsiFacade.getInstance(project)
 
     val results: List<ZenScriptElementResolveResult>? = when (type) {
         is ZenScriptPackageType -> {
@@ -87,7 +86,7 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
             if (!found) {
                 null
             } else if (isClass) {
-                val javaClazz = javaFacade.findClass(packageOrClassName, GlobalSearchScope.projectScope(project))
+                val javaClazz = findJavaClass(project, packageOrClassName)
                 if (javaClazz != null) listOf(
                         ZenScriptElementResolveResult(javaClazz, ZenResolveResultType.JAVA_CLASS)
                 ) else null

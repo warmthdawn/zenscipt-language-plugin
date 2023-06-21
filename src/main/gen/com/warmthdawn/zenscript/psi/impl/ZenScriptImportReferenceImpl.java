@@ -10,14 +10,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptClassTypeRefImpl extends ZenScriptReferenceImpl implements ZenScriptClassTypeRef {
+public class ZenScriptImportReferenceImpl extends ZenScriptReferenceImpl implements ZenScriptImportReference {
 
-  public ZenScriptClassTypeRefImpl(@NotNull ASTNode node) {
+  public ZenScriptImportReferenceImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ZenScriptVisitor visitor) {
-    visitor.visitClassTypeRef(this);
+    visitor.visitImportReference(this);
   }
 
   @Override

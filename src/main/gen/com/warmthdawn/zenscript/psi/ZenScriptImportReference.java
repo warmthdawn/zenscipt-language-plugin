@@ -5,12 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ZenScriptCallExpression extends ZenScriptExpression {
+public interface ZenScriptImportReference extends ZenScriptReference {
 
-  @NotNull
-  ZenScriptArguments getArguments();
-
-  @NotNull
-  ZenScriptExpression getExpression();
+  @Nullable
+  ZenScriptQualifiedName getQualifiedName();
 
 }

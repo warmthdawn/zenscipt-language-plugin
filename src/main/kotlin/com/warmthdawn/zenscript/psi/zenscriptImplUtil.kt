@@ -91,22 +91,17 @@ fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiSc
     return true
 }
 
-fun getIdentifier(importDecl: ZenScriptImportDeclaration): ZenScriptIdentifier? {
-    return importDecl.alias ?: importDecl.qualifiedName?.identifier
-}
-fun getName(importDecl: ZenScriptImportDeclaration): String? {
-    return importDecl.identifier?.text
-}
-fun setName(importDecl: ZenScriptImportDeclaration, name: String): ZenScriptImportDeclaration {
-    if(importDecl.alias != null) {
-        createIdentifierFromText(importDecl.project, name)?.let {
-            importDecl.node.replaceChild(importDecl.alias!!.node, it.node)
-        }
-    }
-    return importDecl
-}
-
-
-fun getNameIdentifier(importDecl: ZenScriptImportDeclaration): PsiElement? = importDecl.identifier
-
-fun getTextOffset(importDecl: ZenScriptImportDeclaration): Int = importDecl.identifier?.textOffset ?: importDecl.node.startOffset
+//fun getIdentifier(importDecl: ZenScriptImportDeclaration): ZenScriptIdentifier? {
+//    return importDecl.alias ?: importDecl.importReference?.qualifiedName?.identifier
+//}
+//fun getName(importDecl: ZenScriptImportDeclaration): String? {
+//    return importDecl.identifier?.text
+//}
+//fun setName(importDecl: ZenScriptImportDeclaration, name: String): ZenScriptImportDeclaration {
+//    if(importDecl.alias != null) {
+//        createIdentifierFromText(importDecl.project, name)?.let {
+//            importDecl.node.replaceChild(importDecl.alias!!.node, it.node)
+//        }
+//    }
+//    return importDecl
+//}

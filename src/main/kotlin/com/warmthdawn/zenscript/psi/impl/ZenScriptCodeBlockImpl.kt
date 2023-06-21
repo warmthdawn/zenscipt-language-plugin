@@ -23,6 +23,7 @@ abstract class ZenScriptCodeBlockImpl(node: ASTNode) : ASTWrapperPsiElement(node
 
         while (prev != null) {
             if (ZenScriptTokenSet.HIDDEN_TOKENS.contains(prev.elementType)) {
+                prev = prev.prevSibling
                 continue
             }
             if (!processor.execute(prev, state)) {

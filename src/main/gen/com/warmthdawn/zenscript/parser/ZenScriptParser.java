@@ -880,14 +880,14 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'import' qualifiedName ('as' identifier)? ';'
+  // 'import' importReference ('as' identifier)? ';'
   public static boolean importDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "importDeclaration")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, IMPORT_DECLARATION, "<import declaration>");
     r = consumeToken(b, K_IMPORT);
     p = r; // pin = 1
-    r = r && report_error_(b, qualifiedName(b, l + 1));
+    r = r && report_error_(b, importReference(b, l + 1));
     r = p && report_error_(b, importDeclaration_2(b, l + 1)) && r;
     r = p && consumeToken(b, SEMICOLON) && r;
     exit_section_(b, l, m, r, p, ZenScriptParser::import_recover);
@@ -925,6 +925,30 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     }
     exit_section_(b, l, m, true, false, null);
     return true;
+  }
+
+  /* ********************************************************** */
+  // &identifier qualifiedName
+  public static boolean importReference(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "importReference")) return false;
+    if (!nextTokenIs(b, "<import reference>", ID, K_TO)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, IMPORT_REFERENCE, "<import reference>");
+    r = importReference_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && qualifiedName(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // &identifier
+  private static boolean importReference_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "importReference_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = identifier(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
   }
 
   /* ********************************************************** */
@@ -2004,12 +2028,25 @@ public class ZenScriptParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // qualifiedName
+  // &identifier qualifiedName
   public static boolean classTypeRef(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "classTypeRef")) return false;
-    boolean r;
+    if (!nextTokenIsSmart(b, ID, K_TO)) return false;
+    boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, CLASS_TYPE_REF, "<class type ref>");
-    r = qualifiedName(b, l + 1);
+    r = classTypeRef_0(b, l + 1);
+    p = r; // pin = 1
+    r = r && qualifiedName(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // &identifier
+  private static boolean classTypeRef_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "classTypeRef_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _AND_);
+    r = identifier(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

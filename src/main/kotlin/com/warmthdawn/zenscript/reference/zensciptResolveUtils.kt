@@ -12,11 +12,11 @@ import com.warmthdawn.zenscript.psi.ZenScriptClassTypeRef
 import com.warmthdawn.zenscript.psi.ZenScriptFile
 import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptImportDeclaration
+import com.warmthdawn.zenscript.psi.ZenScriptImportReference
 import com.warmthdawn.zenscript.psi.ZenScriptLocalAccessExpression
 import com.warmthdawn.zenscript.psi.ZenScriptMemberAccessExpression
 import com.warmthdawn.zenscript.psi.ZenScriptNamedElement
 import com.warmthdawn.zenscript.psi.ZenScriptReference
-import com.warmthdawn.zenscript.psi.ZenScriptScriptBody
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.type.*
 
@@ -25,7 +25,7 @@ fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean):
         is ZenScriptLocalAccessExpression -> resolveLocalAccessExpr(ref)
         is ZenScriptMemberAccessExpression -> resolveMemberAccessExpr(ref)
         is ZenScriptClassTypeRef -> resolveClassTypeRef(ref)
-        is ZenScriptImportDeclaration -> resolveImportDecl(ref)
+        is ZenScriptImportReference -> resolveImportRef(ref)
         else -> emptyArray()
     }
     val parent = ref.parent
@@ -35,9 +35,9 @@ fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean):
     return results
 }
 
-fun resolveImportDecl(ref: ZenScriptImportDeclaration): Array<ZenScriptElementResolveResult> {
+fun resolveImportRef(ref: ZenScriptImportReference): Array<ZenScriptElementResolveResult> {
     val qualifiedNameEl = ref.qualifiedName ?: return emptyArray()
-    val qualifier = qualifiedNameEl.qualifier?.text
+    val qualifier = qualifiedNameEl.qualifier?.text?.let { it.substring(0, it.length - 1) }
     val identifier = qualifiedNameEl.identifier!!.text
     val project = ref.project
 
@@ -65,7 +65,7 @@ fun resolveImportDecl(ref: ZenScriptImportDeclaration): Array<ZenScriptElementRe
 }
 
 fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResolveResult> {
-    val name = ref.qualifiedName.text
+    val name = ref.qualifiedName!!.text
     var out: ZenScriptNamedElement? = null
     val notFound = PsiTreeUtil.treeWalkUp(ZenScriptScopeProcessor { element, parent, _ ->
         if ((element is ZenScriptClassDeclaration || element is ZenScriptImportDeclaration) && (element as ZenScriptNamedElement).name == name) {
@@ -77,7 +77,7 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResol
     }, ref, null, ResolveState.initial())
     val found = out
     if (found is ZenScriptImportDeclaration) {
-        val target = found.advancedResolve(true)
+        val target = found.importReference!!.advancedResolve(true)
 
         if (target.isEmpty()) {
             return emptyArray()
@@ -126,7 +126,7 @@ fun resolveCallExpr(ref: ZenScriptCallExpression, el: Array<ZenScriptElementReso
 
     if (resolvedMethods.isNotEmpty()) {
         if (resolvedMethods[0].type == ZenResolveResultType.ZEN_IMPORT) {
-            resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).advancedResolve(false)
+            resolvedMethods = (resolvedMethods[0].element as ZenScriptImportDeclaration).importReference!!.advancedResolve(false)
         }
     }
 
@@ -203,7 +203,7 @@ fun resolveMemberAccessExpr(ref: ZenScriptMemberAccessExpression): Array<ZenScri
             val firstType = qualifierTarget[0].type
 
             if (firstType == ZenResolveResultType.ZEN_IMPORT) {
-                qualifierTarget = (qualifierTarget[0] as ZenScriptImportDeclaration).advancedResolve()
+                qualifierTarget = (qualifierTarget[0].element as ZenScriptImportDeclaration).importReference!!.advancedResolve()
             }
         }
         if (qualifierTarget.isNotEmpty()) {

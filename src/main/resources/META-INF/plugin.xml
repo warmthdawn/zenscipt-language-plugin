@@ -26,11 +26,13 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceImplementation="com.warmthdawn.zenscript.index.ZenScriptMemberCache" />
-        <projectService serviceImplementation="com.warmthdawn.zenscript.type.ZenScriptTypeService" />
-        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex" />
-        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptClassNameIndex" />
-        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptTypeExpansionIndex" />
+        <projectService serviceImplementation="com.warmthdawn.zenscript.index.ZenScriptMemberCache"/>
+        <projectService serviceImplementation="com.warmthdawn.zenscript.type.ZenScriptTypeService"/>
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex"/>
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptClassNameIndex"/>
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptTypeExpansionIndex"/>
+        <annotator language="ZenScript"
+                   implementationClass="com.warmthdawn.zenscript.annotator.ZenScriptAnnotator"/>
         <fileType
                 name="ZenScript File"
                 implementationClass="com.warmthdawn.zenscript.ZSLanguageFileType"

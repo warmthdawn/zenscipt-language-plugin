@@ -10,12 +10,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
 
-public class ZenScriptCallExpressionImpl extends ZenScriptReferenceImpl implements ZenScriptCallExpression {
+public class ZenScriptCallExpressionImpl extends ZenScriptExpressionImpl implements ZenScriptCallExpression {
 
   public ZenScriptCallExpressionImpl(@NotNull ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull ZenScriptVisitor visitor) {
     visitor.visitCallExpression(this);
   }
