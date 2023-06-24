@@ -194,7 +194,6 @@ class ZenScriptMemberCompletion(
                     .withIcon(element.getIcon(0))
                     .appendTailText(" (${(element.containingFile as ZenScriptFile).name})", true)
                     .add()
-                false
             } else if (element is ZenScriptImportDeclaration && element.name != null) {
                 val found = element.importReference?.resolve()
                 val qualifierName = element.importReference?.qualifiedName?.qualifier
@@ -212,46 +211,52 @@ class ZenScriptMemberCompletion(
                     builder = builder.appendTailText(" ($qualifierName)", true)
                 }
                 builder.add()
-                false
-            } else if (classOnly || element !is ZenScriptNamedElement || element.name == null) {
-                true
-            } else {
-
-                if (element is ZenScriptVariableDeclaration) {
-                    LookupElementBuilder
-                        .createWithIcon(element)
-                        .withTypeText(element.type.displayName, true)
-                        .add()
-                } else if (element is ZenScriptFunctionDeclaration) {
-
-                    var builder = LookupElementBuilder
-                        .createWithIcon(element)
-
-                    (element.parameters?.parameterList ?: emptyList()).joinToString(", ", "(", ")") {
-                        it.name + " as " + it.type.displayName
-                    }.let {
-                        builder = builder.withTailText(it)
+            } else if (!classOnly && element is ZenScriptNamedElement && element.name != null) {
+                when (element) {
+                    is ZenScriptVariableDeclaration -> {
+                        LookupElementBuilder
+                            .createWithIcon(element)
+                            .withTypeText(element.type.displayName, true)
+                            .add()
                     }
-                    builder = builder.withTypeText(element.returnType.displayName, true)
 
-                } else if (element is ZenScriptForeachVariableDeclaration) {
+                    is ZenScriptFunctionDeclaration -> {
 
-                    LookupElementBuilder
-                        .createWithIcon(element)
-                        .withTypeText(element.type.displayName, true)
-                        .add()
-                } else if (element is ZenScriptParameter) {
+                        var builder = LookupElementBuilder
+                            .createWithIcon(element)
 
-                    LookupElementBuilder
-                        .createWithIcon(element)
-                        .withTypeText(element.type.displayName, true)
-                        .add()
-                } else {
-                    throw IllegalStateException("unknown:$element")
+                        (element.parameters?.parameterList ?: emptyList()).joinToString(", ", "(", ")") {
+                            it.name + " as " + it.type.displayName
+                        }.let {
+                            builder = builder.withTailText(it)
+                        }
+                        builder = builder.withTypeText(element.returnType.displayName, true)
+
+                    }
+
+                    is ZenScriptForeachVariableDeclaration -> {
+
+                        LookupElementBuilder
+                            .createWithIcon(element)
+                            .withTypeText(element.type.displayName, true)
+                            .add()
+                    }
+
+                    is ZenScriptParameter -> {
+
+                        LookupElementBuilder
+                            .createWithIcon(element)
+                            .withTypeText(element.type.displayName, true)
+                            .add()
+                    }
+
+                    else -> {
+                        throw IllegalStateException("unknown:$element")
+                    }
                 }
 
-                false
             }
+            true
         }, start, null, ResolveState.initial())
 
     }

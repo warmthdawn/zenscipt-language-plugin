@@ -51,5 +51,11 @@
         <lang.documentationProvider
                 language="ZenScript"
                 implementationClass="com.warmthdawn.zenscript.hover.ZenScriptDocumentationProvider"/>
+        <lang.braceMatcher language="ZenScript"
+                           implementationClass="com.warmthdawn.zenscript.misc.ZenScriptPairedBraceMatcher"/>
+        <lang.quoteHandler language="ZenScript"
+                           implementationClass="com.warmthdawn.zenscript.misc.ZenScriptQuoteHandler" />
+        <lang.commenter language="ZenScript"
+                        implementationClass="com.warmthdawn.zenscript.misc.ZenScriptCommenter" />
     </extensions>
 </idea-plugin>

@@ -21,7 +21,12 @@ class ZenScriptCompletionContributor : CompletionContributor() {
                     val element = parameters.position
 
                     ZenScriptKeywordCompletion(element, result).addAllKeywords()
-                    ZenScriptMemberCompletion(element, result, parameters.offset, parameters.isCompleteOnlyNotImported).addAllMembers()
+                    ZenScriptMemberCompletion(
+                        element,
+                        result,
+                        parameters.offset,
+                        parameters.isCompleteOnlyNotImported
+                    ).addAllMembers()
                 }
             }
         )
