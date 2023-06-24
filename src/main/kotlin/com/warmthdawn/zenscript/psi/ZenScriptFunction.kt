@@ -4,11 +4,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.ResolveState
 import com.intellij.psi.scope.PsiScopeProcessor
 
+@JvmDefaultWithCompatibility
 interface ZenScriptFunction: PsiElement {
 
     val functionBody: ZenScriptFunctionBody?
     val parameters: ZenScriptParameters?
-    val returnType: ZenScriptTypeRef?
+    val returnTypeRef: ZenScriptTypeRef?
 
 
     override fun processDeclarations(processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {

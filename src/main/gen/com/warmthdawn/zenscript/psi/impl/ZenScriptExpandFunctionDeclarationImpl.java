@@ -9,6 +9,8 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.warmthdawn.zenscript.psi.ZenScriptTypes.*;
 import com.warmthdawn.zenscript.psi.*;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.scope.PsiScopeProcessor;
 
 public class ZenScriptExpandFunctionDeclarationImpl extends ZenScriptNamedElementImpl implements ZenScriptExpandFunctionDeclaration {
 
@@ -52,7 +54,7 @@ public class ZenScriptExpandFunctionDeclarationImpl extends ZenScriptNamedElemen
 
   @Override
   @Nullable
-  public ZenScriptTypeRef getReturnType() {
+  public ZenScriptTypeRef getReturnTypeRef() {
     List<ZenScriptTypeRef> p1 = getTypeRefList();
     return p1.size() < 2 ? null : p1.get(1);
   }
@@ -62,6 +64,11 @@ public class ZenScriptExpandFunctionDeclarationImpl extends ZenScriptNamedElemen
   public ZenScriptTypeRef getExpandTarget() {
     List<ZenScriptTypeRef> p1 = getTypeRefList();
     return p1.size() < 1 ? null : p1.get(0);
+  }
+
+  @Override
+  public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, @Nullable PsiElement lastParent, @NotNull PsiElement place) {
+    return ZenScriptImplUtil.processDeclarations(this, processor, state, lastParent, place);
   }
 
 }

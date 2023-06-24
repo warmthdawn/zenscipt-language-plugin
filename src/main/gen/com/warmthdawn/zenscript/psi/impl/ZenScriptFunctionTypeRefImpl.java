@@ -35,8 +35,8 @@ public class ZenScriptFunctionTypeRefImpl extends ZenScriptTypeRefImpl implement
 
   @Override
   @Nullable
-  public ZenScriptTypeRef getReturnType() {
-    return ZenScriptImplUtil.getReturnType(this);
+  public ZenScriptTypeRef getReturnTypeRef() {
+    return ZenScriptImplUtil.getReturnTypeRef(this);
   }
 
   @Override

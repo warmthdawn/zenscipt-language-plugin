@@ -121,6 +121,7 @@
   extends("[a-z][a-zA-Z]*TypeRef")=typeRef
   extends("[a-z][a-zA-Z]*Statement")=statement
   implements("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")="ZenScriptFunction"
+  methods("functionDeclaration|expandFunctionDeclaration|constructorDeclaration|functionLiteral")=[processDeclarations]
 
   generate=[
     token-sets="yes"
@@ -156,11 +157,11 @@ private funcReturnTypeDef ::= 'as' typeRef { pin=1 }
 functionDeclaration ::=
     ('static')? 'function' !'(' identifier parameters (funcReturnTypeDef | &'{') functionBody
     { pin=3; implements=["ZenScriptNamedElement" "ZenScriptMember"];
-      mixin="ZenScriptNamedElementImpl"; methods=[returnType="typeRef"];}
+      mixin="ZenScriptNamedElementImpl"; methods=[returnTypeRef="typeRef"];}
 
 expandFunctionDeclaration ::= '$expand' typeRef '$' identifier parameters (funcReturnTypeDef | &'{') functionBody
     { pin=1; implements=["ZenScriptNamedElement" "ZenScriptMember"];
-      mixin="ZenScriptNamedElementImpl"; methods=[returnType="typeRef[1]" expandTarget="typeRef[0]"];}
+      mixin="ZenScriptNamedElementImpl"; methods=[returnTypeRef="typeRef[1]" expandTarget="typeRef[0]"];}
 
 functionBody ::= '{' statement* '}'
     { pin=1;  implements="ZenScriptCodeBlock"; mixin="ZenScriptCodeBlockImpl"; methods=[statements="statement"];}
@@ -174,7 +175,7 @@ private classBodyItem ::= variableDeclaration | constructorDeclaration | functio
 private class_body_recover ::= !('}' | 'function' | 'global' | 'static' | 'val' | 'var' | 'zenConstructor')
 
 constructorDeclaration ::= 'zenConstructor' parameters functionBody
-    { pin=1; methods=[getReturnType getIdentifier]; implements=[ "ZenScriptMember" ] mixin="ZenScriptNamedElementImpl"; }
+    { pin=1; methods=[getReturnTypeRef getIdentifier]; implements=[ "ZenScriptMember" ] mixin="ZenScriptNamedElementImpl"; }
 
 variableDeclaration ::=
     ('var' | 'val' | 'static' | 'global') identifier ('as' typeRef)? ('=' initializerOrDefault)? ';'
@@ -356,7 +357,7 @@ mapEntry ::= expression ':' expression
 private map_literal_recover ::= !(',' | '}') & statement_recover
 
 functionLiteral ::= 'function' parameters funcReturnTypeDef? functionBody
-    { pin=1;  methods=[returnType="typeRef"]; }
+    { pin=1;  methods=[returnTypeRef="typeRef"]; }
 
 primitiveLiteral ::=
       INT_LITERAL
@@ -386,7 +387,7 @@ typeRef ::=
   { recoverWhile=type_recover; }
 
 functionTypeRef ::= 'function' '(' functionParamsTypeRef? ')' typeRef
-    { rightAssociative=true; pin=1; methods=[getReturnType getParamsType] }
+    { rightAssociative=true; pin=1; methods=[getReturnTypeRef getParamsType] }
 private functionParamsTypeRef ::= typeRef (',' typeRef)* { pin(".*")=1 }
 listTypeRef ::= '[' typeRef ']' { pin=1 }
 

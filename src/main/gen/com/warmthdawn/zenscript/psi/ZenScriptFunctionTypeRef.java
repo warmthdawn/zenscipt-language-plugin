@@ -11,7 +11,7 @@ public interface ZenScriptFunctionTypeRef extends ZenScriptTypeRef {
   List<ZenScriptTypeRef> getTypeRefList();
 
   @Nullable
-  ZenScriptTypeRef getReturnType();
+  ZenScriptTypeRef getReturnTypeRef();
 
   @NotNull
   List<ZenScriptTypeRef> getParamsType();

@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiVariable
 import com.warmthdawn.zenscript.psi.ZenScriptClass
 import com.warmthdawn.zenscript.psi.ZenScriptFile
+import com.warmthdawn.zenscript.psi.ZenScriptForeachVariableDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptIdentifier
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.Nls
 class ZenScriptDocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
         var zsElement = element
-        if(zsElement is ZenScriptIdentifier) {
+        if (zsElement is ZenScriptIdentifier) {
             zsElement = element?.parent
         }
 
@@ -31,7 +32,9 @@ class ZenScriptDocumentationProvider : AbstractDocumentationProvider() {
 
         } else if (zsElement is ZenScriptVariableDeclaration) {
             return generateVariableInfo(zsElement)
-        }else if(element != null) {
+        } else if (zsElement is ZenScriptForeachVariableDeclaration) {
+            return null
+        } else if (element != null) {
             return JavaDocInfoGeneratorFactory.create(element.project, element).generateRenderedDocInfo()
         }
 
@@ -67,23 +70,23 @@ class ZenScriptDocumentationProvider : AbstractDocumentationProvider() {
         }
         builder.append(" ")
         builder.append(variable.name)
-        val initializer =  variable.initializer
+        val initializer = variable.initializer
         val typeRef = variable.typeRef
 
-        if(typeRef == null && initializer == null) {
+        if (typeRef == null && initializer == null) {
             return builder.toString()
         }
 
         builder.append(" ").append("as").append(" ")
 
 
-        if(typeRef != null) {
+        if (typeRef != null) {
             builder.append(ZenType.fromTypeRef(typeRef).displayName)
         } else {
             builder.append(getType(initializer!!.expression).displayName)
         }
 
-        if(initializer != null) {
+        if (initializer != null) {
             builder.append(" ").append("=").append(" ")
             builder.append(initializer.expression.text)
         }

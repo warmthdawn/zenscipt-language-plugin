@@ -20,7 +20,7 @@ intellij {
 
     plugins.set(listOf(
             "java",
-//            "com.intellij.kotlin",
+            "org.jetbrains.kotlin",
             "com.jetbrains.hackathon.indices.viewer:1.23"
     ))
 }
@@ -42,6 +42,7 @@ tasks {
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "11"
+        kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
     }
 
     patchPluginXml {

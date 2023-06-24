@@ -12,7 +12,7 @@ import com.warmthdawn.zenscript.ZSLanguage
 import com.warmthdawn.zenscript.ZSLanguageFileType
 
 class ZenScriptFile(viewProvider: FileViewProvider) :
-        PsiFileBase(viewProvider, ZSLanguage) {
+    PsiFileBase(viewProvider, ZSLanguage) {
     override fun toString(): String {
         return "ZenScript File"
     }
@@ -23,7 +23,12 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
     val importList: ZenScriptImportList get() = PsiTreeUtil.getChildOfType(this, ZenScriptImportList::class.java)!!
     val scriptBody: ZenScriptScriptBody? get() = PsiTreeUtil.getChildOfType(this, ZenScriptScriptBody::class.java)
 
-    override fun processDeclarations(processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
+    override fun processDeclarations(
+        processor: PsiScopeProcessor,
+        state: ResolveState,
+        lastParent: PsiElement?,
+        place: PsiElement
+    ): Boolean {
 
 
         if (lastParent != this.scriptBody) {
@@ -45,7 +50,9 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
 
     val packageName: String
         get() {
-            val sourceRoot = ProjectRootManager.getInstance(project).fileIndex.getSourceRootForFile(this.virtualFile)?.path
+            val virtualFile = this.virtualFile ?: return ""
+            val sourceRoot =
+                ProjectRootManager.getInstance(project).fileIndex.getSourceRootForFile(virtualFile)?.path
 
             val currPath = virtualFile.path
             if (sourceRoot == null || !currPath.startsWith(sourceRoot)) {

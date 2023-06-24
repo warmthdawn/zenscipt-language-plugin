@@ -4,6 +4,8 @@ package com.warmthdawn.zenscript.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.scope.PsiScopeProcessor;
 
 public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression, ZenScriptFunction {
 
@@ -14,6 +16,8 @@ public interface ZenScriptFunctionLiteral extends ZenScriptLiteralExpression, Ze
   ZenScriptParameters getParameters();
 
   @Nullable
-  ZenScriptTypeRef getReturnType();
+  ZenScriptTypeRef getReturnTypeRef();
+
+  boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, @Nullable PsiElement lastParent, @NotNull PsiElement place);
 
 }

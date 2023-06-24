@@ -58,8 +58,8 @@ fun getIdentifier(ctor: ZenScriptConstructorDeclaration): ZenScriptIdentifier? {
     return (ctor.parent as? ZenScriptClassDeclaration)?.identifier
 }
 
-fun getReturnType(ctor: ZenScriptConstructorDeclaration): ZenScriptTypeRef? = null
-fun getReturnType(funcType: ZenScriptFunctionTypeRef): ZenScriptTypeRef? = funcType.typeRefList.lastOrNull()
+fun getReturnTypeRef(ctor: ZenScriptConstructorDeclaration): ZenScriptTypeRef? = null
+fun getReturnTypeRef(funcType: ZenScriptFunctionTypeRef): ZenScriptTypeRef? = funcType.typeRefList.lastOrNull()
 fun getParamsType(funcType: ZenScriptFunctionTypeRef): List<ZenScriptTypeRef> = funcType.typeRefList.let {
     if (it.size > 1) {
         it.subList(0, it.size - 1)
@@ -69,10 +69,18 @@ fun getParamsType(funcType: ZenScriptFunctionTypeRef): List<ZenScriptTypeRef> = 
 }
 
 fun getRangeInElement(memberAccessExpr: ZenScriptMemberAccessExpression): TextRange {
-    val nameRange = memberAccessExpr.identifier!!.textRange
+    val dot = memberAccessExpr.node.findChildByType(ZenScriptTypes.DOT)!!
+    val dotRange = dot.textRange
     val exprRange = memberAccessExpr.textRange
+    val startRelative = dotRange.endOffset - exprRange.startOffset
+    val exprLen = exprRange.length
 
-    return UnfairTextRange(nameRange.startOffset - exprRange.startOffset, nameRange.endOffset - exprRange.startOffset)
+
+    return if (startRelative < exprLen) {
+        TextRange(startRelative, exprLen)
+    } else {
+        TextRange(exprLen, exprLen)
+    }
 }
 
 
@@ -83,6 +91,24 @@ fun processDeclarations(forEachStmt: ZenScriptForeachStatement, processor: PsiSc
     processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, forEachStmt)
     for (variable in forEachStmt.entries) {
         if (!processor.execute(variable, state)) {
+            processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
+            return false
+        }
+    }
+    processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
+    return true
+}
+
+
+fun processDeclarations(func: ZenScriptFunction, processor: PsiScopeProcessor, state: ResolveState, lastParent: PsiElement?, place: PsiElement): Boolean {
+
+    if (lastParent != func.functionBody) {
+        return true
+    }
+    val params = func.parameters ?: return true
+    processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, func)
+    for (parameter in params.parameterList) {
+        if (!processor.execute(parameter, state)) {
             processor.handleEvent(PsiScopeProcessor.Event.SET_DECLARATION_HOLDER, null)
             return false
         }
