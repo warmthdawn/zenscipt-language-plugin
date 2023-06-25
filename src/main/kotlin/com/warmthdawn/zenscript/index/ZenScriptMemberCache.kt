@@ -25,6 +25,7 @@ enum class CraftTweakerNativeMember {
     MAP_SIZE,
 
 }
+
 class ZenScriptMemberCache(private val project: Project) {
 
     companion object {
@@ -41,13 +42,13 @@ class ZenScriptMemberCache(private val project: Project) {
     }
 
     fun getNativeMember(member: CraftTweakerNativeMember): List<PsiElement> {
-        return when(member) {
+        return when (member) {
             CraftTweakerNativeMember.ENTRY_KEY -> getNativeMember("java.util.Map.Entry", "getKey")
             CraftTweakerNativeMember.ENTRY_VALUE -> getNativeMember("java.util.Map.Entry", "getValue")
             CraftTweakerNativeMember.RANGE_FROM -> getNativeMember("stanhebben.zenscript.value.IntRange", "getFrom")
             CraftTweakerNativeMember.RANGE_TO -> getNativeMember("stanhebben.zenscript.value.IntRange", "getTo")
             CraftTweakerNativeMember.LIST_SIZE -> getNativeMember("java.util.List", "size")
-            CraftTweakerNativeMember.LIST_REMOVE -> getNativeMember("java.util.List", "remove")
+            CraftTweakerNativeMember.LIST_REMOVE -> getNativeMethod("java.util.List", "remove", "java.lang.Object")
             CraftTweakerNativeMember.MAP_KEYSET -> getNativeMember("java.util.Map", "keySet")
             CraftTweakerNativeMember.MAP_VALUES -> getNativeMember("java.util.Map", "values")
             CraftTweakerNativeMember.MAP_ENTRYSET -> getNativeMember("java.util.Map", "entrySet")
@@ -56,22 +57,46 @@ class ZenScriptMemberCache(private val project: Project) {
         }
     }
 
-    fun getStringNativeMethods(name: String): List<PsiElement>   {
-        val javaClazz = JavaPsiFacade.getInstance(project).findClass("java.lang.String", GlobalSearchScope.allScope(project)) ?: return emptyList()
+    fun getStringNativeMethods(name: String): List<PsiElement> {
+        val javaClazz =
+            JavaPsiFacade.getInstance(project).findClass("java.lang.String", GlobalSearchScope.allScope(project))
+                ?: return emptyList()
         return javaClazz.findMethodsByName(name, true).toList()
     }
 
-    fun getStringNativeMethods(): Array<PsiMethod>   {
-        val javaClazz = JavaPsiFacade.getInstance(project).findClass("java.lang.String", GlobalSearchScope.allScope(project)) ?: return emptyArray()
+    fun getStringNativeMethods(): Array<PsiMethod> {
+        val javaClazz =
+            JavaPsiFacade.getInstance(project).findClass("java.lang.String", GlobalSearchScope.allScope(project))
+                ?: return emptyArray()
         return javaClazz.allMethods
     }
 
-    private fun getNativeMember(clazz: String, name: String, isMethod: Boolean = true): List<PsiElement>   {
-        val javaClazz = JavaPsiFacade.getInstance(project).findClass(clazz, GlobalSearchScope.allScope(project)) ?: return emptyList()
-        return if(isMethod) {
+    fun getNativeMethod(clazz: String, name: String, vararg paramsTypes: String): List<PsiElement> {
+        val javaClazz = JavaPsiFacade.getInstance(project).findClass(clazz, GlobalSearchScope.allScope(project))
+            ?: return emptyList()
+        return javaClazz.findMethodsByName(name, false).filter {
+            val paramsList = it.parameterList
+            if (paramsList.parametersCount != paramsTypes.size) {
+                return@filter false
+            }
+
+            for (i in 0 until paramsList.parametersCount) {
+                if (!paramsList.getParameter(i)!!.type.equalsToText(paramsTypes[i])) {
+                    return@filter false
+                }
+            }
+
+            return@filter true
+        }
+    }
+
+    fun getNativeMember(clazz: String, name: String, isMethod: Boolean = true): List<PsiElement> {
+        val javaClazz = JavaPsiFacade.getInstance(project).findClass(clazz, GlobalSearchScope.allScope(project))
+            ?: return emptyList()
+        return if (isMethod) {
             javaClazz.findMethodsByName(name, false).toList()
         } else {
-            javaClazz.findFieldByName(name, false) ?. let { listOf(it) } ?: emptyList()
+            javaClazz.findFieldByName(name, false)?.let { listOf(it) } ?: emptyList()
         }
     }
 
@@ -123,8 +148,8 @@ class ZenScriptMemberCache(private val project: Project) {
                     }
 
                     (if (isStatic) staticMethods else methods)
-                            .computeIfAbsent(actualName) { mutableListOf() }
-                            .add(method)
+                        .computeIfAbsent(actualName) { mutableListOf() }
+                        .add(method)
 
                 } else if (annotation.hasQualifiedName("stanhebben.zenscript.annotations.ZenGetter")) {
                     if (!isValidGetter(method))
@@ -153,9 +178,9 @@ class ZenScriptMemberCache(private val project: Project) {
                     operators[ZenOperatorType.MEMBER_SETTER] = method
                 } else if (annotation.hasQualifiedName("stanhebben.zenscript.annotations.ZenOperator")) {
                     val op = getEnumAnnoValue(annotation, "value")
-                            ?: continue
+                        ?: continue
                     val opType = ZenOperatorType.fromName(op)
-                            ?: continue
+                        ?: continue
                     operators[opType] = method
                 }
             }
@@ -164,7 +189,7 @@ class ZenScriptMemberCache(private val project: Project) {
 
         for (field in javaClazz.allFields) {
             val annotation = field.getAnnotation("stanhebben.zenscript.annotations.ZenProperty")
-                    ?: continue
+                ?: continue
             val isStatic = field.hasModifierProperty(PsiModifier.STATIC)
             val propsMap = (if (isStatic) staticProperties else properties)
             var propName = AnnotationUtil.getStringAttributeValue(annotation, "value")
@@ -172,7 +197,8 @@ class ZenScriptMemberCache(private val project: Project) {
                 propName = field.name
             }
 
-            val basicMethodName = propName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+            val basicMethodName =
+                propName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
 
             val fieldElements = propsMap.computeIfAbsent(propName) { arrayOfNulls(3) }
@@ -182,11 +208,12 @@ class ZenScriptMemberCache(private val project: Project) {
             if (fieldElements[1] == null) {
                 var getterName = AnnotationUtil.getStringAttributeValue(annotation, "getter")
                 if (getterName.isNullOrEmpty()) {
-                    getterName = if (TypeConversionUtil.isBooleanType(field.type)) "is$basicMethodName" else "get$basicMethodName"
+                    getterName =
+                        if (TypeConversionUtil.isBooleanType(field.type)) "is$basicMethodName" else "get$basicMethodName"
                 }
 
                 val getterMethod = javaClazz.findMethodsByName(getterName, true)
-                        .firstOrNull { it.parameterList.isEmpty }
+                    .firstOrNull { it.parameterList.isEmpty }
                 if (isValidGetter(getterMethod)) {
                     fieldElements[1] = getterMethod
                 }
@@ -199,10 +226,10 @@ class ZenScriptMemberCache(private val project: Project) {
                 }
 
                 val setterMethod = javaClazz.findMethodsByName(setterName, true)
-                        .firstOrNull {
-                            val params = it.parameterList.parameters
-                            params.size == 1 && params[0].type.isConvertibleFrom(field.type)
-                        }
+                    .firstOrNull {
+                        val params = it.parameterList.parameters
+                        params.size == 1 && params[0].type.isConvertibleFrom(field.type)
+                    }
                 if (isValidSetter(setterMethod)) {
                     fieldElements[2] = setterMethod
                 }
@@ -216,13 +243,13 @@ class ZenScriptMemberCache(private val project: Project) {
         }
 
         return ZenClassCacheEntry(
-                properties = properties.entries.associate { it.key to createPropMember(it) },
-                staticProperties = staticProperties.entries.associate { it.key to createPropMember(it) },
-                methods = methods.entries.associate { it.key to createMethodMember(it) },
-                staticMethods = staticMethods.entries.associate { it.key to createMethodMember(it) },
-                constructors = constructors,
-                operators = operators,
-                iterator = Triple(iteratorKind, iteratorKeyType, iteratorValueType)
+            properties = properties.entries.associate { it.key to createPropMember(it) },
+            staticProperties = staticProperties.entries.associate { it.key to createPropMember(it) },
+            methods = methods.entries.associate { it.key to createMethodMember(it) },
+            staticMethods = staticMethods.entries.associate { it.key to createMethodMember(it) },
+            constructors = constructors,
+            operators = operators,
+            iterator = Triple(iteratorKind, iteratorKeyType, iteratorValueType)
         )
     }
 }
@@ -232,7 +259,12 @@ private fun createMethodMember(entry: Map.Entry<String, List<PsiMethod>>): ZenSc
 }
 
 private fun createPropMember(entry: Map.Entry<String, Array<PsiMember?>>): ZenScriptPropertyMember {
-    return ZenScriptPropertyMember(entry.key, entry.value[0] as? PsiField, entry.value[1] as? PsiMethod, entry.value[2] as? PsiMethod)
+    return ZenScriptPropertyMember(
+        entry.key,
+        entry.value[0] as? PsiField,
+        entry.value[1] as? PsiMethod,
+        entry.value[2] as? PsiMethod
+    )
 }
 
 private fun getEnumAnnoValue(annotation: PsiAnnotation, name: String): String? {
@@ -262,13 +294,13 @@ private fun isValidOperator(method: PsiMethod): Boolean {
 
 
 data class ZenClassCacheEntry(
-        val properties: Map<String, ZenScriptPropertyMember>,
-        val staticProperties: Map<String, ZenScriptPropertyMember>,
-        val methods: Map<String, ZenScriptMethodMember>,
-        val staticMethods: Map<String, ZenScriptMethodMember>,
-        val iterator: Triple<ZenIteratorKind, String, String>,
-        val operators: Map<ZenOperatorType, PsiMethod>,
-        val constructors: List<PsiMethod>,
+    val properties: Map<String, ZenScriptPropertyMember>,
+    val staticProperties: Map<String, ZenScriptPropertyMember>,
+    val methods: Map<String, ZenScriptMethodMember>,
+    val staticMethods: Map<String, ZenScriptMethodMember>,
+    val iterator: Triple<ZenIteratorKind, String, String>,
+    val operators: Map<ZenOperatorType, PsiMethod>,
+    val constructors: List<PsiMethod>,
 )
 
 enum class ZenOperatorType(val kind: ZenOperatorKind) {
@@ -339,16 +371,16 @@ enum class ZenOperatorKind {
 }
 
 data class ZenScriptMethodMember(
-        val name: String,
-        val methods: List<PsiMethod>,
+    val name: String,
+    val methods: List<PsiMethod>,
 )
 
 
 data class ZenScriptPropertyMember(
-        val name: String,
-        val field: PsiField?,
-        val getter: PsiMethod?,
-        val setter: PsiMethod?,
+    val name: String,
+    val field: PsiField?,
+    val getter: PsiMethod?,
+    val setter: PsiMethod?,
 ) {
     val javaType: PsiType
         get() = this.field?.type ?: getter?.returnType ?: setter?.parameterList?.parameters?.get(0)?.type!!

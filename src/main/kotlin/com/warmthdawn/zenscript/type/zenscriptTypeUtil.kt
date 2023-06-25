@@ -16,44 +16,42 @@ class ZenScriptTypeService(val project: Project) {
         }
     }
 
-    fun selectMethod(arguments: List<ZenType>, candidateMethods: List<PsiElement>, forCompletion: Boolean = false): Int {
+    fun selectMethod(
+        arguments: List<ZenType>,
+        candidateMethods: List<PsiElement>,
+    ): Pair<ZenCallPriority, List<Int>> {
         if (candidateMethods.isEmpty())
-            return -1
+            return ZenCallPriority.INVALID to emptyList()
 
 
+        val bestFunctionIndexes = mutableListOf<Int>()
         var bestPriority = ZenCallPriority.INVALID
-        var bestFunctionIndex = -1
-        var isValid = false
 
         for (i in candidateMethods.indices) {
             val priority = when (val method = candidateMethods[i]) {
-                is PsiMethod -> getCallPriority(arguments, method, forCompletion)
-                is ZenScriptFunctionDeclaration -> getCallPriority(arguments, method, forCompletion)
+                is PsiMethod -> getCallPriority(arguments, method)
+                is ZenScriptFunctionDeclaration -> getCallPriority(arguments, method)
                 else -> ZenCallPriority.INVALID
             }
 
-            if (priority == bestPriority) {
-                isValid = false
-            } else if (priority.priority > bestPriority.priority) {
-                isValid = true
-                bestFunctionIndex = i
+            if (priority.priority > bestPriority.priority) {
+                bestFunctionIndexes.clear()
+                bestFunctionIndexes.add(i)
                 bestPriority = priority
+            } else if (priority == bestPriority) {
+                bestFunctionIndexes.add(i)
             }
         }
 
-        if (isValid) {
-            return bestFunctionIndex
-        }
-
-        return if (bestPriority != ZenCallPriority.INVALID) {
-            // multi method available
-            -bestFunctionIndex - 2
-        } else -1
+        return bestPriority to bestFunctionIndexes
 
     }
 
 
-    fun getCallPriority(arguments: List<ZenType>, javaFunc: PsiMethod, forCompletion: Boolean = false): ZenCallPriority {
+    fun getCallPriority(
+        arguments: List<ZenType>,
+        javaFunc: PsiMethod,
+    ): ZenCallPriority {
         val parameters = javaFunc.parameterList.parameters
 
         var firstOptionalIndex = -1
@@ -64,14 +62,18 @@ class ZenScriptTypeService(val project: Project) {
             parameterTypes.add(paramType)
             if (parameters[i].hasAnnotation("stanhebben.zenscript.annotations.Optional")) {
                 firstOptionalIndex = i
+                break
             }
         }
 
-        return getCallPriority(arguments, parameterTypes, firstOptionalIndex, isVarargs, forCompletion)
+        return getCallPriority(arguments, parameterTypes, firstOptionalIndex, isVarargs)
 
     }
 
-    fun getCallPriority(arguments: List<ZenType>, zsFunc: ZenScriptFunctionDeclaration, forCompletion: Boolean = false): ZenCallPriority {
+    fun getCallPriority(
+        arguments: List<ZenType>,
+        zsFunc: ZenScriptFunctionDeclaration,
+    ): ZenCallPriority {
         var firstOptionalIndex = -1
         val parameters = zsFunc.parameters!!.parameterList
         val parameterTypes = ArrayList<ZenType>(parameters.size)
@@ -80,14 +82,18 @@ class ZenScriptTypeService(val project: Project) {
             parameterTypes.add(paramType)
             if (parameters[i].initializer != null) {
                 firstOptionalIndex = i
+                break
             }
         }
 
-        return getCallPriority(arguments, parameterTypes, firstOptionalIndex, false, forCompletion)
+        return getCallPriority(arguments, parameterTypes, firstOptionalIndex, false)
     }
 
-    fun getCallPriority(arguments: List<ZenType>, funcType: ZenScriptFunctionType, forCompletion: Boolean = false): ZenCallPriority {
-        return getCallPriority(arguments, funcType.parameterTypes, -1, false, forCompletion)
+    fun getCallPriority(
+        arguments: List<ZenType>,
+        funcType: ZenScriptFunctionType,
+    ): ZenCallPriority {
+        return getCallPriority(arguments, funcType.parameterTypes, -1, false)
     }
 
     private fun isNullable(type: ZenType): Boolean {
@@ -175,7 +181,8 @@ class ZenScriptTypeService(val project: Project) {
             if (targetType !is ZenScriptArrayType) {
                 return false
             }
-            val sourceElementType = if (sourceType is ZenScriptArrayType) sourceType.elementType else (sourceType as ZenScriptListType).elementType
+            val sourceElementType =
+                if (sourceType is ZenScriptArrayType) sourceType.elementType else (sourceType as ZenScriptListType).elementType
             val targetElementType = targetType.elementType
             return canCast(targetElementType, sourceElementType)
         }
@@ -192,14 +199,63 @@ class ZenScriptTypeService(val project: Project) {
     }
 
     private val internalCasters = mapOf(
-            ZenPrimitiveType.INT to setOf(ZenPrimitiveType.BYTE, ZenPrimitiveType.SHORT, ZenPrimitiveType.LONG, ZenPrimitiveType.FLOAT, ZenPrimitiveType.DOUBLE, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.BYTE to setOf(ZenPrimitiveType.SHORT, ZenPrimitiveType.INT, ZenPrimitiveType.LONG, ZenPrimitiveType.FLOAT, ZenPrimitiveType.DOUBLE, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.SHORT to setOf(ZenPrimitiveType.BYTE, ZenPrimitiveType.INT, ZenPrimitiveType.LONG, ZenPrimitiveType.FLOAT, ZenPrimitiveType.DOUBLE, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.LONG to setOf(ZenPrimitiveType.BYTE, ZenPrimitiveType.SHORT, ZenPrimitiveType.INT, ZenPrimitiveType.FLOAT, ZenPrimitiveType.DOUBLE, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.FLOAT to setOf(ZenPrimitiveType.BYTE, ZenPrimitiveType.SHORT, ZenPrimitiveType.INT, ZenPrimitiveType.LONG, ZenPrimitiveType.DOUBLE, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.DOUBLE to setOf(ZenPrimitiveType.BYTE, ZenPrimitiveType.SHORT, ZenPrimitiveType.INT, ZenPrimitiveType.LONG, ZenPrimitiveType.FLOAT, ZenPrimitiveType.STRING),
-            ZenPrimitiveType.STRING to setOf(ZenPrimitiveType.BOOL, ZenPrimitiveType.BYTE, ZenPrimitiveType.SHORT, ZenPrimitiveType.INT, ZenPrimitiveType.LONG, ZenPrimitiveType.FLOAT),
-            ZenPrimitiveType.BOOL to setOf(ZenPrimitiveType.STRING),
+        ZenPrimitiveType.INT to setOf(
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.FLOAT,
+            ZenPrimitiveType.DOUBLE,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.BYTE to setOf(
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.FLOAT,
+            ZenPrimitiveType.DOUBLE,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.SHORT to setOf(
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.FLOAT,
+            ZenPrimitiveType.DOUBLE,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.LONG to setOf(
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.FLOAT,
+            ZenPrimitiveType.DOUBLE,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.FLOAT to setOf(
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.DOUBLE,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.DOUBLE to setOf(
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.FLOAT,
+            ZenPrimitiveType.STRING
+        ),
+        ZenPrimitiveType.STRING to setOf(
+            ZenPrimitiveType.BOOL,
+            ZenPrimitiveType.BYTE,
+            ZenPrimitiveType.SHORT,
+            ZenPrimitiveType.INT,
+            ZenPrimitiveType.LONG,
+            ZenPrimitiveType.FLOAT
+        ),
+        ZenPrimitiveType.BOOL to setOf(ZenPrimitiveType.STRING),
     )
 
 
@@ -207,7 +263,12 @@ class ZenScriptTypeService(val project: Project) {
         return targetType in (internalCasters[sourceType] ?: return false)
     }
 
-    private fun getCallPriority(arguments: List<ZenType>, parameterTypes: List<ZenType>, firstOptionalIndex: Int, isVarargs: Boolean, isForCompletion: Boolean): ZenCallPriority {
+    private fun getCallPriority(
+        arguments: List<ZenType>,
+        parameterTypes: List<ZenType>,
+        firstOptionalIndex: Int,
+        isVarargs: Boolean,
+    ): ZenCallPriority {
         var result: ZenCallPriority = ZenCallPriority.HIGH
         if (arguments.size > parameterTypes.size) {
             if (isVarargs) {
@@ -217,21 +278,21 @@ class ZenScriptTypeService(val project: Project) {
                     val argType: ZenType = arguments[i]
                     if (argType == varargsElementType) {
                         // OK
-                    } else if (canCast(argType, varargsElementType)) {
+                    } else if (canCast(varargsElementType, argType)) {
                         result = ZenCallPriority.min(result, ZenCallPriority.LOW)
-                    } else if (isForCompletion && argType is ZenUnknownType) {
-                        result = ZenCallPriority.min(result, ZenCallPriority.LOW)
+                    } else if (argType is ZenUnknownType) {
+                        result = ZenCallPriority.min(result, ZenCallPriority.PARTIAL)
                     } else {
                         return ZenCallPriority.INVALID
                     }
                 }
             } else {
-                return ZenCallPriority.INVALID
+                result = ZenCallPriority.PARTIAL
             }
         } else if (arguments.size < parameterTypes.size) {
             result = ZenCallPriority.MEDIUM
-            if (firstOptionalIndex >= 0 && arguments.size < firstOptionalIndex && !isForCompletion) {
-                return ZenCallPriority.INVALID
+            if (firstOptionalIndex >= 0 && arguments.size < firstOptionalIndex) {
+                result =  ZenCallPriority.PARTIAL
             }
         }
         var checkUntil = arguments.size
@@ -242,10 +303,10 @@ class ZenScriptTypeService(val project: Project) {
             val argType: ZenType = arguments[arguments.size - 1]
             if (argType == lastType || argType == varargsElementType) {
                 // OK
-            } else if (canCast(argType, lastType) || canCast(argType, varargsElementType)) {
+            } else if (canCast(lastType, argType) || canCast(varargsElementType, argType)) {
                 result = ZenCallPriority.min(result, ZenCallPriority.LOW)
-            } else if (isForCompletion && argType is ZenUnknownType) {
-                result = ZenCallPriority.min(result, ZenCallPriority.LOW)
+            } else if (argType is ZenUnknownType) {
+                result = ZenCallPriority.min(result, ZenCallPriority.PARTIAL)
             } else {
                 return ZenCallPriority.INVALID
             }
@@ -255,10 +316,10 @@ class ZenScriptTypeService(val project: Project) {
             val argType: ZenType = arguments[i]
             val paramType: ZenType = parameterTypes[i]
             if (argType != paramType) {
-                result = if (canCast(argType, paramType)) {
+                result = if (canCast(paramType, argType)) {
                     ZenCallPriority.min(result, ZenCallPriority.LOW)
-                } else if (isForCompletion && argType is ZenUnknownType) {
-                    ZenCallPriority.min(result, ZenCallPriority.LOW)
+                } else if (argType is ZenUnknownType) {
+                    ZenCallPriority.min(result, ZenCallPriority.PARTIAL)
                 } else {
                     return ZenCallPriority.INVALID
                 }
@@ -270,7 +331,8 @@ class ZenScriptTypeService(val project: Project) {
 
 enum class ZenCallPriority(val priority: Int) {
 
-    INVALID(-1),
+    INVALID(-2),
+    PARTIAL(-1),
     LOW(0),
     MEDIUM(1),
     HIGH(2);

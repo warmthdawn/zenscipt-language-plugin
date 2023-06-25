@@ -1,6 +1,10 @@
 package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.AnnotationUtil
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.completion.util.MethodParenthesesHandler
+import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -9,9 +13,15 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PlatformIcons
 import com.intellij.util.indexing.FileBasedIndex
 import com.warmthdawn.zenscript.completion.ClassTest
+import com.warmthdawn.zenscript.completion.createLookupElement
 import com.warmthdawn.zenscript.index.*
 import com.warmthdawn.zenscript.psi.ZenScriptClassDeclaration
+import com.warmthdawn.zenscript.psi.ZenScriptConstructorDeclaration
+import com.warmthdawn.zenscript.psi.ZenScriptExpandFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptFile
+import com.warmthdawn.zenscript.psi.ZenScriptFunction
+import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
+import com.warmthdawn.zenscript.psi.ZenScriptFunctionLiteral
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
 import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
@@ -21,64 +31,6 @@ import com.warmthdawn.zenscript.util.type
 import org.jetbrains.kotlin.idea.util.findModule
 
 
-private fun ZenScriptPropertyMember.createLookupElement(name: String): LookupElementBuilder {
-    val prop = this
-    var builder = LookupElementBuilder
-        .create(prop.getter ?: prop.field ?: prop.setter!!, name)
-        .withIcon(PlatformIcons.PROPERTY_ICON)
-    val javaType = prop.javaType
-
-    if (javaType is PsiClassType) {
-        if (isFunctionalInterface(javaType.resolve())) {
-            // TODO
-        }
-    }
-
-    if (prop.getter != null || prop.setter != null) {
-        val from = buildString {
-            append(" (From ")
-            var first = true
-            if (prop.getter != null) {
-                append(prop.getter.name)
-                append("()")
-                first = false
-            }
-            if (prop.setter != null) {
-                if (!first) {
-                    append("/")
-                }
-                append(prop.setter.name)
-                append("()")
-            }
-            if (prop.field != null) {
-                append("/")
-                append(prop.field.name)
-            }
-            append(")")
-        }
-
-        builder = builder.appendTailText(from, true)
-    }
-
-    builder = builder.withTypeText(ZenType.fromJavaType(javaType).displayName, true)
-    return builder
-}
-
-private fun PsiMethod.createLookupElement(name: String): LookupElementBuilder {
-    val method = this
-    var builder = LookupElementBuilder
-        .create(method, name)
-        .withIcon(method.getIcon(0))
-
-
-    val params = method.parameterList.parameters.joinToString(", ", "(", ")") {
-        it.name + " as " + ZenType.fromJavaType(it.type).displayName
-    }
-
-    builder = builder.withTailText(params, true)
-    builder = builder.withTypeText(ZenType.fromJavaType(method.returnType).displayName)
-    return builder
-}
 
 private fun createNativeLookupElement(element: PsiElement, name: String, preferField: Boolean): LookupElementBuilder {
 
@@ -91,7 +43,7 @@ private fun createNativeLookupElement(element: PsiElement, name: String, preferF
             it.name + " as " + ZenType.fromJavaType(it.type).displayName
         }
 
-        builder = builder.withTailText(params, true)
+        builder = builder.withTailText(params, true).withInsertHandler(MethodParenthesesHandler(element, false))
     }
 
     if (element is PsiMethod) {
@@ -225,28 +177,14 @@ fun findMembers(project: Project, type: ZenType, elementCollector: (name: Lookup
                         if (!variable.isValid) {
                             continue
                         }
-                        elementCollector(
-                            LookupElementBuilder
-                                .createWithIcon(variable)
-                                .withTypeText(variable.type.displayName, true)
-                        )
+                        elementCollector(variable.createLookupElement())
                     }
-
 
                     for (function in zenClazz.functions) {
                         if (!function.isValid) {
                             continue
                         }
-                        var builder = LookupElementBuilder
-                            .createWithIcon(function)
-
-                        (function.parameters?.parameterList ?: emptyList()).joinToString(", ", "(", ")") {
-                            it.name + " as " + it.type.displayName
-                        }.let {
-                            builder = builder.withTailText(it)
-                        }
-                        builder = builder.withTypeText(function.returnType.displayName, true)
-                        elementCollector(builder)
+                        elementCollector(function.createLookupElement())
                     }
                 }
 
@@ -533,3 +471,23 @@ private fun findFile(project: Project, qualifiedName: String): PsiFile? {
 
     return result
 }
+
+//fun hasOverloads(function: ZenScriptFunction): Boolean {
+//
+//    if (function is ZenScriptExpandFunctionDeclaration || function is ZenScriptFunctionLiteral) {
+//        return false
+//    }
+//    val parent = function.parent
+//    if (parent !is ZenScriptClassDeclaration) {
+//        return false
+//    }
+//
+//    if (function is ZenScriptFunctionDeclaration) {
+//        val name = function.name
+//        return parent.functions.any { it != function && it.name == name }
+//    } else if (function is ZenScriptConstructorDeclaration) {
+//        val name = function.name
+//        return parent.constructors.any { it != function && it.name == name }
+//    }
+//    throw IllegalStateException("unsupported: $function")
+//}

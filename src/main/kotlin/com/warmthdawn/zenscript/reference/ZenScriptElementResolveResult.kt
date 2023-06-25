@@ -25,5 +25,6 @@ enum class ZenResolveResultType {
     JAVA_METHODS,
     JAVA_OPERATOR,
     JAVA_GLOBAL_VAR,
+    JAVA_GLOBAL_FUNCTION,
 
 }

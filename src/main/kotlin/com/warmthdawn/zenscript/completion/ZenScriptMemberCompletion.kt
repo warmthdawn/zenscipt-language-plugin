@@ -2,21 +2,25 @@ package com.warmthdawn.zenscript.completion;
 
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionUtil
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiVariable
-import com.intellij.psi.ResolveState
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.*
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PlatformIcons
 import com.intellij.util.indexing.FileBasedIndex
 import com.warmthdawn.zenscript.completion.ZenScriptPatterns.AT_TOP_LEVEL
 import com.warmthdawn.zenscript.completion.ZenScriptPatterns.ZEN_SCRIPT_IDENTIFIER
+import com.warmthdawn.zenscript.external.ZenScriptGlobalData
 import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
+import com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex
 import com.warmthdawn.zenscript.psi.*
-import com.warmthdawn.zenscript.reference.ZenResolveResultType
-import com.warmthdawn.zenscript.reference.ZenScriptScopeProcessor
+import com.warmthdawn.zenscript.reference.*
 import com.warmthdawn.zenscript.type.*
+import com.warmthdawn.zenscript.util.hasGlobalModifier
 import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
 import java.lang.IllegalStateException
@@ -214,24 +218,11 @@ class ZenScriptMemberCompletion(
             } else if (!classOnly && element is ZenScriptNamedElement && element.name != null) {
                 when (element) {
                     is ZenScriptVariableDeclaration -> {
-                        LookupElementBuilder
-                            .createWithIcon(element)
-                            .withTypeText(element.type.displayName, true)
-                            .add()
+                        element.createLookupElement().add()
                     }
 
                     is ZenScriptFunctionDeclaration -> {
-
-                        var builder = LookupElementBuilder
-                            .createWithIcon(element)
-
-                        (element.parameters?.parameterList ?: emptyList()).joinToString(", ", "(", ")") {
-                            it.name + " as " + it.type.displayName
-                        }.let {
-                            builder = builder.withTailText(it)
-                        }
-                        builder = builder.withTypeText(element.returnType.displayName, true)
-
+                        element.createLookupElement().add()
                     }
 
                     is ZenScriptForeachVariableDeclaration -> {
@@ -306,9 +297,49 @@ class ZenScriptMemberCompletion(
 
     }
 
+    private fun addGlobals(file: VirtualFile) {
+        val index = FileBasedIndex.getInstance()
+        val names = index.getAllKeys(ZenScriptGlobalVariableIndex.NAME, project)
+        index.getFilesWithKey(ZenScriptGlobalVariableIndex.NAME, names.toSet(), {
+            if (it == file) {
+                return@getFilesWithKey true
+            }
+            PsiManager.getInstance(project).findFile(it)?.let { psiFile ->
+                (psiFile as? ZenScriptFile)?.scriptBody?.statements
+                    ?.asSequence()
+                    ?.filterIsInstance<ZenScriptVariableDeclaration>()
+                    ?.filter { decl -> decl.hasGlobalModifier }
+                    ?.forEach { variable ->
+                        variable.createLookupElement().add()
+                    }
+            }
+            true
+        }, GlobalSearchScope.projectScope(project))
+
+        ZenScriptGlobalData.getInstance(project).getGlobalFunctions().forEach { (name, funcs) ->
+            for (func in funcs) {
+                if (func is PsiMethod) {
+                    func.createLookupElement(name).add()
+                }
+            }
+        }
+
+        ZenScriptGlobalData.getInstance(project).getGlobalFields().forEach { (name, fields) ->
+            for (field in fields) {
+                if (field is PsiField) {
+                    field.createLookupElement(name).add()
+                } else if (field is PsiMethod) {
+                    field.createGetterFieldLookupElement(name).add()
+                }
+            }
+        }
+
+    }
+
     private fun completeLocalAccessExpr(element: ZenScriptLocalAccessExpression) {
         addRootPackages()
         addLocalClasses(element, false)
+        addGlobals(element.containingFile.originalFile.virtualFile)
     }
 
 }

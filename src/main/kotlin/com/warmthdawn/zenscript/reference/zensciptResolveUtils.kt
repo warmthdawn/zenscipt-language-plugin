@@ -1,9 +1,11 @@
 package com.warmthdawn.zenscript.reference
 
+import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.indexing.FileBasedIndex
+import com.warmthdawn.zenscript.external.ZenScriptGlobalData
 import com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex
 import com.warmthdawn.zenscript.psi.ZenScriptArrayIndexExpression
 import com.warmthdawn.zenscript.psi.ZenScriptCallExpression
@@ -46,7 +48,8 @@ fun resolveImportRef(ref: ZenScriptImportReference): Array<ZenScriptElementResol
     if (qualifier != null && qualifier.startsWith("scripts")) {
         val member = findZenFileMember(project, qualifier, identifier)
         if (member != null) {
-            val type = if (member is ZenScriptClassDeclaration) ZenResolveResultType.ZEN_CLASS else ZenResolveResultType.ZEN_VARIABLE
+            val type =
+                if (member is ZenScriptClassDeclaration) ZenResolveResultType.ZEN_CLASS else ZenResolveResultType.ZEN_VARIABLE
             return arrayOf(ZenScriptElementResolveResult(member, type))
         }
     } else {
@@ -109,7 +112,10 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResol
     }
 }
 
-fun resolveCallExpr(ref: ZenScriptCallExpression, resolvedMethods: Array<ZenScriptElementResolveResult>): Array<ZenScriptElementResolveResult> {
+fun resolveCallExpr(
+    ref: ZenScriptCallExpression,
+    resolvedMethods: Array<ZenScriptElementResolveResult>
+): Array<ZenScriptElementResolveResult> {
     val project = ref.project
     val typeUtil = ZenScriptTypeService.getInstance(project)
     val arguments = ref.arguments.expressionList.map { getType(it) }
@@ -118,26 +124,26 @@ fun resolveCallExpr(ref: ZenScriptCallExpression, resolvedMethods: Array<ZenScri
     }
 
     val candidateMethods = resolvedMethods.asSequence()
-            .filter { it.type == ZenResolveResultType.ZEN_METHOD || it.type == ZenResolveResultType.JAVA_METHODS }
-            .map { it.element }
-            .toList()
+        .filter { it.type == ZenResolveResultType.ZEN_METHOD || it.type == ZenResolveResultType.JAVA_METHODS }
+        .map { it.element }
+        .toList()
     if (candidateMethods.isNotEmpty()) {
 
-        val selected = typeUtil.selectMethod(arguments, candidateMethods)
+        val (priority, result) = typeUtil.selectMethod(arguments, candidateMethods)
 
-        if (selected == -2) {
+        if (priority == ZenCallPriority.INVALID) {
             return candidateMethods.map {
                 val type = if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-                ZenScriptElementResolveResult(it, type, false)
+                ZenScriptElementResolveResult(it, type)
             }.toTypedArray()
         }
-        if (selected < 0) {
-            return emptyArray()
-        }
-        val method = candidateMethods[selected]
-        val type = if (method is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-
-        return arrayOf(ZenScriptElementResolveResult(method, type))
+        val resultSet = result.toSet()
+        return candidateMethods.filterIndexed { index, _ ->
+            index in resultSet
+        }.map {
+            val type = if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+            ZenScriptElementResolveResult(it, type)
+        }.toTypedArray()
 
     }
 
@@ -145,17 +151,29 @@ fun resolveCallExpr(ref: ZenScriptCallExpression, resolvedMethods: Array<ZenScri
         when (resolvedMethods[0].type) {
             ZenResolveResultType.ZEN_CLASS, ZenResolveResultType.JAVA_CLASS -> {
                 val clazz = resolvedMethods[0].element
-                val ctors = if (clazz is ZenScriptClassDeclaration) clazz.constructors
-                else listOf(*(clazz as PsiClass).constructors)
-                val selected = typeUtil.selectMethod(arguments, ctors)
-                if (selected == -2) {
-                    return ctors.map { ZenScriptElementResolveResult(it, if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD, false) }.toTypedArray()
-                } else if (selected < 0) {
-                    return emptyArray()
+                val ctors = if (clazz is ZenScriptClassDeclaration) {
+                    clazz.constructors
+                } else {
+                    listOf(*(clazz as PsiClass).constructors)
                 }
-                val method = ctors[selected]
-                val type = if (method is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-                return arrayOf(ZenScriptElementResolveResult(method, type))
+
+                val (priority, result) = typeUtil.selectMethod(arguments, ctors)
+
+                if (priority == ZenCallPriority.INVALID) {
+                    return ctors.map {
+                        val type =
+                            if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+                        ZenScriptElementResolveResult(it, type)
+                    }.toTypedArray()
+                }
+                val resultSet = result.toSet()
+                return ctors.filterIndexed { index, _ ->
+                    index in resultSet
+                }.map {
+                    val type =
+                        if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
+                    ZenScriptElementResolveResult(it, type)
+                }.toTypedArray()
             }
 
             else -> {
@@ -236,7 +254,7 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<Z
             }
 
         } else {
-            val result = mutableListOf<PsiNameIdentifierOwner>()
+            val result = mutableListOf<PsiElement>()
             FileBasedIndex.getInstance().getFilesWithKey(ZenScriptGlobalVariableIndex.NAME, setOf(name), {
                 PsiManager.getInstance(project).findFile(it)?.let { psiFile ->
                     collectGlobalFromFile(name, psiFile, result)
@@ -247,13 +265,19 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<Z
             var type = ZenResolveResultType.ZEN_VARIABLE
             if (result.isEmpty()) {
                 type = ZenResolveResultType.JAVA_GLOBAL_VAR
-                collectLibraryGlobals(name, result)
+                result.addAll(collectLibraryGlobalFields(project, name))
+            }
+
+
+            if (result.isEmpty()) {
+                type = ZenResolveResultType.JAVA_GLOBAL_FUNCTION
+                result.addAll(collectLibraryGlobalMethods(project, name))
             }
 
             result.asSequence()
-                    .map { ZenScriptElementResolveResult(it, type) }
-                    .toList()
-                    .toTypedArray()
+                .map { ZenScriptElementResolveResult(it, type) }
+                .toList()
+                .toTypedArray()
         }
     }
 
@@ -262,22 +286,26 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<Z
 }
 
 
-private fun collectLibraryGlobals(name: String, out: MutableList<PsiNameIdentifierOwner>) {
-
+private fun collectLibraryGlobalFields(project: Project, name: String): List<PsiElement> {
+    return ZenScriptGlobalData.getInstance(project).getGlobalFields()[name] ?: emptyList()
 }
 
-private fun collectGlobalFromFile(name: String, file: PsiFile, out: MutableList<PsiNameIdentifierOwner>) {
+private fun collectLibraryGlobalMethods(project: Project, name: String): List<PsiElement> {
+    return ZenScriptGlobalData.getInstance(project).getGlobalFunctions()[name] ?: emptyList()
+}
+
+private fun collectGlobalFromFile(name: String, file: PsiFile, out: MutableList<PsiElement>) {
     if (file !is ZenScriptFile) {
         return
     }
 
     (file.scriptBody?.statements ?: return)
-            .asSequence()
-            .filterIsInstance<ZenScriptVariableDeclaration>()
-            .filter { it.name == name }
-            .forEach {
-                out.add(it)
-            }
+        .asSequence()
+        .filterIsInstance<ZenScriptVariableDeclaration>()
+        .filter { it.name == name }
+        .forEach {
+            out.add(it)
+        }
 
 }
 

@@ -28,6 +28,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.warmthdawn.zenscript.index.ZenScriptMemberCache"/>
         <projectService serviceImplementation="com.warmthdawn.zenscript.type.ZenScriptTypeService"/>
+        <projectService serviceImplementation="com.warmthdawn.zenscript.external.ZenScriptGlobalData"/>
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex"/>
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptClassNameIndex"/>
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptTypeExpansionIndex"/>

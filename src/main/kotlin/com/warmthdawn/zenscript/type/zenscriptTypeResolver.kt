@@ -1,6 +1,7 @@
 package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.AnnotationUtil
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -15,6 +16,7 @@ import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
 import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
 
+private val logger = Logger.getInstance("zenscript-type-resolver")
 
 fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, skipMethods: Boolean = true): ZenType? {
     if (resolveResults.isEmpty()) {
@@ -72,7 +74,15 @@ fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, skipMeth
             ZenResolveResultType.JAVA_GLOBAL_VAR -> {
                 if (element is PsiField) {
                     return ZenType.fromJavaType(element.type)
+                } else if (element is PsiMethod) {
+                    return ZenType.fromJavaType(element.returnType)
                 }
+
+                throw IllegalStateException("global var is not a valid java element: $element")
+
+            }
+
+            ZenResolveResultType.JAVA_GLOBAL_FUNCTION -> {
                 // TODO: Function
                 return ZenPrimitiveType.ANY
 
@@ -104,7 +114,7 @@ private fun getVariableType(decl: PsiElement): ZenType {
         }
     } else if (decl is ZenScriptForeachVariableDeclaration) {
         decl.type
-    } else if(decl is ZenScriptParameter) {
+    } else if (decl is ZenScriptParameter) {
         decl.type
     } else {
         ZenUnknownType("unknown decl: $decl")
@@ -163,8 +173,6 @@ fun getTypeImpl(expr: ZenScriptArrayIndexExpression): ZenType {
 fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
     val methodExpr = expr.expression
     val project = expr.project
-    val typeUtil = ZenScriptTypeService.getInstance(project)
-    val arguments = expr.arguments.expressionList.map { getType(it) }
     var methodType: ZenType? = null
     if (methodExpr is ZenScriptReference) {
 
@@ -178,12 +186,16 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
                 .toList()
             if (candidateMethods.isNotEmpty()) {
 
-                val selected = typeUtil.selectMethod(arguments, candidateMethods)
-
-                if (selected < 0) {
-                    return ZenUnknownType("<unknown call>")
+                if (candidateMethods.size > 1) {
+                    return ZenUnknownType(
+                        "Multiple candidate for call ${
+                            (methodExpr as PsiElement).text.substringAfterLast(
+                                "."
+                            )
+                        }()"
+                    )
                 }
-                val method = candidateMethods[selected]
+                val method = candidateMethods.first()
 
                 return if (method is ZenScriptFunctionDeclaration) {
                     method.returnType
@@ -193,52 +205,58 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
 
             }
 
-            if (resolvedMethods.isNotEmpty()) {
-                when (resolvedMethods[0].type) {
-                    ZenResolveResultType.ZEN_CLASS -> {
-                        return getTargetType(resolvedMethods, true)!!
-                    }
+            if (resolvedMethods.size != 1) {
+                logger.error("expression \"${expr.text} resolved multiple non-method result!\"")
+            }
+            when (resolvedMethods[0].type) {
+                ZenResolveResultType.ZEN_CLASS -> {
+                    return getTargetType(resolvedMethods, true)!!
+                }
 
-                    ZenResolveResultType.JAVA_CLASS -> {
-                        return getTargetType(resolvedMethods, true)!!
-                    }
+                ZenResolveResultType.JAVA_CLASS -> {
+                    return getTargetType(resolvedMethods, true)!!
+                }
 
-                    ZenResolveResultType.ZEN_VARIABLE -> {
-                        methodType = getVariableType(resolvedMethods[0].element)
-                    }
+                ZenResolveResultType.ZEN_VARIABLE -> {
+                    methodType = getVariableType(resolvedMethods[0].element)
+                }
 
-                    ZenResolveResultType.JAVA_PROPERTY -> {
-                        methodType = when (val prop = resolvedMethods[0].element) {
-                            is PsiField -> ZenType.fromJavaType(prop.type)
-                            is PsiMethod -> {
-                                val params = prop.parameterList
-                                ZenType.fromJavaType(
-                                    if (params.isEmpty) {
-                                        prop.returnType
-                                    } else {
-                                        params.getParameter(0)!!.type
-                                    }
-                                )
-                            }
-
-                            else -> null
+                ZenResolveResultType.JAVA_PROPERTY -> {
+                    methodType = when (val prop = resolvedMethods[0].element) {
+                        is PsiField -> ZenType.fromJavaType(prop.type)
+                        is PsiMethod -> {
+                            val params = prop.parameterList
+                            ZenType.fromJavaType(
+                                if (params.isEmpty) {
+                                    prop.returnType
+                                } else {
+                                    params.getParameter(0)!!.type
+                                }
+                            )
                         }
-                    }
 
-                    ZenResolveResultType.JAVA_GLOBAL_VAR -> {
-                        when (val el = resolvedMethods[0].element) {
-                            is PsiField -> methodType = ZenType.fromJavaType(el.type)
-                            is PsiMethod -> {
-                                return ZenType.fromJavaType(el.returnType)
-                            }
-                        }
-                    }
-
-                    else -> {
-                        return ZenUnknownType("<unknown call>")
+                        else -> null
                     }
                 }
+
+                ZenResolveResultType.JAVA_GLOBAL_VAR -> {
+                    when (val el = resolvedMethods[0].element) {
+                        is PsiField -> methodType = ZenType.fromJavaType(el.type)
+                        is PsiMethod -> {
+                            methodType = ZenType.fromJavaType(el.returnType)
+                        }
+                    }
+                }
+
+                ZenResolveResultType.JAVA_GLOBAL_FUNCTION -> {
+                    return ZenType.fromJavaType((resolvedMethods[0].element as PsiMethod).returnType)
+                }
+
+                else -> {
+                    return ZenUnknownType("<unknown call>")
+                }
             }
+
         }
 
     }
