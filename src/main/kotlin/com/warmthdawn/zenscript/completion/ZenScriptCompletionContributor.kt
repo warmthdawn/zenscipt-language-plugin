@@ -20,6 +20,11 @@ class ZenScriptCompletionContributor : CompletionContributor() {
                     val file = parameters.originalFile
                     val element = parameters.position
 
+
+                    if (shouldSuppressCompletion(parameters, result.prefixMatcher)) {
+                        result.stopHere()
+                        return
+                    }
                     ZenScriptKeywordCompletion(element, result).addAllKeywords()
                     ZenScriptMemberCompletion(
                         element,
@@ -48,6 +53,20 @@ class ZenScriptCompletionContributor : CompletionContributor() {
 //                    }
 //                }
 //        )
+    }
+
+    private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
+        val position = parameters.position
+        val invocationCount = parameters.invocationCount
+
+        // no completion inside number literals
+        if (ZenScriptPatterns.AFTER_NUMBER_LITERAL.accepts(position)) {
+            return true
+        }
+
+        return invocationCount == 0 && prefixMatcher.prefix.isEmpty() && ZenScriptPatterns.AFTER_INTEGER_LITERAL_AND_DOT.accepts(
+            position
+        )
     }
 
 }

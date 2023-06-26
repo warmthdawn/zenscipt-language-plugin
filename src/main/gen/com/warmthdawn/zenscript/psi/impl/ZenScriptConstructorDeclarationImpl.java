@@ -48,7 +48,7 @@ public class ZenScriptConstructorDeclarationImpl extends ZenScriptNamedElementIm
 
   @Override
   @Nullable
-  public ZenScriptIdentifier getIdentifier() {
+  public PsiElement getIdentifier() {
     return ZenScriptImplUtil.getIdentifier(this);
   }
 

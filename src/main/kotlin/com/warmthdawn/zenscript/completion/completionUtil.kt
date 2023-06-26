@@ -8,12 +8,13 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import com.intellij.util.PlatformIcons
 import com.warmthdawn.zenscript.index.ZenScriptPropertyMember
 import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.type.ZenType
-import com.warmthdawn.zenscript.type.isFunctionalInterface
+import com.warmthdawn.zenscript.type.getFunctionalInterfaceMethod
 import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
 
@@ -44,7 +45,6 @@ fun ZenScriptFunctionDeclaration.createLookupElement(): LookupElementBuilder {
         builder = builder.withTailText(it)
     }
     builder = builder.withTypeText(this.returnType.displayName, true)
-
     return builder
 }
 
@@ -68,15 +68,11 @@ fun PsiMethod.createLookupElement(name: String): LookupElementBuilder {
 
 fun PsiMethod.createGetterFieldLookupElement(name: String): LookupElementBuilder {
 
-    val javaType = this.returnType
+    val javaType = this.returnType!!
     var builder = LookupElementBuilder
         .create(this, name)
         .withIcon(PlatformIcons.PROPERTY_ICON)
-    if (javaType is PsiClassType) {
-        if (isFunctionalInterface(javaType.resolve())) {
-            // TODO
-        }
-    }
+    builder = builder.withFunctionalInterfaceHint(javaType)
     builder = builder
         .appendTailText(" (From ${this.name}())", true)
         .withTypeText(ZenType.fromJavaType(javaType).displayName, true)
@@ -91,13 +87,22 @@ fun PsiField.createLookupElement(name: String): LookupElementBuilder {
         .withIcon(PlatformIcons.PROPERTY_ICON)
         .withTypeText(ZenType.fromJavaType(javaType).displayName, true)
 
+    builder = builder.withFunctionalInterfaceHint(javaType)
+    return builder
+}
+
+private fun LookupElementBuilder.withFunctionalInterfaceHint(javaType: PsiType): LookupElementBuilder {
+
     if (javaType is PsiClassType) {
-        if (isFunctionalInterface(javaType.resolve())) {
-            // TODO
+        val method = getFunctionalInterfaceMethod(javaType.resolve())
+        if (method != null) {
+            val params = method.parameterList.parameters.joinToString(", ", "(", ")") {
+                it.name + " as " + ZenType.fromJavaType(it.type).displayName
+            }
+            return this.appendTailText(params, true)
         }
     }
-
-    return builder
+    return this
 }
 
 fun ZenScriptPropertyMember.createLookupElement(name: String): LookupElementBuilder {
@@ -107,11 +112,7 @@ fun ZenScriptPropertyMember.createLookupElement(name: String): LookupElementBuil
         .withIcon(PlatformIcons.PROPERTY_ICON)
     val javaType = prop.javaType
 
-    if (javaType is PsiClassType) {
-        if (isFunctionalInterface(javaType.resolve())) {
-            // TODO
-        }
-    }
+    builder = builder.withFunctionalInterfaceHint(javaType)
 
     if (prop.getter != null || prop.setter != null) {
         val from = buildString {

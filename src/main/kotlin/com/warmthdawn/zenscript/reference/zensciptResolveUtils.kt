@@ -7,7 +7,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.indexing.FileBasedIndex
 import com.warmthdawn.zenscript.external.ZenScriptGlobalData
 import com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex
-import com.warmthdawn.zenscript.psi.ZenScriptArrayIndexExpression
 import com.warmthdawn.zenscript.psi.ZenScriptCallExpression
 import com.warmthdawn.zenscript.psi.ZenScriptClassDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptClassTypeRef
@@ -22,7 +21,11 @@ import com.warmthdawn.zenscript.psi.ZenScriptReference
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.type.*
 
-fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean): Array<ZenScriptElementResolveResult> {
+fun resolveZenScriptReference(
+    ref: ZenScriptReference,
+    incompleteCode: Boolean,
+    filterMethods: Boolean = true
+): Array<ZenScriptElementResolveResult> {
     val results = when (ref) {
         is ZenScriptLocalAccessExpression -> resolveLocalAccessExpr(ref)
         is ZenScriptMemberAccessExpression -> resolveMemberAccessExpr(ref)
@@ -30,9 +33,11 @@ fun resolveZenScriptReference(ref: ZenScriptReference, incompleteCode: Boolean):
         is ZenScriptImportReference -> resolveImportRef(ref)
         else -> emptyArray()
     }
-    val parent = ref.parent
-    if (parent is ZenScriptCallExpression) {
-        return resolveCallExpr(parent, results)
+    if (filterMethods) {
+        val parent = ref.parent
+        if (parent is ZenScriptCallExpression) {
+            return filterCallExpr(parent, results)
+        }
     }
     return results
 }
@@ -112,7 +117,7 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResol
     }
 }
 
-fun resolveCallExpr(
+fun filterCallExpr(
     ref: ZenScriptCallExpression,
     resolvedMethods: Array<ZenScriptElementResolveResult>
 ): Array<ZenScriptElementResolveResult> {
@@ -155,6 +160,10 @@ fun resolveCallExpr(
                     clazz.constructors
                 } else {
                     listOf(*(clazz as PsiClass).constructors)
+                }
+
+                if (ctors.isEmpty()) {
+                    return resolvedMethods
                 }
 
                 val (priority, result) = typeUtil.selectMethod(arguments, ctors)

@@ -7,7 +7,7 @@ import com.intellij.psi.PsiNamedElement
 import com.warmthdawn.zenscript.util.createIdentifierFromText
 
 interface ZenScriptNamedElement: PsiElement, PsiNamedElement, NavigationItem, PsiNameIdentifierOwner {
-    val identifier: ZenScriptIdentifier?
+    val identifier: PsiElement?
 
 
 

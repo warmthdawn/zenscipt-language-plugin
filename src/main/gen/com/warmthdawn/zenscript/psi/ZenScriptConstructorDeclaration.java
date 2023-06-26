@@ -19,7 +19,7 @@ public interface ZenScriptConstructorDeclaration extends ZenScriptMember, ZenScr
   ZenScriptTypeRef getReturnTypeRef();
 
   @Nullable
-  ZenScriptIdentifier getIdentifier();
+  PsiElement getIdentifier();
 
   boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, @Nullable PsiElement lastParent, @NotNull PsiElement place);
 

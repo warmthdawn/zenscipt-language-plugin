@@ -1,10 +1,6 @@
 package com.warmthdawn.zenscript.type
 
-import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.completion.util.MethodParenthesesHandler
-import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -12,24 +8,17 @@ import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PlatformIcons
 import com.intellij.util.indexing.FileBasedIndex
-import com.warmthdawn.zenscript.completion.ClassTest
 import com.warmthdawn.zenscript.completion.createLookupElement
-import com.warmthdawn.zenscript.index.*
+import com.warmthdawn.zenscript.index.CraftTweakerNativeMember
+import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
+import com.warmthdawn.zenscript.index.ZenScriptMemberCache
+import com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex
 import com.warmthdawn.zenscript.psi.ZenScriptClassDeclaration
-import com.warmthdawn.zenscript.psi.ZenScriptConstructorDeclaration
-import com.warmthdawn.zenscript.psi.ZenScriptExpandFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptFile
-import com.warmthdawn.zenscript.psi.ZenScriptFunction
-import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
-import com.warmthdawn.zenscript.psi.ZenScriptFunctionLiteral
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
 import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
 import com.warmthdawn.zenscript.util.hasStaticModifier
-import com.warmthdawn.zenscript.util.returnType
-import com.warmthdawn.zenscript.util.type
-import org.jetbrains.kotlin.idea.util.findModule
-
 
 
 private fun createNativeLookupElement(element: PsiElement, name: String, preferField: Boolean): LookupElementBuilder {
@@ -428,9 +417,27 @@ fun findJavaClass(project: Project, qualifiedName: String): PsiClass? {
 }
 
 
-fun isFunctionalInterface(javaClazz: PsiClass?): Boolean {
-    javaClazz ?: return false
-    return false
+fun getFunctionalInterfaceMethod(javaClazz: PsiClass?): PsiMethod? {
+    javaClazz ?: return null
+    if (!javaClazz.isInterface) {
+        return null
+    }
+    var foundMethod: PsiMethod? = null
+    for (method in javaClazz.allMethods) {
+        if (method.hasModifierProperty(PsiModifier.DEFAULT) || !method.hasModifierProperty(PsiModifier.PUBLIC)) {
+            continue
+        }
+
+        if (method.hasModifierProperty(PsiModifier.ABSTRACT)) {
+            //Two nonabstract methods -> not a functional interface!
+            if (foundMethod != null) {
+                return null
+            }
+            foundMethod = method
+        }
+    }
+    return foundMethod
+
 }
 
 

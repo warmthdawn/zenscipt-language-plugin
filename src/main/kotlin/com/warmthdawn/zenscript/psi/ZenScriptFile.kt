@@ -50,13 +50,13 @@ class ZenScriptFile(viewProvider: FileViewProvider) :
 
     val packageName: String
         get() {
-            val virtualFile = this.virtualFile ?: return ""
+            val virtualFile = this.originalFile.virtualFile ?: return ""
             val sourceRoot =
                 ProjectRootManager.getInstance(project).fileIndex.getSourceRootForFile(virtualFile)?.path
 
             val currPath = virtualFile.path
             if (sourceRoot == null || !currPath.startsWith(sourceRoot)) {
-                return ""
+                return "scripts"
             }
 
             return "scripts" + currPath.substring(sourceRoot.length, currPath.length - 3).replace('/', '.')

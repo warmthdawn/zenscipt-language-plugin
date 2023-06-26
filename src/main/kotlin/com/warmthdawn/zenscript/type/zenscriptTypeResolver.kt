@@ -44,17 +44,12 @@ fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, skipMeth
             ZenResolveResultType.ZEN_CLASS -> {
                 element as ZenScriptClassDeclaration
                 val file = element.containingFile as ZenScriptFile
-                ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
+                return ZenScriptClassType(file.packageName + "." + element.qualifiedName!!.text)
             }
 
             ZenResolveResultType.JAVA_CLASS -> {
                 element as PsiClass
-                val qualifiedName = element.getAnnotation("stanhebben.zenscript.annotations.ZenClass")?.let { anno ->
-                    AnnotationUtil.getStringAttributeValue(anno, "value")
-                }
-                return if (qualifiedName != null)
-                    ZenScriptClassType(qualifiedName)
-                else ZenUnknownType(element.qualifiedName!!)
+                return getJavaClassType(element)
             }
 
             ZenResolveResultType.ZEN_METHOD -> {
@@ -96,8 +91,16 @@ fun getTargetType(resolveResults: Array<ZenScriptElementResolveResult>, skipMeth
         }
 
     }
+    return null
+}
 
-    return ZenUnknownType("<unknown>")
+private fun getJavaClassType(element: PsiClass): ZenType {
+    val qualifiedName = element.getAnnotation("stanhebben.zenscript.annotations.ZenClass")?.let { anno ->
+        AnnotationUtil.getStringAttributeValue(anno, "value")
+    }
+    return if (qualifiedName != null)
+        ZenScriptClassType(qualifiedName)
+    else ZenUnknownType(element.qualifiedName!!)
 }
 
 private fun getVariableType(decl: PsiElement): ZenType {
@@ -176,7 +179,7 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
     var methodType: ZenType? = null
     if (methodExpr is ZenScriptReference) {
 
-        val resolvedMethods = methodExpr.advancedResolve(false)
+        val resolvedMethods = methodExpr.advancedResolve()
 
         if (resolvedMethods.isNotEmpty()) {
 
@@ -195,12 +198,31 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
                         }()"
                     )
                 }
-                val method = candidateMethods.first()
 
-                return if (method is ZenScriptFunctionDeclaration) {
-                    method.returnType
-                } else {
-                    ZenType.fromJavaType((method as PsiMethod).returnType!!)
+                return when (val method = candidateMethods.first()) {
+                    is ZenScriptFunctionDeclaration, is ZenScriptExpandFunctionDeclaration -> {
+                        (method as ZenScriptFunction).returnType
+                    }
+
+                    is ZenScriptConstructorDeclaration -> {
+                        val containingClass = method.parent as? ZenScriptClassDeclaration
+                            ?: throw IllegalStateException("zenConstructor is not in a class! $method")
+                        val file = containingClass.containingFile as ZenScriptFile
+                        ZenScriptClassType(file.packageName + "." + containingClass.qualifiedName!!.text)
+                    }
+
+                    is PsiMethod -> {
+                        if (method.isConstructor) {
+                            getJavaClassType(method.containingClass!!)
+                        } else {
+
+                            ZenType.fromJavaType(method.returnType!!)
+                        }
+                    }
+
+                    else -> {
+                        throw IllegalStateException("element is neither PsiMethod nor ZenScriptFunction: $method")
+                    }
                 }
 
             }
@@ -209,12 +231,9 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
                 logger.error("expression \"${expr.text} resolved multiple non-method result!\"")
             }
             when (resolvedMethods[0].type) {
-                ZenResolveResultType.ZEN_CLASS -> {
-                    return getTargetType(resolvedMethods, true)!!
-                }
-
-                ZenResolveResultType.JAVA_CLASS -> {
-                    return getTargetType(resolvedMethods, true)!!
+                ZenResolveResultType.ZEN_CLASS, ZenResolveResultType.JAVA_CLASS -> {
+                    logger.error("constructor not resolved: ${resolvedMethods[0].element}")
+                    return ZenUnknownType("constructor not resolved: ${resolvedMethods[0].element}")
                 }
 
                 ZenResolveResultType.ZEN_VARIABLE -> {
@@ -248,6 +267,7 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
                     }
                 }
 
+
                 ZenResolveResultType.JAVA_GLOBAL_FUNCTION -> {
                     return ZenType.fromJavaType((resolvedMethods[0].element as PsiMethod).returnType)
                 }
@@ -267,8 +287,9 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
 
     if (methodType is ZenScriptClassType && methodType.isLibrary) {
         val javaClazz = findJavaClass(project, methodType.qualifiedName)
-        if (isFunctionalInterface(javaClazz)) {
-            methodType = null
+        val functionalInterface = getFunctionalInterfaceMethod(javaClazz)
+        if (functionalInterface != null) {
+            methodType = ZenScriptFunctionType.fromJavaMethod(functionalInterface)
         }
     }
 

@@ -55,8 +55,14 @@
         <lang.braceMatcher language="ZenScript"
                            implementationClass="com.warmthdawn.zenscript.misc.ZenScriptPairedBraceMatcher"/>
         <lang.quoteHandler language="ZenScript"
-                           implementationClass="com.warmthdawn.zenscript.misc.ZenScriptQuoteHandler" />
+                           implementationClass="com.warmthdawn.zenscript.misc.ZenScriptQuoteHandler"/>
         <lang.commenter language="ZenScript"
-                        implementationClass="com.warmthdawn.zenscript.misc.ZenScriptCommenter" />
+                        implementationClass="com.warmthdawn.zenscript.misc.ZenScriptCommenter"/>
+        <codeInsight.parameterInfo language="ZenScript"
+                                   implementationClass="com.warmthdawn.zenscript.completion.ZenScriptParameterInfoHandler"/>
+
+
+        <iconProvider implementation="com.warmthdawn.zenscript.misc.ZenScriptIconProvider"/>
+
     </extensions>
 </idea-plugin>

@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.warmthdawn.zenscript.index.ZenScriptMemberCache
+import com.warmthdawn.zenscript.psi.ZenScriptConstructorDeclaration
+import com.warmthdawn.zenscript.psi.ZenScriptFunction
 import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
 
 
@@ -16,6 +18,7 @@ class ZenScriptTypeService(val project: Project) {
         }
     }
 
+    // TODO select expand functions
     fun selectMethod(
         arguments: List<ZenType>,
         candidateMethods: List<PsiElement>,
@@ -30,7 +33,11 @@ class ZenScriptTypeService(val project: Project) {
         for (i in candidateMethods.indices) {
             val priority = when (val method = candidateMethods[i]) {
                 is PsiMethod -> getCallPriority(arguments, method)
-                is ZenScriptFunctionDeclaration -> getCallPriority(arguments, method)
+                is ZenScriptFunctionDeclaration, is ZenScriptConstructorDeclaration -> getCallPriority(
+                    arguments,
+                    method as ZenScriptFunction
+                )
+
                 else -> ZenCallPriority.INVALID
             }
 
@@ -72,7 +79,7 @@ class ZenScriptTypeService(val project: Project) {
 
     fun getCallPriority(
         arguments: List<ZenType>,
-        zsFunc: ZenScriptFunctionDeclaration,
+        zsFunc: ZenScriptFunction,
     ): ZenCallPriority {
         var firstOptionalIndex = -1
         val parameters = zsFunc.parameters!!.parameterList
@@ -263,7 +270,7 @@ class ZenScriptTypeService(val project: Project) {
         return targetType in (internalCasters[sourceType] ?: return false)
     }
 
-    private fun getCallPriority(
+    fun getCallPriority(
         arguments: List<ZenType>,
         parameterTypes: List<ZenType>,
         firstOptionalIndex: Int,
@@ -292,7 +299,7 @@ class ZenScriptTypeService(val project: Project) {
         } else if (arguments.size < parameterTypes.size) {
             result = ZenCallPriority.MEDIUM
             if (firstOptionalIndex >= 0 && arguments.size < firstOptionalIndex) {
-                result =  ZenCallPriority.PARTIAL
+                result = ZenCallPriority.PARTIAL
             }
         }
         var checkUntil = arguments.size
