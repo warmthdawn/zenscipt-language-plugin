@@ -20,10 +20,14 @@ val ZenScriptVariableDeclaration.isReadonly
 val ZenScriptVariableDeclaration.type: ZenType
     get() {
         val typeRef = this.typeRef
-        return if (typeRef != null) {
+        val initializer = this.initializer?.expression
+
+        return if (typeRef == null && initializer == null) {
+            ZenPrimitiveType.ANY
+        } else if (typeRef != null) {
             ZenType.fromTypeRef(typeRef)
         } else {
-            getType(this.initializer?.expression)
+            getType(initializer)
         }
     }
 

@@ -191,7 +191,7 @@ fun findMembers(project: Project, type: ZenType, elementCollector: (name: Lookup
 
         is ZenScriptClassType -> {
             if (type.isLibrary) {
-                findJavaClass(project, type.qualifiedName)?.let {
+                findJavaClass(project, type)?.let {
                     memberCache.getMembers(it)
                 }?.let {
                     it.properties.forEach { (name, prop) ->
@@ -321,7 +321,7 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
                 if (!found) {
                     null
                 } else if (isClass) {
-                    val javaClazz = findJavaClass(project, packageOrClassName)
+                    val javaClazz = findJavaClassByFQN(project, packageOrClassName)
                     if (javaClazz != null) listOf(
                         ZenScriptElementResolveResult(javaClazz, ZenResolveResultType.JAVA_CLASS)
                     ) else null
@@ -377,7 +377,7 @@ fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptEl
 
         is ZenScriptClassType -> {
             if (type.isLibrary) {
-                findJavaClass(project, type.qualifiedName)?.let {
+                findJavaClass(project, type)?.let {
                     memberCache.getMembers(it)
                 }?.let {
                     val prop = it.properties[name]
@@ -488,7 +488,14 @@ fun findExpansionMember(project: Project, type: ZenType, name: String): List<Zen
 }
 
 
-fun findJavaClass(project: Project, qualifiedName: String): PsiClass? {
+fun findJavaClass(project: Project, type: ZenScriptClassType): PsiClass? {
+    if (type.isAnonymous) {
+        return JavaPsiFacade.getInstance(project).findClass(type.qualifiedName, GlobalSearchScope.allScope(project))
+    }
+    return findJavaClassByFQN(project, type.qualifiedName)
+}
+
+fun findJavaClassByFQN(project: Project, qualifiedName: String): PsiClass? {
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
     var result: PsiClass? = null
     var javaName: String? = null

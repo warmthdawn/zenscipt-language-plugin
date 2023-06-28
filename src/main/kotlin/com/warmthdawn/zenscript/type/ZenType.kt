@@ -2,8 +2,12 @@ package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.psi.*
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.warmthdawn.zenscript.index.ZenScriptMemberCache
 import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
+import org.jetbrains.kotlin.caches.project.CachedValue
 
 interface ZenType {
     val simpleName: String
@@ -25,17 +29,25 @@ interface ZenType {
         }
 
         fun fromTypeRef(typeRef: ZenScriptTypeRef?): ZenType {
-            return when (typeRef) {
-                is ZenScriptClassTypeRef -> getClassType(typeRef)
-                is ZenScriptArrayTypeRef -> ZenScriptArrayType(fromTypeRef(typeRef.typeRef))
-                is ZenScriptListTypeRef -> ZenScriptListType(fromTypeRef(typeRef.typeRef))
-                is ZenScriptMapTypeRef -> ZenScriptMapType(fromTypeRef(typeRef.keyType), fromTypeRef(typeRef.valueType))
-                is ZenScriptPrimitiveTypeRef -> ZenPrimitiveType.fromTypeRef(typeRef)
+            if (typeRef == null) {
+                return ZenUnknownType("<unknown>")
+            }
+            return CachedValuesManager.getProjectPsiDependentCache(typeRef) {
+                when (typeRef) {
+                    is ZenScriptClassTypeRef -> getClassType(typeRef)
+                    is ZenScriptArrayTypeRef -> ZenScriptArrayType(fromTypeRef(typeRef.typeRef))
+                    is ZenScriptListTypeRef -> ZenScriptListType(fromTypeRef(typeRef.typeRef))
+                    is ZenScriptMapTypeRef -> ZenScriptMapType(
+                        fromTypeRef(typeRef.keyType),
+                        fromTypeRef(typeRef.valueType)
+                    )
+
+                    is ZenScriptPrimitiveTypeRef -> ZenPrimitiveType.fromTypeRef(typeRef)
                         ?: throw IllegalArgumentException("Unknown type ref kind: $typeRef")
 
-                is ZenScriptFunctionTypeRef -> ZenPrimitiveType.ANY // TODO: function
-                null -> ZenUnknownType("<unknown>")
-                else -> throw IllegalArgumentException("Unknown type ref kind: $typeRef")
+                    is ZenScriptFunctionTypeRef -> ZenPrimitiveType.ANY // TODO: function
+                    else -> throw IllegalArgumentException("Unknown type ref kind: $typeRef")
+                }
             }
         }
     }
@@ -63,8 +75,8 @@ private fun getClassType(psiClassType: PsiClassType): ZenType? {
 
     if (clazz.qualifiedName == "java.util.Map") {
         return ZenScriptMapType(
-                ZenType.fromJavaType(psiClassType.parameters[0]),
-                ZenType.fromJavaType(psiClassType.parameters[1])
+            ZenType.fromJavaType(psiClassType.parameters[0]),
+            ZenType.fromJavaType(psiClassType.parameters[1])
         )
     }
     return when (clazz.qualifiedName) {
@@ -80,8 +92,8 @@ private fun getClassType(psiClassType: PsiClassType): ZenType? {
         "stanhebben.zenscript.value.IntRange" -> ZenScriptIntRangeType
         else -> {
             val zenClazzName = clazz.getAnnotation("stanhebben.zenscript.annotations.ZenClass")
-                    ?.let { AnnotationUtil.getStringAttributeValue(it, "value") }
-                    ?: return null
+                ?.let { AnnotationUtil.getStringAttributeValue(it, "value") }
+                ?: return clazz.qualifiedName?.let { ZenScriptClassType(it, true) }
             ZenScriptClassType(zenClazzName)
 
         }

@@ -237,7 +237,7 @@ class ZenScriptParameterInfoHandler :
         }
 
         if (methodType is ZenScriptClassType && methodType.isLibrary) {
-            val javaClazz = findJavaClass(project, methodType.qualifiedName)
+            val javaClazz = findJavaClass(project, methodType)
             val functionalInterface = getFunctionalInterfaceMethod(javaClazz)
             if (functionalInterface != null) {
                 methodType = ZenScriptFunctionType.fromJavaMethod(functionalInterface)

@@ -37,6 +37,8 @@ fun resolveZenScriptReference(
         val parent = ref.parent
         if (parent is ZenScriptCallExpression) {
             return filterCallExpr(parent, results)
+
+            intArrayOf()
         }
     }
     return results
@@ -58,12 +60,12 @@ fun resolveImportRef(ref: ZenScriptImportReference): Array<ZenScriptElementResol
             return arrayOf(ZenScriptElementResolveResult(member, type))
         }
     } else {
-        var foundJavaClazz = findJavaClass(project, qualifiedName)
+        var foundJavaClazz = findJavaClassByFQN(project, qualifiedName)
         if (foundJavaClazz != null) {
             return arrayOf(ZenScriptElementResolveResult(foundJavaClazz, ZenResolveResultType.JAVA_CLASS))
         }
         if (qualifier != null) {
-            foundJavaClazz = findJavaClass(project, qualifier)
+            foundJavaClazz = findJavaClassByFQN(project, qualifier)
         }
         if (foundJavaClazz != null) {
             return findStaticMembers(project, foundJavaClazz, identifier)
@@ -98,7 +100,7 @@ fun resolveClassTypeRef(ref: ZenScriptClassTypeRef): Array<ZenScriptElementResol
 
 
         } else {
-            val javaClass = findJavaClass(project, qualifiedName)
+            val javaClass = findJavaClassByFQN(project, qualifiedName)
             if (javaClass != null) {
                 return arrayOf(ZenScriptElementResolveResult(javaClass, ZenResolveResultType.JAVA_CLASS))
             }

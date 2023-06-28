@@ -155,8 +155,8 @@ class ZenScriptTypeService(val project: Project) {
 
 
         if (sourceType is ZenScriptClassType && targetType is ZenScriptClassType) {
-            val sourceJavaType = findJavaClass(project, sourceType.qualifiedName) ?: return false
-            val targetJavaType = findJavaClass(project, targetType.qualifiedName) ?: return false
+            val sourceJavaType = findJavaClass(project, sourceType) ?: return false
+            val targetJavaType = findJavaClass(project, targetType) ?: return false
 
             return sourceJavaType.isInheritor(targetJavaType, true)
 

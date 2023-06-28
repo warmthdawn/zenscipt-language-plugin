@@ -14,7 +14,7 @@ class ZenScriptGlobalData(val project: Project) {
         }
     }
     private val memberCache = ZenScriptMemberCache(project)
-    private val builtinGlobalMethods = mapOf(
+    private val builtinGlobalMethods get() = mapOf(
         "print" to memberCache.getNativeMember("crafttweaker.runtime.GlobalFunctions", "print", true),
         "totalActions" to memberCache.getNativeMember("crafttweaker.runtime.GlobalFunctions", "totalActions", true),
         "enableDebug" to memberCache.getNativeMember("crafttweaker.runtime.GlobalFunctions", "enableDebug", true),
@@ -24,7 +24,7 @@ class ZenScriptGlobalData(val project: Project) {
         "min" to memberCache.getNativeMethod("java.lang.Math", "max", "int", "int"),
         "pow" to memberCache.getNativeMethod("java.lang.Math", "pow", "double", "double"),
     ).filter { it.value.isNotEmpty() }
-    private val builtinGlobalFields = mapOf(
+    private val builtinGlobalFields get() = mapOf(
 
         "logger" to memberCache.getNativeMethod("crafttweaker.CraftTweakerAPI", "getLogger"),
         "recipes" to memberCache.getNativeMember("crafttweaker.CraftTweakerAPI", "recipes", false),

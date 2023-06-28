@@ -77,7 +77,7 @@ class ZenScriptMemberCompletion(
     }
 
     private fun addJavaClassCandidate(name: String, qualifiedName: String) {
-        val javaClass = findJavaClass(project, qualifiedName)
+        val javaClass = findJavaClassByFQN(project, qualifiedName)
             ?: throw NullPointerException("could not find $qualifiedName")
         LookupElementBuilder
             .create(javaClass, name)
@@ -302,7 +302,7 @@ class ZenScriptMemberCompletion(
             if (qualifier.startsWith("scripts")) {
                 findZenClass(project, qualifier)
             } else {
-                findJavaClass(project, qualifier)
+                findJavaClassByFQN(project, qualifier)
             }?.let {
                 findStaticMembers(project, element) {
                     it.add()

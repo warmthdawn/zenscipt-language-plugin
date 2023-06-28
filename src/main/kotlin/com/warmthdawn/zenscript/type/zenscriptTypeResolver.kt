@@ -126,6 +126,10 @@ private fun getVariableType(decl: PsiElement): ZenType {
 }
 
 fun getType(expr: ZenScriptExpression?): ZenType {
+    if(expr == null) {
+        return ZenUnknownType("<unknown>")
+    }
+
     return when (expr) {
         is ZenScriptLocalAccessExpression -> getTypeImpl(expr)
         is ZenScriptMemberAccessExpression -> getTypeImpl(expr)
@@ -140,8 +144,6 @@ fun getType(expr: ZenScriptExpression?): ZenType {
         is ZenScriptBinaryExpression -> getTypeImpl(expr)
         is ZenScriptUnaryExpression -> getTypeImpl(expr)
         is ZenScriptConditionalExpression -> getTypeImpl(expr)
-
-        null -> ZenUnknownType("<unknown>")
         else -> ZenUnknownType(expr.text)
     }
 }
@@ -287,7 +289,7 @@ fun getTypeImpl(expr: ZenScriptCallExpression): ZenType {
     }
 
     if (methodType is ZenScriptClassType && methodType.isLibrary) {
-        val javaClazz = findJavaClass(project, methodType.qualifiedName)
+        val javaClazz = findJavaClass(project, methodType)
         val functionalInterface = getFunctionalInterfaceMethod(javaClazz)
         if (functionalInterface != null) {
             methodType = ZenScriptFunctionType.fromJavaMethod(functionalInterface)
@@ -354,7 +356,7 @@ fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
     val text = id.text
 
     val isPackageName =
-        text == "scripts" || ZenScriptClassNameIndex.processAllKeys(expr.project) {
+        text == "scripts" || !ZenScriptClassNameIndex.processAllKeys(expr.project) {
             val shouldContinue = !it.startsWith(text)
             shouldContinue
         }

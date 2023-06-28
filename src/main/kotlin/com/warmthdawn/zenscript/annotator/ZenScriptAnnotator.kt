@@ -12,6 +12,7 @@ import com.warmthdawn.zenscript.psi.ZenScriptMemberAccessExpression
 import com.warmthdawn.zenscript.psi.ZenScriptReference
 import com.warmthdawn.zenscript.type.ZenPrimitiveType
 import com.warmthdawn.zenscript.type.ZenScriptPackageType
+import com.warmthdawn.zenscript.type.ZenUnknownType
 import com.warmthdawn.zenscript.type.getType
 
 class ZenScriptAnnotator : Annotator {
@@ -31,9 +32,9 @@ class ZenScriptAnnotator : Annotator {
             if (qualifierType == ZenPrimitiveType.ANY) {
                 return true
             }
-//            if (qualifierType is ZenScriptPackageType) {
-//                return true
-//            }
+            if (qualifierType is ZenScriptPackageType) {
+                return getType(ref) !is ZenUnknownType
+            }
         } else if (ref is ZenScriptLocalAccessExpression) {
             val type = getType(ref)
             if (type is ZenScriptPackageType) {
@@ -47,22 +48,26 @@ class ZenScriptAnnotator : Annotator {
     private fun generateError(ref: ZenScriptReference, holder: AnnotationHolder) {
         val rangeInElement = ref.rangeInElement
 
-        val range = TextRange.from(ref.element.textRange.startOffset
-                + rangeInElement.startOffset, rangeInElement.length)
+        val range = TextRange.from(
+            ref.element.textRange.startOffset
+                    + rangeInElement.startOffset, rangeInElement.length
+        )
 
         val message = AnalysisBundle.message("cannot.resolve.symbol", ref.canonicalText)
 
         var builder = holder.newAnnotation(HighlightSeverity.ERROR, message)
-                .range(range)
-                .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
+            .range(range)
+            .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
 
         if (ref is LocalQuickFixProvider) {
             val fixes = ref.quickFixes
             if (fixes != null) {
                 val inspectionManager = InspectionManager.getInstance(ref.element.project)
                 for (fix in fixes) {
-                    val descriptor = inspectionManager.createProblemDescriptor(ref.element, message, fix,
-                            ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, true)
+                    val descriptor = inspectionManager.createProblemDescriptor(
+                        ref.element, message, fix,
+                        ProblemHighlightType.LIKE_UNKNOWN_SYMBOL, true
+                    )
                     builder = builder.newLocalQuickFix(fix, descriptor).registerFix()
                 }
             }

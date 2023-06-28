@@ -21,7 +21,7 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
-    <depends>com.jetbrains.hackathon.indices.viewer</depends>
+    <!--    <depends>com.jetbrains.hackathon.indices.viewer</depends>-->
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -59,9 +59,14 @@
                            implementationClass="com.warmthdawn.zenscript.misc.ZenScriptQuoteHandler"/>
         <lang.commenter language="ZenScript"
                         implementationClass="com.warmthdawn.zenscript.misc.ZenScriptCommenter"/>
+        <lang.findUsagesProvider language="ZenScript"
+                                 implementationClass="com.warmthdawn.zenscript.reference.ZenScriptUsageProvider"/>
+
         <codeInsight.parameterInfo language="ZenScript"
                                    implementationClass="com.warmthdawn.zenscript.codeInsight.ZenScriptParameterInfoHandler"/>
 
+        <methodReferencesSearch implementation="com.warmthdawn.zenscript.reference.ZenScriptPropertyAccessReferenceSearcher"/>
+        <referencesSearch implementation="com.warmthdawn.zenscript.reference.ZenScriptConstructorReferenceSearcher"/>
 
         <iconProvider implementation="com.warmthdawn.zenscript.misc.ZenScriptIconProvider"/>
         <editorNotificationProvider implementation="com.warmthdawn.zenscript.project.ZenScriptProjectNotification"/>
