@@ -2,7 +2,10 @@ package com.warmthdawn.zenscript.index
 
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.Processor
 import com.intellij.util.indexing.*
 import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
@@ -18,14 +21,28 @@ import org.jetbrains.uast.toUElementOfType
 
 class ZenScriptScriptFileIndex : ScalarIndexExtension<String>() {
     companion object {
-        val NAME = ID.create<String, Void>("ZenScriptClassNameIndex")
+        val NAME = ID.create<String, Void>("ZenScriptScriptFileIndex")
+        fun processAllKeys(project: Project, processor: Processor<String>): Boolean {
+
+            return FileBasedIndex.getInstance().processAllKeys(NAME, processor, project)
+        }
     }
 
     override fun getName(): ID<String, Void> = NAME
 
     override fun getIndexer() = DataIndexer<String, Void, FileContent> { content ->
         if (content.fileType == ZSLanguageFileType) {
-            val namespace = (content.psiFile as ZenScriptFile).packageName
+
+            val virtualFile = content.file
+            val sourceRoot =
+                ProjectRootManager.getInstance(content.project).fileIndex.getSourceRootForFile(virtualFile)?.path
+
+            val currPath = virtualFile.path
+            val namespace = if (sourceRoot == null || !currPath.startsWith(sourceRoot)) {
+                "scripts"
+            } else {
+                "scripts" + currPath.substring(sourceRoot.length, currPath.length - 3).replace('/', '.')
+            }
             mapOf(namespace to null)
         } else {
             emptyMap()
@@ -35,13 +52,18 @@ class ZenScriptScriptFileIndex : ScalarIndexExtension<String>() {
 
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
 
-    override fun getVersion(): Int = 3
+    override fun getVersion(): Int = 5
 
-    override fun getInputFilter(): FileBasedIndex.InputFilter = object : DefaultFileTypeSpecificInputFilter(ZSLanguageFileType) {
-        override fun acceptInput(file: VirtualFile): Boolean {
-            return !file.name.endsWith(".d.zs")
+    override fun getInputFilter(): FileBasedIndex.InputFilter =
+        object : DefaultFileTypeSpecificInputFilter(ZSLanguageFileType) {
+            override fun acceptInput(file: VirtualFile): Boolean {
+                return !file.name.endsWith(".d.zs")
+            }
         }
+
+    override fun traceKeyHashToVirtualFileMapping(): Boolean {
+        return true
     }
 
-    override fun dependsOnFileContent(): Boolean = true
+    override fun dependsOnFileContent(): Boolean = false
 }

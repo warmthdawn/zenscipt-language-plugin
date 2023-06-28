@@ -69,7 +69,7 @@ open class ZenScriptReferenceImpl(node: ASTNode) : ASTWrapperPsiElement(node), Z
     override fun advancedResolve(incompleteCode: Boolean): Array<ZenScriptElementResolveResult> {
         return ResolveCache.getInstance(project).resolveWithCaching(this, ResolveCache.AbstractResolver { ref, inc ->
             resolveZenScriptReference(ref, inc)
-        }, true, incompleteCode) ?: emptyArray()
+        }, false, incompleteCode) ?: emptyArray()
     }
 
     override fun resolve(): PsiElement? {

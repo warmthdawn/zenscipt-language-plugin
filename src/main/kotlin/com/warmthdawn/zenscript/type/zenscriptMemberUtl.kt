@@ -2,6 +2,7 @@ package com.warmthdawn.zenscript.type
 
 import com.intellij.codeInsight.completion.util.MethodParenthesesHandler
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
@@ -15,12 +16,14 @@ import com.warmthdawn.zenscript.index.ZenScriptMemberCache
 import com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex
 import com.warmthdawn.zenscript.psi.ZenScriptClassDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptFile
+import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
 import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
 import com.warmthdawn.zenscript.util.hasStaticModifier
 
 
+private val logger = Logger.getInstance("zenscript-member-util")
 private fun createNativeLookupElement(element: PsiElement, name: String, preferField: Boolean): LookupElementBuilder {
 
     var builder = LookupElementBuilder
@@ -131,7 +134,51 @@ fun findMembers(project: Project, type: ZenType, elementCollector: (name: Lookup
     val memberCache = ZenScriptMemberCache.getInstance(project)
     when (type) {
         is ZenScriptPackageType -> {
-            // processing outside
+            // others processing outside
+            if (!type.isLibrary) {
+                val zenFile = findScriptFile(project, type.packageName)
+                if (zenFile != null) {
+                    zenFile.scriptBody?.classes?.forEach {
+
+                        if (!it.isValid || it.name == null) {
+                            return@forEach
+                        }
+
+                        elementCollector(
+                            LookupElementBuilder
+                                .create(it, it.name!!)
+                                .withIcon(it.getIcon(0))
+                                .appendTailText(" (${(it.containingFile as ZenScriptFile).name})", true)
+                        )
+                    }
+                    zenFile.scriptBody?.functions?.forEach {
+
+                        if (!it.isValid || it.name == null) {
+                            return@forEach
+                        }
+
+                        elementCollector(
+                            it.createLookupElement()
+                        )
+                    }
+                    zenFile.scriptBody?.statements?.forEach {
+                        if (!it.isValid)
+                            return@forEach
+                        if (it !is ZenScriptVariableDeclaration) {
+                            return@forEach
+                        }
+                        if (!it.hasStaticModifier) {
+                            return@forEach
+                        }
+                        if (it.name == null) {
+                            return@forEach
+                        }
+                        elementCollector(
+                            it.createLookupElement()
+                        )
+                    }
+                }
+            }
         }
 
         is ZenScriptArrayType -> {
@@ -249,34 +296,82 @@ fun findMembers(project: Project, type: ZenType, elementCollector: (name: Lookup
 
 }
 
+
 fun findMembers(project: Project, type: ZenType, name: String): List<ZenScriptElementResolveResult> {
     val memberCache = ZenScriptMemberCache.getInstance(project)
 
     val results: List<ZenScriptElementResolveResult>? = when (type) {
         is ZenScriptPackageType -> {
-            val packageOrClassName = "${type.packageName}.${name}"
-            var isClass = false
-            var found = false
-            for (className in FileBasedIndex.getInstance().getAllKeys(ZenScriptClassNameIndex.NAME, project)) {
-                if (className == packageOrClassName) {
-                    found = true
-                    isClass = true
-                    break
-                } else if (className.startsWith(packageOrClassName)) {
-                    found = true
-                    break
+            if (type.isLibrary) {
+                val packageOrClassName = "${type.packageName}.${name}"
+                var isClass = false
+                var found = false
+                ZenScriptClassNameIndex.processAllKeys(project) {
+                    if (it == packageOrClassName) {
+                        found = true
+                        isClass = true
+                        false
+                    } else if (it.startsWith(packageOrClassName)) {
+                        found = true
+                        false
+                    } else {
+                        true
+                    }
                 }
-            }
-            if (!found) {
-                null
-            } else if (isClass) {
-                val javaClazz = findJavaClass(project, packageOrClassName)
-                if (javaClazz != null) listOf(
-                    ZenScriptElementResolveResult(javaClazz, ZenResolveResultType.JAVA_CLASS)
-                ) else null
+                if (!found) {
+                    null
+                } else if (isClass) {
+                    val javaClazz = findJavaClass(project, packageOrClassName)
+                    if (javaClazz != null) listOf(
+                        ZenScriptElementResolveResult(javaClazz, ZenResolveResultType.JAVA_CLASS)
+                    ) else null
+                } else {
+                    // TODO package resolve result
+                    null
+                }
             } else {
-                // TODO package
-                null
+                val packageName = type.packageName
+                var found = false
+                var isZenFile = false
+                ZenScriptScriptFileIndex.processAllKeys(project) {
+                    if (it == packageName) {
+                        found = true
+                        isZenFile = true
+                        false
+                    } else if (it.startsWith(packageName)) {
+                        found = true
+                        false
+                    } else {
+                        true
+                    }
+                }
+                if (!found) {
+                    null
+                } else if (isZenFile) {
+                    val resolveResult = when (val member = findZenFileMember(project, packageName, name)) {
+                        is ZenScriptClassDeclaration -> ZenScriptElementResolveResult(
+                            member,
+                            ZenResolveResultType.ZEN_CLASS
+                        )
+
+                        is ZenScriptVariableDeclaration -> ZenScriptElementResolveResult(
+                            member,
+                            ZenResolveResultType.ZEN_VARIABLE
+                        )
+
+                        is ZenScriptFunctionDeclaration -> ZenScriptElementResolveResult(
+                            member,
+                            ZenResolveResultType.ZEN_METHOD
+                        )
+
+                        else -> null
+                    }
+
+                    resolveResult?.let { listOf(it) }
+                } else {
+                    // TODO package resolve result
+                    null
+                }
             }
         }
 
@@ -443,9 +538,9 @@ fun getFunctionalInterfaceMethod(javaClazz: PsiClass?): PsiMethod? {
 
 fun findZenClass(project: Project, qualifiedName: String): ZenScriptClassDeclaration? {
     val name = qualifiedName.substringAfterLast('.')
-    return (findFile(project, qualifiedName) as? ZenScriptFile)?.scriptBody?.let {
+    return (findScriptFile(project, qualifiedName))?.scriptBody?.let {
         it.classes.first { clazz ->
-            clazz.name == name
+            clazz.isValid && clazz.name == name
         }
     }
 }
@@ -453,9 +548,11 @@ fun findZenClass(project: Project, qualifiedName: String): ZenScriptClassDeclara
 fun findZenFileMember(project: Project, packageName: String, memberName: String): PsiElement? {
     return (findScriptFile(project, packageName))?.scriptBody?.let {
         it.classes.firstOrNull { clazz ->
-            clazz.name == memberName
+            clazz.isValid && clazz.name == memberName
+        } ?: it.functions.firstOrNull { func ->
+            func.isValid && func.name == memberName
         } ?: it.statements.firstOrNull { stmt ->
-            stmt is ZenScriptVariableDeclaration && stmt.hasStaticModifier && stmt.name == memberName
+            stmt is ZenScriptVariableDeclaration && stmt.isValid && stmt.hasStaticModifier && stmt.name == memberName
         }
     }
 }
@@ -466,16 +563,6 @@ fun findScriptFile(project: Project, packageName: String): ZenScriptFile? {
         result = PsiManager.getInstance(project).findFile(it) as? ZenScriptFile
         false
     }, GlobalSearchScope.projectScope(project))
-    return result
-}
-
-private fun findFile(project: Project, qualifiedName: String): PsiFile? {
-    var result: PsiFile? = null
-    FileBasedIndex.getInstance().getFilesWithKey(ZenScriptClassNameIndex.NAME, setOf(qualifiedName), {
-        result = PsiManager.getInstance(project).findFile(it)
-        false
-    }, GlobalSearchScope.projectScope(project))
-
     return result
 }
 

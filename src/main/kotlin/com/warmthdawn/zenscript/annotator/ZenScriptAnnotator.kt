@@ -31,9 +31,9 @@ class ZenScriptAnnotator : Annotator {
             if (qualifierType == ZenPrimitiveType.ANY) {
                 return true
             }
-            if (qualifierType is ZenScriptPackageType) {
-                return true
-            }
+//            if (qualifierType is ZenScriptPackageType) {
+//                return true
+//            }
         } else if (ref is ZenScriptLocalAccessExpression) {
             val type = getType(ref)
             if (type is ZenScriptPackageType) {

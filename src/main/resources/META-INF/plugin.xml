@@ -32,6 +32,7 @@
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex"/>
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptClassNameIndex"/>
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptTypeExpansionIndex"/>
+        <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex"/>
         <annotator language="ZenScript"
                    implementationClass="com.warmthdawn.zenscript.annotator.ZenScriptAnnotator"/>
         <fileType
@@ -59,10 +60,13 @@
         <lang.commenter language="ZenScript"
                         implementationClass="com.warmthdawn.zenscript.misc.ZenScriptCommenter"/>
         <codeInsight.parameterInfo language="ZenScript"
-                                   implementationClass="com.warmthdawn.zenscript.completion.ZenScriptParameterInfoHandler"/>
+                                   implementationClass="com.warmthdawn.zenscript.codeInsight.ZenScriptParameterInfoHandler"/>
 
 
         <iconProvider implementation="com.warmthdawn.zenscript.misc.ZenScriptIconProvider"/>
+        <editorNotificationProvider implementation="com.warmthdawn.zenscript.project.ZenScriptProjectNotification"/>
+
+        <jps.plugin/>
 
     </extensions>
 </idea-plugin>

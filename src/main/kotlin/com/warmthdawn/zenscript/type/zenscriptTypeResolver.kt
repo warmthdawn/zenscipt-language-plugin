@@ -10,6 +10,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.util.indexing.FileBasedIndex
 import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
 import com.warmthdawn.zenscript.index.ZenScriptMemberCache
+import com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex
 import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
 import com.warmthdawn.zenscript.reference.ZenScriptElementResolveResult
@@ -353,8 +354,10 @@ fun getTypeImpl(expr: ZenScriptLocalAccessExpression): ZenType {
     val text = id.text
 
     val isPackageName =
-        text == "scripts" || FileBasedIndex.getInstance().getAllKeys(ZenScriptClassNameIndex.NAME, expr.project)
-            .any { it.startsWith(text) }
+        text == "scripts" || ZenScriptClassNameIndex.processAllKeys(expr.project) {
+            val shouldContinue = !it.startsWith(text)
+            shouldContinue
+        }
 
     if (isPackageName) {
         return ZenScriptPackageType(text, text != "scripts")
@@ -377,26 +380,60 @@ fun getTypeImpl(expr: ZenScriptMemberAccessExpression): ZenType {
     val project = expr.project
     return when (prevType) {
         is ZenScriptPackageType -> {
-            val packageOrClassName = "${prevType.packageName}.${memberName}"
-            var isClass = false
-            var found = false
-            for (className in FileBasedIndex.getInstance().getAllKeys(ZenScriptClassNameIndex.NAME, project)) {
-                if (className == packageOrClassName) {
-                    isClass = true
-                    found = true
-                    break
+
+            if (prevType.isLibrary) {
+                val packageOrClassName = "${prevType.packageName}.${memberName}"
+                var isClass = false
+                var found = false
+                ZenScriptClassNameIndex.processAllKeys(project) {
+                    if (it == packageOrClassName) {
+                        isClass = true
+                        found = true
+                        false
+                    } else if (it.startsWith(packageOrClassName)) {
+                        found = true
+                        false
+                    } else {
+                        true
+                    }
                 }
-                if (className.startsWith(packageOrClassName)) {
-                    found = true
-                    break
+                if (!found) {
+                    ZenUnknownType(packageOrClassName)
+                } else if (isClass) {
+                    ZenScriptClassType(memberName, packageOrClassName)
+                } else {
+                    ZenScriptPackageType(packageOrClassName, true)
                 }
-            }
-            if (!found) {
-                ZenUnknownType(packageOrClassName)
-            } else if (isClass) {
-                ZenScriptClassType(memberName, packageOrClassName)
             } else {
-                ZenScriptPackageType(packageOrClassName, prevType.isLibrary)
+                val packageName = prevType.packageName
+                var found = false
+                var isZenFile = false
+                ZenScriptScriptFileIndex.processAllKeys(project) {
+                    if (it == packageName) {
+                        found = true
+                        isZenFile = true
+                        false
+                    } else if (it.startsWith(packageName)) {
+                        found = true
+                        false
+                    } else {
+                        true
+                    }
+                }
+                if (isZenFile) {
+
+                    return when (val member = findZenFileMember(project, packageName, memberName)) {
+                        is ZenScriptVariableDeclaration -> getVariableType(member)
+                        is ZenScriptFunctionDeclaration -> member.returnType
+                        is ZenScriptClassDeclaration -> ZenScriptClassType(memberName, "${packageName}.${memberName}")
+                        else ->
+                            ZenUnknownType("${packageName}.${memberName}")
+                    }
+                } else if (!found) {
+                    ZenUnknownType("${packageName}.${memberName}")
+                } else {
+                    ZenScriptPackageType("${prevType.packageName}.${memberName}", false)
+                }
             }
         }
 

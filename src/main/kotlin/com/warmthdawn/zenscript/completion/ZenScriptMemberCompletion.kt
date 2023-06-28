@@ -2,9 +2,6 @@ package com.warmthdawn.zenscript.completion;
 
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionUtil
-import com.intellij.codeInsight.completion.InsertionContext
-import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
@@ -17,11 +14,11 @@ import com.warmthdawn.zenscript.completion.ZenScriptPatterns.ZEN_SCRIPT_IDENTIFI
 import com.warmthdawn.zenscript.external.ZenScriptGlobalData
 import com.warmthdawn.zenscript.index.ZenScriptClassNameIndex
 import com.warmthdawn.zenscript.index.ZenScriptGlobalVariableIndex
+import com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex
 import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.reference.*
 import com.warmthdawn.zenscript.type.*
 import com.warmthdawn.zenscript.util.hasGlobalModifier
-import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
 import java.lang.IllegalStateException
 
@@ -79,26 +76,14 @@ class ZenScriptMemberCompletion(
         result.addElement(this@add)
     }
 
-    private fun addClassCandidate(name: String, qualifiedName: String) {
-//        name.
-        if (qualifiedName.startsWith("scripts")) {
-            val zenClazz = findZenClass(project, qualifiedName)!!
-            LookupElementBuilder
-                .create(zenClazz, name)
-                .withIcon(zenClazz.getIcon(0))
-                .appendTailText(" (${(zenClazz.containingFile as ZenScriptFile).name})", true)
-                .add()
-
-        } else {
-            val javaClass = findJavaClass(project, qualifiedName)
-                ?: throw NullPointerException("could not find $qualifiedName")
-            LookupElementBuilder
-                .create(javaClass, name)
-                .withIcon(javaClass.getIcon(0))
-                .appendTailText(" (${qualifiedName.substringBeforeLast('.')})", true)
-                .add()
-
-        }
+    private fun addJavaClassCandidate(name: String, qualifiedName: String) {
+        val javaClass = findJavaClass(project, qualifiedName)
+            ?: throw NullPointerException("could not find $qualifiedName")
+        LookupElementBuilder
+            .create(javaClass, name)
+            .withIcon(javaClass.getIcon(0))
+            .appendTailText(" (${qualifiedName.substringBeforeLast('.')})", true)
+            .add()
 
     }
 
@@ -110,26 +95,65 @@ class ZenScriptMemberCompletion(
             .add()
     }
 
-    private fun addPackageOrClassAccess(packageName: String) {
-        val packageNameLen = packageName.length
-        val packageNames = mutableSetOf<String>()
-        for (className in FileBasedIndex.getInstance().getAllKeys(ZenScriptClassNameIndex.NAME, project)) {
-            if (!className.startsWith(packageName)) {
-                continue
-            }
-            val last = className.substring(packageNameLen)
-            val dotIndex = last.indexOf('.')
-            if (dotIndex > 0) {
-                val name = last.substring(0, dotIndex)
-                if (name !in packageNames) {
-                    packageNames.add(name)
-                    addPackageCandidate(name, packageName + name)
-                }
+    private fun addPackageOrClassAccess(qualifierName: String) {
+        if (qualifierName.last() != '.') {
+            throw IllegalArgumentException("qualifier name must ends with dot!")
+        }
+        val qualifierNameLen = qualifierName.length
+        if (qualifierName.startsWith("scripts")) {
+            val packageNames = mutableSetOf<String>()
+            val packageName = qualifierName.substring(0, qualifierName.length - 1)
+            ZenScriptScriptFileIndex.processAllKeys(project) {
+                if (it == packageName) {
+                    val classes = findScriptFile(project, it)?.scriptBody?.classes
+                        ?: return@processAllKeys true
+                    for (zenClazz in classes) {
+                        if (!zenClazz.isValid || zenClazz.name == null) {
+                            return@processAllKeys true
+                        }
+                        LookupElementBuilder
+                            .create(zenClazz, zenClazz.name!!)
+                            .withIcon(zenClazz.getIcon(0))
+                            .appendTailText(" (${(zenClazz.containingFile as ZenScriptFile).name})", true)
+                            .add()
+                    }
 
-            } else {
-                addClassCandidate(last, className)
+                    return@processAllKeys false
+                }
+                if (!it.startsWith(qualifierName)) {
+                    return@processAllKeys true
+                }
+                val name = it.substring(qualifierNameLen).substringBefore('.')
+                packageNames.add(name)
+
+                true
+            }
+            for (name in packageNames) {
+                addPackageCandidate(name, qualifierName + name)
+            }
+
+        } else {
+            val packageNames = mutableSetOf<String>()
+            ZenScriptClassNameIndex.processAllKeys(project) {
+                if (!it.startsWith(qualifierName)) {
+                    return@processAllKeys true
+                }
+                val last = it.substring(qualifierNameLen)
+                val dotIndex = last.indexOf('.')
+                if (dotIndex > 0) {
+                    val name = last.substring(0, dotIndex)
+                    if (name !in packageNames) {
+                        packageNames.add(name)
+                        addPackageCandidate(name, qualifierName + name)
+                    }
+
+                } else {
+                    addJavaClassCandidate(last, it)
+                }
+                true
             }
         }
+
     }
 
     private fun completeMemberAccessExpr(element: ZenScriptMemberAccessExpression) {
@@ -170,23 +194,26 @@ class ZenScriptMemberCompletion(
 
     }
 
-    private fun allRootPackages(): Sequence<String> {
-        return FileBasedIndex.getInstance().getAllKeys(ZenScriptClassNameIndex.NAME, project)
-            .asSequence()
-            .map { it.substringBefore('.') }
-            .distinct()
+    private fun allRootPackages(): Set<String> {
+        val result = mutableSetOf<String>()
+        ZenScriptClassNameIndex.processAllKeys(project) {
+            val rootPackageName = it.substringBefore('.')
+            result.add(rootPackageName)
+            true
+        }
+        return result
     }
 
     private fun existsClass(classFQN: String): Boolean {
         var found = false
-        FileBasedIndex.getInstance().processAllKeys(ZenScriptClassNameIndex.NAME, {
+        ZenScriptClassNameIndex.processAllKeys(project) {
             if (it == classFQN) {
                 found = true
                 false
             } else {
                 true
             }
-        }, project)
+        }
         return found
     }
 
@@ -294,6 +321,11 @@ class ZenScriptMemberCompletion(
                 .withIcon(PlatformIcons.PACKAGE_ICON)
                 .add()
         }
+
+
+        LookupElementBuilder.create("scripts")
+            .withIcon(PlatformIcons.PACKAGE_ICON)
+            .add()
 
     }
 

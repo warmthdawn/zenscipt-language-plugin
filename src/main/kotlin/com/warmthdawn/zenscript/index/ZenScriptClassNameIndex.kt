@@ -2,7 +2,9 @@ package com.warmthdawn.zenscript.index
 
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.Processor
 import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
@@ -14,22 +16,28 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
+
 class ZenScriptClassNameIndex : FileBasedIndexExtension<String, String?>() {
     companion object {
         val NAME = ID.create<String, String?>("ZenScriptClassNameIndex")
+
+        fun processAllKeys(project: Project, processor: Processor<String>): Boolean {
+            return FileBasedIndex.getInstance().processAllKeys(NAME, processor, project)
+        }
     }
 
     override fun getName(): ID<String, String?> = NAME
 
     override fun getIndexer() = DataIndexer<String, String?, FileContent> { content ->
-        if (content.fileType == ZSLanguageFileType) {
-            val zsFile = (content.psiFile as ZenScriptFile).scriptBody ?: return@DataIndexer emptyMap()
-            val namespace = (content.psiFile as ZenScriptFile).packageName
-            zsFile.classes.asSequence()
-                .map { namespace + "." + it.name }
-                .map { it to null }
-                .toMap()
-        } else if (content.fileType == JavaClassFileType.INSTANCE) {
+//        if (content.fileType == ZSLanguageFileType) {
+//            val zsFile = (content.psiFile as ZenScriptFile).scriptBody ?: return@DataIndexer emptyMap()
+//            val namespace = (content.psiFile as ZenScriptFile).packageName
+//            zsFile.classes.asSequence()
+//                .map { namespace + "." + it.name }
+//                .map { it to null }
+//                .toMap()
+//        } else
+        if (content.fileType == JavaClassFileType.INSTANCE) {
             val zenClass = indexJavaClass(content.content)
             if (zenClass != null)
                 mapOf(zenClass)
@@ -88,14 +96,18 @@ class ZenScriptClassNameIndex : FileBasedIndexExtension<String, String?>() {
     override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
     override fun getValueExternalizer(): DataExternalizer<String?> = StringExternalizer
 
-    override fun getVersion(): Int = 12
+    override fun getVersion(): Int = 14
 
     override fun getInputFilter(): FileBasedIndex.InputFilter =
-        object : DefaultFileTypeSpecificInputFilter(ZSLanguageFileType, JavaClassFileType.INSTANCE) {
+        object : DefaultFileTypeSpecificInputFilter(JavaClassFileType.INSTANCE) {
             override fun acceptInput(file: VirtualFile): Boolean {
                 return !file.name.endsWith(".d.zs")
             }
         }
+
+    override fun traceKeyHashToVirtualFileMapping(): Boolean {
+        return true
+    }
 
     override fun dependsOnFileContent(): Boolean = true
 }

@@ -1,4 +1,4 @@
-package com.warmthdawn.zenscript.completion
+package com.warmthdawn.zenscript.codeInsight
 
 import com.intellij.codeInsight.CodeInsightBundle
 import com.intellij.codeInsight.CodeInsightSettings
@@ -13,7 +13,6 @@ import com.warmthdawn.zenscript.reference.resolveZenScriptReference
 import com.warmthdawn.zenscript.type.*
 import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
-import jdk.jfr.Enabled
 import java.lang.IllegalArgumentException
 
 
