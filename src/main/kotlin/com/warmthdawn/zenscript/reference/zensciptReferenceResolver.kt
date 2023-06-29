@@ -20,6 +20,7 @@ import com.warmthdawn.zenscript.psi.ZenScriptNamedElement
 import com.warmthdawn.zenscript.psi.ZenScriptReference
 import com.warmthdawn.zenscript.psi.ZenScriptVariableDeclaration
 import com.warmthdawn.zenscript.type.*
+import com.warmthdawn.zenscript.util.argumentTypes
 
 fun resolveZenScriptReference(
     ref: ZenScriptReference,
@@ -37,8 +38,6 @@ fun resolveZenScriptReference(
         val parent = ref.parent
         if (parent is ZenScriptCallExpression) {
             return filterCallExpr(parent, results)
-
-            intArrayOf()
         }
     }
     return results
@@ -125,7 +124,7 @@ fun filterCallExpr(
 ): Array<ZenScriptElementResolveResult> {
     val project = ref.project
     val typeUtil = ZenScriptTypeService.getInstance(project)
-    val arguments = ref.arguments.expressionList.map { getType(it) }
+    val arguments = ref.arguments.argumentTypes
     if (resolvedMethods.isEmpty()) {
         return emptyArray()
     }
@@ -141,7 +140,7 @@ fun filterCallExpr(
         if (priority == ZenCallPriority.INVALID) {
             return candidateMethods.map {
                 val type = if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-                ZenScriptElementResolveResult(it, type)
+                ZenScriptElementResolveResult(it, type, false)
             }.toTypedArray()
         }
         val resultSet = result.toSet()
@@ -149,7 +148,7 @@ fun filterCallExpr(
             index in resultSet
         }.map {
             val type = if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-            ZenScriptElementResolveResult(it, type)
+            ZenScriptElementResolveResult(it, type, priority.priority > ZenCallPriority.PARTIAL.priority)
         }.toTypedArray()
 
     }
@@ -174,7 +173,7 @@ fun filterCallExpr(
                     return ctors.map {
                         val type =
                             if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-                        ZenScriptElementResolveResult(it, type)
+                        ZenScriptElementResolveResult(it, type, false)
                     }.toTypedArray()
                 }
                 val resultSet = result.toSet()
@@ -183,7 +182,7 @@ fun filterCallExpr(
                 }.map {
                     val type =
                         if (it is PsiMethod) ZenResolveResultType.JAVA_METHODS else ZenResolveResultType.ZEN_METHOD
-                    ZenScriptElementResolveResult(it, type)
+                    ZenScriptElementResolveResult(it, type, priority.priority > ZenCallPriority.PARTIAL.priority)
                 }.toTypedArray()
             }
 
@@ -257,7 +256,6 @@ private fun resolveLocalAccessExpr(ref: ZenScriptLocalAccessExpression): Array<Z
                     val type = when (it) {
                         is ZenScriptClassDeclaration -> ZenResolveResultType.ZEN_CLASS
                         is ZenScriptFunctionDeclaration -> ZenResolveResultType.ZEN_METHOD
-                        is ZenScriptImportDeclaration -> ZenResolveResultType.ZEN_IMPORT
                         else -> ZenResolveResultType.ZEN_VARIABLE
                     }
                     ZenScriptElementResolveResult(it, type)

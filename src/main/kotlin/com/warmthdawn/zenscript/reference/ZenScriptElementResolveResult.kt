@@ -17,7 +17,6 @@ enum class ZenResolveResultType {
     ZEN_CLASS,
     ZEN_METHOD,
     ZEN_VARIABLE,
-    ZEN_IMPORT,
     ZEN_FILE,
 
     JAVA_CLASS,

@@ -7,6 +7,7 @@ import com.warmthdawn.zenscript.index.ZenScriptMemberCache
 import com.warmthdawn.zenscript.psi.ZenScriptConstructorDeclaration
 import com.warmthdawn.zenscript.psi.ZenScriptFunction
 import com.warmthdawn.zenscript.psi.ZenScriptFunctionDeclaration
+import com.warmthdawn.zenscript.util.extractMethodMetadata
 
 
 class ZenScriptTypeService(val project: Project) {
@@ -59,20 +60,7 @@ class ZenScriptTypeService(val project: Project) {
         arguments: List<ZenType>,
         javaFunc: PsiMethod,
     ): ZenCallPriority {
-        val parameters = javaFunc.parameterList.parameters
-
-        var firstOptionalIndex = -1
-        val isVarargs = javaFunc.isVarArgs
-        val parameterTypes = ArrayList<ZenType>(parameters.size)
-        for (i in parameters.indices) {
-            val paramType = ZenType.fromJavaType(parameters[i].type)
-            parameterTypes.add(paramType)
-            if (parameters[i].hasAnnotation("stanhebben.zenscript.annotations.Optional")) {
-                firstOptionalIndex = i
-                break
-            }
-        }
-
+        val (parameterTypes, _, firstOptionalIndex, isVarargs) = javaFunc.extractMethodMetadata()
         return getCallPriority(arguments, parameterTypes, firstOptionalIndex, isVarargs)
 
     }
@@ -81,18 +69,8 @@ class ZenScriptTypeService(val project: Project) {
         arguments: List<ZenType>,
         zsFunc: ZenScriptFunction,
     ): ZenCallPriority {
-        var firstOptionalIndex = -1
-        val parameters = zsFunc.parameters!!.parameterList
-        val parameterTypes = ArrayList<ZenType>(parameters.size)
-        for (i in parameters.indices) {
-            val paramType = ZenType.fromTypeRef(parameters[i].typeRef)
-            parameterTypes.add(paramType)
-            if (parameters[i].initializer != null) {
-                firstOptionalIndex = i
-                break
-            }
-        }
 
+        val (parameterTypes, _, firstOptionalIndex) = zsFunc.extractMethodMetadata()
         return getCallPriority(arguments, parameterTypes, firstOptionalIndex, false)
     }
 
@@ -303,7 +281,7 @@ class ZenScriptTypeService(val project: Project) {
             }
         }
         var checkUntil = arguments.size
-        if (isVarargs) checkUntil = Math.min(checkUntil, parameterTypes.size - 1)
+        if (isVarargs) checkUntil = checkUntil.coerceAtMost(parameterTypes.size - 1)
         if (arguments.size == parameterTypes.size && isVarargs) {
             val lastType: ZenType = parameterTypes[parameterTypes.size - 1]
             val varargsElementType: ZenType = (lastType as ZenScriptArrayType).elementType

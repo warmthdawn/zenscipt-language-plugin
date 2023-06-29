@@ -11,6 +11,7 @@ import com.warmthdawn.zenscript.psi.*
 import com.warmthdawn.zenscript.reference.ZenResolveResultType
 import com.warmthdawn.zenscript.reference.resolveZenScriptReference
 import com.warmthdawn.zenscript.type.*
+import com.warmthdawn.zenscript.util.argumentTypes
 import com.warmthdawn.zenscript.util.returnType
 import com.warmthdawn.zenscript.util.type
 import java.lang.IllegalArgumentException
@@ -274,7 +275,7 @@ class ZenScriptParameterInfoHandler :
         val candidates = context.objectsToView
 
         val typeUtil = ZenScriptTypeService.getInstance(context.project)
-        val argumentTypes = argumentList.expressionList.map { getType(it) }
+        val argumentTypes = argumentList.argumentTypes
         var bestPriority = ZenCallPriority.INVALID
         for ((i, candidate) in candidates.withIndex()) {
             if (candidate !is MethodCandidate) {

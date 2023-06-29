@@ -23,7 +23,6 @@ class ZenScriptScriptFileIndex : ScalarIndexExtension<String>() {
     companion object {
         val NAME = ID.create<String, Void>("ZenScriptScriptFileIndex")
         fun processAllKeys(project: Project, processor: Processor<String>): Boolean {
-
             return FileBasedIndex.getInstance().processAllKeys(NAME, processor, project)
         }
     }

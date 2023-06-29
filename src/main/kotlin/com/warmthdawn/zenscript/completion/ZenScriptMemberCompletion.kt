@@ -76,14 +76,18 @@ class ZenScriptMemberCompletion(
         result.addElement(this@add)
     }
 
-    private fun addJavaClassCandidate(name: String, qualifiedName: String) {
+    private fun addJavaClassCandidate(name: String, qualifiedName: String, addAsFQ: Boolean = false) {
         val javaClass = findJavaClassByFQN(project, qualifiedName)
             ?: throw NullPointerException("could not find $qualifiedName")
-        LookupElementBuilder
+        var element = LookupElementBuilder
             .create(javaClass, name)
             .withIcon(javaClass.getIcon(0))
             .appendTailText(" (${qualifiedName.substringBeforeLast('.')})", true)
-            .add()
+        if (addAsFQ) {
+            element = element.withInsertHandler(ZenScriptShortenFQInsertHandler(qualifiedName))
+        }
+
+        element.add()
 
     }
 
@@ -285,6 +289,9 @@ class ZenScriptMemberCompletion(
         if (qualifier == null) {
             addRootPackages()
             addLocalClasses(element)
+            if (addAutoImport) {
+                completeAutoImportedClasses()
+            }
             return
         } else {
             addPackageOrClassAccess(qualifier.text)
@@ -372,6 +379,51 @@ class ZenScriptMemberCompletion(
         addRootPackages()
         addLocalClasses(element, false)
         addGlobals(element.containingFile.originalFile.virtualFile)
+        if (addAutoImport) {
+            completeAutoImportedClasses()
+            completeAutoImportedFunctions()
+        }
+    }
+
+
+    private fun completeAutoImportedClasses() {
+
+        ZenScriptClassNameIndex.processAllKeys(project) {
+            val clazzName = it.substringAfterLast('.')
+            addJavaClassCandidate(clazzName, it)
+            true
+        }
+
+        ZenScriptScriptFileIndex.processAllKeys(project) {
+            val file = findScriptFile(project, it) ?: return@processAllKeys true
+            file.scriptBody?.classes?.forEach { clazz ->
+                if (clazz.isValid && clazz.name != null) {
+                    val clazzName = clazz.name!!
+
+                    LookupElementBuilder
+                        .create(clazz, clazzName)
+                        .withIcon(clazz.getIcon(0))
+                        .appendTailText(" (${(clazz.containingFile as ZenScriptFile).name})", true)
+                        .withInsertHandler(ZenScriptShortenFQInsertHandler("${it}.${clazzName}"))
+                        .add()
+                }
+            }
+            true
+        }
+    }
+
+    private fun completeAutoImportedFunctions() {
+
+        ZenScriptScriptFileIndex.processAllKeys(project) {
+            val file = findScriptFile(project, it) ?: return@processAllKeys true
+            file.scriptBody?.functions?.forEach { func ->
+                if (func.isValid && func.name != null) {
+                    val element = func.createLookupElement()
+                    element.add()
+                }
+            }
+            true
+        }
     }
 
 }

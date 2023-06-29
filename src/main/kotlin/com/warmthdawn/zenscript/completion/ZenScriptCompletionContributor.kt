@@ -30,7 +30,7 @@ class ZenScriptCompletionContributor : CompletionContributor() {
                         element,
                         result,
                         parameters.offset,
-                        parameters.isCompleteOnlyNotImported
+                        !parameters.isCompleteOnlyNotImported
                     ).addAllMembers()
                 }
             }
