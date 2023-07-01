@@ -6,6 +6,7 @@ import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.java.JavaDocumentationProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiVariable
+import com.intellij.xml.util.XmlStringUtil
 import com.warmthdawn.zenscript.psi.ZenScriptClass
 import com.warmthdawn.zenscript.psi.ZenScriptFile
 import com.warmthdawn.zenscript.psi.ZenScriptForeachVariableDeclaration
@@ -88,7 +89,8 @@ class ZenScriptDocumentationProvider : AbstractDocumentationProvider() {
 
         if (initializer != null) {
             builder.append(" ").append("=").append(" ")
-            builder.append(initializer.expression.text)
+
+            builder.append(XmlStringUtil.escapeString(initializer.expression.text))
         }
 
         return builder.toString()

@@ -35,6 +35,8 @@
         <fileBasedIndex implementation="com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex"/>
         <annotator language="ZenScript"
                    implementationClass="com.warmthdawn.zenscript.annotator.ZenScriptAnnotator"/>
+        <annotator language="ZenScript"
+                   implementationClass="com.warmthdawn.zenscript.annotator.ZenScriptTypeAnnotator"/>
         <fileType
                 name="ZenScript File"
                 implementationClass="com.warmthdawn.zenscript.ZSLanguageFileType"
@@ -74,4 +76,13 @@
         <jps.plugin/>
 
     </extensions>
+
+    <actions>
+
+        <action id="com.warmthdawn.zenscript.external.CraftTweakerRuntimeConfigureAction"
+                class="com.warmthdawn.zenscript.external.CraftTweakerRuntimeConfigureAction"
+                text="Configure Crafttweaker Runtime" description="Configure crafttweaker runtime">
+            <add-to-group group-id="CodeMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>

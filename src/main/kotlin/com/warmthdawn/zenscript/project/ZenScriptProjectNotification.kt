@@ -29,8 +29,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
+import com.intellij.util.indexing.FileBasedIndex
 import com.warmthdawn.zenscript.ZSLanguage
 import com.warmthdawn.zenscript.ZSLanguageFileType
+import com.warmthdawn.zenscript.index.ZenScriptScriptFileIndex
 import com.warmthdawn.zenscript.psi.ZenScriptFile
 import kotlinx.serialization.json.*
 import java.util.function.Function
@@ -168,8 +170,8 @@ class ZenScriptProjectNotification : EditorNotificationProvider, DumbAware {
 
                             model.addLibraryEntry(library)
                             model.commit()
-                            module.project.save()
                         }
+                        module.project.save()
                     }
                 }
             }
@@ -212,8 +214,9 @@ class ZenScriptProjectNotification : EditorNotificationProvider, DumbAware {
 
 
                             model.commit()
-                            module.project.save()
                         }
+                        FileBasedIndex.getInstance().requestRebuild(ZenScriptScriptFileIndex.NAME)
+                        module.project.save()
                     }
                 }
             }

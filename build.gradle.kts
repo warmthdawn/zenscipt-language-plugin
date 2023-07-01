@@ -5,10 +5,13 @@ plugins {
 }
 
 group = "com.warmthdawn"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
+}
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 // Configure Gradle IntelliJ Plugin
